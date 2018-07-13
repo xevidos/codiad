@@ -1,0 +1,27 @@
+s:856:"/*
+
+Created: 2018-07-10
+Modified: N/A
+Purpose: Update the MVC
+
+*/
+///////////////////////////
+c.setToggleTestButton = function(m){
+	m.testButtonIn = ! m.testButtonIn
+}
+c.showToggleTestButton = function(v){
+	m.testButtonIn
+		? v.testButton.styles(`box-shadow: inset 5px 5px 8px #000000`)
+		: v.testButton.styles(`box-shadow: 5px 5px 8px #000000`)
+}
+/////////////////////////
+c.updateMetaEvents = function(eventObject){
+	m.eventObject = eventObject    //the event object itself
+	m.source = eventObject.target  //where the event took place
+	m.type = eventObject.type      //what the event was
+	m.id = eventObject.target.id   //the id of the element where the event occurred
+	
+	//Shortcuts to combine similar mobile and computer events
+	m.pressed = m.type === `mousedown` || m.type === `touchstart`
+	m.released = m.type === `mouseup` || m.type === `touchend`
+}";

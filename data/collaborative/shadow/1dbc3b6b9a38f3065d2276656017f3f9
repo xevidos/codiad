@@ -1,0 +1,190 @@
+s:4545:"<?php
+
+/**
+ * 
+ * 
+ *
+ * @package 
+ * @author  Isaac Brown
+ *
+ * The function below will stop direct access to this file.
+ */
+
+
+if ( ! defined( "U29tZSByYW5kb20gc3RyaW5nIHRoYXQgbm8gb25lIHdpbGwgZXZlciBndWVzcy4gIFRoaXMgd2lsbCBiZSB0aGUgYWRtaW4gZmlsZSBwYXNzd29yZC4gSWYgeW91IHdhbnQgdG8gZGVjb2RlIHRoaXMsIHRoZW4gZ29vZCBmb3IgeW91LiAgVGhpcyBpcyBmb3IgQWJiYXNzJyBhcHBsaWNhdGlvbi4gIEFueSBxdWVzdGlvbnMgYXNrIEFiYmFzcyBvciBlbWFpbCBtZSBhdCB4ZXZpZG9zQGdtYWlsLmNvbS4=" ) ) {echo "Access code required";exit();}
+
+define( "U29tZSByYW5kb20gc3RyaW5nIHRoYXQgbm8gb25lIHdpbGwgZXZlciBndWVzcy4gIFRoaXMgd2lsbCBiZSB0aGUgcHVibGljIGZpbGUgcGFzc3dvcmQuIElmIHlvdSB3YW50IHRvIGRlY29kZSB0aGlzLCB0aGVuIGdvb2QgZm9yIHlvdS4gIFRoaXMgaXMgZm9yIEFiYmFzcycgYXBwbGljYXRpb24uICBBbnkgcXVlc3Rpb25zIGFzayBBYmJhc3Mgb3IgZW1haWwgbWUgYXQgeGV2aWRvc0BnbWFpbC5jb20u", TRUE );
+require_once( "../public/public.php" );
+
+/**
+ * Admin class. This class should ideally be used to work with the
+ * admin-facing side of the application.
+ *
+ * @package 
+ * @author  Isaac Brown <xevidos@gmail.com>
+ */
+
+class mypit_students {
+
+	const VERSION = '1.0.0';
+
+
+	/**
+	 * Unique identifier for your plugin.
+	 *
+	 *
+	 * The variable name is used as the text domain when internationalizing strings
+	 * of text. Its value should match the Text Domain file header in the main
+	 * plugin file.
+	 *
+	 * @var      string
+	 */
+	protected $plugin_slug = '';
+
+	/**
+	 * Instance of this class.
+	 */
+	protected static $instance = null;
+
+	/**
+	 * Initialize the plugin by setting localization and loading public scripts and styles.
+	 */
+	private function __construct() {
+		
+		// Trigger initial
+		$this->init();
+	}
+
+	/**
+	 * Return the plugin slug.
+	 *
+	 * @since    1.0.0
+	 *
+	 * @return    Plugin slug variable.
+	 */
+	public function get_plugin_slug() {
+		return $this->plugin_slug;
+	}
+
+	/**
+	 * Return an instance of this class.
+	 *
+	 * @since     1.0.0
+	 *
+	 * @return    object    A single instance of this class.
+	 */
+	public static function get_instance() {
+		// If the single instance hasn't been set, set it now.
+		if ( null == self::$instance ) {
+			self::$instance = new self;
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Fired for each blog when the plugin is activated.
+	 *
+	 * @since    1.0.0
+	 */
+	private static function install() {
+	}
+
+	/**
+	 * Fired for each blog when the plugin is uninstalled.
+	 *
+	 * @since    1.0.0
+	 */
+	private static function uninstall() {
+	}
+	
+	public function check_session() {
+		
+		session_start();
+		$access = $_SESSION['access'];
+		$user_check = $_SESSION['username'];
+		$query = "SELECT `username` FROM `users` WHERE `username`=? AND `access`=?";
+		$bind = "ss";
+		$bind_vars = array( $user_check, $access );
+		
+		$result = mypit::sql( $query, $bind, $bind_vars, "Error Checking User Session." );
+		//$row	 	= mysqli_fetch_array( $sql, MYSQLI_ASSOC );
+		//$login_user = $row['username'];
+		
+		unset( $query );
+		unset( $bind );
+		unset( $bind_vars );
+
+		//echo $user_check;
+		
+		if( mysqli_num_rows( $result ) == 0 ) {
+			
+			session_destroy();
+			header( "Location: ../access?redirect=students" );
+			exit;
+		}
+	}
+	
+	public static function check_privilege_level( $level ) {
+		
+		$username = $_SESSION['username'];
+		$query = "SELECT `privilege_level` FROM `admin_users` WHERE `username`=?";
+		$bind = "s";
+		$bind_vars = array( $username );
+		
+		$check = mypit::sql( $query, $bind, $bind_vars, "Error Checking User Level" )->fetch_assoc()["privilege_level"];
+		
+		if ( $check == $level ) {
+			
+			return( TRUE );
+		} else {
+		
+			return( FALSE );
+		}
+	}
+
+	/**
+	 * Load the plugin text domain for translation.
+	 *
+	 * @since    1.0.0
+	 */
+	public function init() {
+		
+		self::check_session();
+		
+		//Passwords for files that will be required.
+		define( "U29tZSByYW5kb20gc3RyaW5nIHRoYXQgbm8gb25lIHdpbGwgZXZlciBndWVzcy4gIFRoaXMgd2lsbCBiZSB0aGUgcGFnZXMgZmlsZSBwYXNzd29yZC4gSWYgeW91IHdhbnQgdG8gZGVjb2RlIHRoaXMsIHRoZW4gZ29vZCBmb3IgeW91LiAgVGhpcyBpcyBmb3IgQWJiYXNzJyBhcHBsaWNhdGlvbi4gIEFueSBxdWVzdGlvbnMgYXNrIEFiYmFzcyBvciBlbWFpbCBtZSBhdCB4ZXZpZG9zQGdtYWlsLmNvbS4=", TRUE );
+		
+		//Classes that may be required for pages.
+		require_once( "./pages.php" );
+		
+		//Check to see if a page is set
+		if ( isset( $_GET["page"] ) ) {
+			
+			$page = $_GET["page"];
+		} else {
+			
+			$page = "index";
+		}
+		
+		//Switch through possible pages.
+		switch( $page ) {
+			
+			case( "index" ):
+				pages::index();
+			break;
+				
+			case( "my-quizes" ):
+				pages::my_quizes();
+			break;
+				
+			case( "take-a-quiz" ):
+				pages::take_a_quiz();
+			break;
+				
+			default:
+				pages::index();
+			break;
+		}
+	}
+}";

@@ -1,0 +1,30 @@
+s:855:"<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+require_once( "./includes/head.php" );
+require_once( "./includes/header.php" );
+
+?>
+<section class="content">
+	<p>This page will eventually be password protected with a better interface.</p>
+	<p>Pages</p>
+	<ul>
+		<li><a href=""></a></li>
+		<li><a href="./info.php">PHP Module Information</a></li>
+	</ul>
+	
+	<p>Info</p>
+	<ul>
+		<li>Connect to server admin interface <a href="https://66.251.14.121:10000" target="_blank">https://66.251.14.121:10000</a></li>
+		<li>Connect to website admin interface <a href="https://66.251.14.121/admin" target="_blank">https://66.251.14.121/admin</a></li>
+		
+		<li>Connect to ssh through ssh user@66.251.14.121</li>
+	</ul>
+	vncserver -UserPasswdVerifier UnixAuth
+</section>
+<?php
+
+require_once( "./includes/footer.php" );
+
+?>";

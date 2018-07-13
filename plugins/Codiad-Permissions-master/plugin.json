@@ -1,0 +1,12 @@
+[{
+    "author": "Andr3as",
+    "version": "0.21",
+    "name": "Permissions",
+    "url": "https://github.com/Andr3as/Codiad-Permissions.git",
+    "contextmenu" : [{
+        "action" : "codiad.Permissions.showDialog($('#context-menu').attr('data-path'));",
+        "icon" : "icon-key",
+        "applies-to" : "both",
+        "title" : "Edit Permissions"
+    }]
+}]

@@ -1,0 +1,43 @@
+s:919:"<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+require_once( "./includes/head.php" );
+require_once( "./includes/header.php" );
+
+if ( isset( $_GET["teacher"] ) ) {
+	
+	$teacher = $_GET["teacher"];
+} else {
+	
+	$teacher = null;
+}
+
+$query = "SELECT * FROM quizzes WHERE author=? AND active=true";
+$quizzes = mypit::sql( $query, "s", array( $teacher ), "Error getting a list of teachers." );
+
+?>
+<section class="content">
+	<?php echo $teacher . "<br>";echo var_dump( $quizzes );?>
+	<?php
+	if( mysqli_num_rows( $quizzes ) == 0 ) {
+		
+		?>
+		<p>This teacher currently has no quizzes active.</p>
+		<?php
+	} else {
+		
+		while( $row = mysqli_fetch_assoc( $quizzes ) ) {
+			
+			?>
+			<li><a href="./students/?page=take-a-quiz&quiz=<?php echo $row["id"];?>"><?php echo $row["quiz_name"];?></a></li>
+			<?php
+		}
+	}
+	?>
+</section>
+<?php
+
+require_once( "./includes/footer.php" );
+
+?>";

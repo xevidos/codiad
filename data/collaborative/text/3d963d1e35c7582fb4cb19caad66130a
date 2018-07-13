@@ -1,0 +1,350 @@
+s:5688:"/* CSS Document */
+
+html {}
+body {
+	
+	margin: 0;
+	padding: 0;
+}
+
+.content {
+
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	padding: 0 10px 0 10px;
+}
+
+/*==================================================
+* Start Header
+*==================================================*/
+.main_menu_container {
+	
+	background-color: #1f2059;
+	/*display: block;*/
+	position: relative;
+	text-align: center;
+	top: 0;
+	width: 100%;
+	transition: all 0.5s;
+}
+
+.main_menu_container_sticky {
+	
+	transition: all 0.5s;
+	position: fixed;
+	top: 0;
+	z-index: 10;
+}
+
+.main_menu {
+	
+	align-items: center;
+	display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+	display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+	display: -ms-flexbox;      /* TWEENER - IE 10 */
+	display: -webkit-flex;     /* NEW - Chrome */
+	display: flex;             /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    justify-content: center;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	transition: all 0.5s;
+	width: 100%;
+}
+
+.main_menu_drop_down {
+	
+	list-style: none;
+}
+
+.main_menu_drop_down_item {
+	
+	list-style: none;
+}
+
+.mobile_menu_open {
+	
+	display: none;
+}
+
+.mobile_menu_close {
+	
+	display: none;
+}
+
+.main_menu_item {
+	
+	display: inline-block;
+	list-style: none;
+	
+	-webkit-transition: background-color .5s;
+	transition: background-color .5s;
+}
+
+.main_menu_item:hover {
+
+	background-color: #CCCCCC;
+	
+	-webkit-transition: background-color .5s;
+	transition: background-color .5s;
+}
+
+.menu_item_selected {
+
+	background-color: #FFFFFF;
+	
+	-webkit-transition: background-color .5s;
+	transition: background-color .5s;
+}
+
+.menu_item_selected:hover {
+	
+	background-color: #FFFFFF;
+}
+
+.main_menu_link {
+	
+	-webkit-transition: all 500ms;
+	border-radius: 0px;
+	color: #FFFFF0;
+	display: block;
+	font-family: 'IM Fell English SC', serif;
+	font-size: 16px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	line-height: 22px;
+	padding: 20px 10px;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: all 500ms;
+	white-space: nowrap;
+}
+
+.main_menu_link_selected {
+	
+	color: #777777;
+}
+
+.main_menu_container_sticky + .content {
+	
+	
+}
+
+.main_menu_logo_link {
+	
+	display: none;
+}
+
+.logo {
+	
+	max-width: 0;
+	overflow: hidden;
+	transition: all 0.5s;
+}
+
+
+.main_menu_container_sticky li.logo {
+	
+	max-width:500px;
+}
+
+.main_menu_container_sticky .main_menu_logo_link {
+	
+	display: visible;
+}
+
+/*==================================================
+* Start Mobile Menu
+*==================================================*/
+
+.mobile_menu_open {
+	
+	display: none;
+}
+
+.mobile_menu_close {
+	
+	display: none;
+}
+
+/* If screen is less than x */
+@media only
+	screen and (max-device-width : 736px),
+	screen and (max-width: 736px)
+    /*and (-webkit-min-device-pixel-ratio : 3) This isnt needed*/
+{
+	
+	html, body {
+		
+		max-width: 100%;
+    	overflow-x: hidden;
+	}
+	/*
+	.body {
+		
+		-webkit-transform:  rotate(180deg);
+        -moz-transform:  rotate(180deg);
+        -ms-transform:  rotate(180deg);
+        -o-transform:  rotate(180deg);
+        transform:  rotate(180deg);
+	}
+	
+	.body > section {
+        display: block;
+        -webkit-transform: rotate(-180deg);
+        -moz-transform: rotate(-180deg);
+        -ms-transform: rotate(-180deg);
+        -o-transform: rotate(-180deg);
+        transform: rotate(-180deg);
+    }*/
+	
+	p {
+	
+		font-size: 1em;
+		margin: 1em 0;
+	}
+
+	table {
+		
+		width: 100% !important;
+	}
+	
+	tr {
+	
+		width: 100% !important;
+	}
+	
+	td {
+	
+		display: block;
+		width: 100% !important;
+	}
+	
+	th {
+	
+		display: block;
+		width: 100% !important;
+	}
+	
+	table.keep_layout td {
+		
+		display: table-cell;
+		width: initial !important;
+	}
+	
+	.header_table_column {
+	
+		text-align: center;
+	}
+	
+	.mobile_menu_open {
+		
+		background-color: #ededed;
+		display: block;
+		text-align: center;
+		width: 100%;
+	}
+	
+	.mobile_menu_open_button {
+	
+		font-size: 25px;
+		text-decoration: none;
+	}
+
+	.mobile_menu_close {
+
+		display: block;
+		text-align: right;
+	}
+	
+	.mobile_menu_close_button {
+
+		color: #FFF;
+		font-size: 50px;
+		padding-right: 5%;
+		text-align: right;
+		text-decoration: none;
+
+	}
+	
+	.main_menu {
+	
+		background-color: #111;
+		display: block;
+		height: 100%;
+		left: 0;
+		margin-top: 0;
+		overflow-x: hidden;
+		position: fixed;
+		top: 0;
+		transition: 0.5s;
+		width: 0;
+		z-index: 11;
+
+	}
+
+	.main_menu_drop_down {
+
+		list-style: none;
+	}
+
+	.main_menu_drop_down_item {
+
+		list-style: none;
+	}
+
+	.main_menu_item {
+
+		display: block;
+		list-style: none;
+		width: 100%;
+
+		-webkit-transition: background-color .5s;
+		transition: background-color .5s;
+	}
+
+	.main_menu_item:hover {
+
+		background-color: #CCCCCC;
+
+		-webkit-transition: background-color .5s;
+		transition: background-color .5s;
+	}
+
+	.menu_item_selected {
+
+		background-color: #FFFFFF;
+		display: block;
+		list-style: none;
+		width: 100%;
+
+		-webkit-transition: background-color .5s;
+		transition: background-color .5s;
+	}
+
+	.menu_item_selected:hover {
+
+		background-color: #FFFFFF;
+	}
+
+	.main_menu_link {
+
+		-webkit-transition: all 500ms;
+		border-radius: 0px;
+		color: #777777;
+		display: block;
+		font-family: 'IM Fell English SC', serif;
+		font-size: 16px;
+		font-weight: 600;
+		letter-spacing: 1px;
+		line-height: 22px;
+		padding: 20px 10px;
+		text-decoration: none;
+		text-transform: uppercase;
+		transition: all 500ms;
+		white-space: nowrap;
+		width: 100%;
+	}
+}
+";

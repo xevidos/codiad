@@ -1,0 +1,11 @@
+[{ "author" : "Rafasashi & beli3ver",
+    "version": "0.0.4",
+    "name" : "Archives",
+    "url" : "https://github.com/rafasashi/Codiad-Archives",
+    "contextmenu" : [{
+        "action" : "codiad.Extract.showDialog($('#context-menu').attr('data-path'));",
+        "icon" : "icon-list-add",
+        "applies-to" : "file-only",
+        "title" : "Extract"
+    }]
+}]

@@ -1,0 +1,11 @@
+[ { "author" : "daeks",
+    "version": "0.2b",
+    "name" : "Codiad Together",
+    "url" : "https://github.com/daeks/Codiad-Together",
+    "requires" : "371cfdb520a44b85cc041709a067ee1046f8acd0",
+    "rightbar" : [{
+        "action" : "codiad.together.load();",
+        "icon" : "icon-users",
+        "title" : "Toogle Together"
+        }]
+  } ]

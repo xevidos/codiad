@@ -1,0 +1,795 @@
+s:26248:"/*global L*/
+/*global m*/
+/*global v*/
+/*global c*/
+////////////////////////////
+c.setClearSearch = (m)=>{
+    v.txtSearch.value = '' //clear the search text
+    c.setSearchResult(m)    
+}
+c.showClearSearch = (v)=>{
+    c.showSearchResult(v)    
+}
+////////////////////////////
+c.setSearchResult = function(m){
+  if(m.nowEditing){return} // !m.nowEditing is now set as a function qualifier
+  m.handlingSearch = true
+  m.searchIsEmpty =  v.txtSearch.value === ''
+  if(m.currentContactsArray[m.selectedIndex]){
+      m.priorName = m.currentContactsArray[m.selectedIndex][0]+m.currentContactsArray[m.selectedIndex][1]  
+  }
+  m.sameContact = false
+  
+  //get result of search and place in 
+  //m.currentCurrentContactsArray
+  const subString = v.txtSearch.value.trim();
+  const list = m.arrayOfContactArrays
+  //restrict search to only fields 0 -> 4: This eliminates searching image name and primary key
+  m.currentContactsArray = L.arrayStringMatch(subString, list, 4)
+  if(m.currentContactsArray[0]){
+    m.currentTopSearchName = m.currentContactsArray[0][0]+m.currentContactsArray[0][1]
+  }
+  m.sameContact = m.currentTopSearchName === m.priorName
+}
+c.showSearchResult = function(v){
+  if(m.nowEditing){return}
+  console.log(m.currentContactsArray)
+  c.fillSelector(m.currentContactsArray)
+  c.setContactDisplay(m)      
+  c.showContactDisplay(v)
+  c.showMailPhoneTouched(v)
+  if(m.searchIsEmpty){
+      Array.from(document.querySelectorAll('.endcap')).forEach(endcap => endcap.styles('visibility: hidden')('opacity: 0'))
+  }
+  else{
+      Array.from(document.querySelectorAll('.endcap')).forEach(endcap => endcap.styles('visibility: visible')('opacity: 0.55'))
+      v.matchCount.innerText = m.currentContactsArray.length
+      v.matchIndex.innerText = m.selectedIndex + 1 || 0
+  }
+}
+
+///////////////////////////
+c.setPulseNextButton = (m)=>{
+  m.nextButtonIsPressed = true
+  m.currentDirection = `next`  
+}
+c.showPulseNextButton = ({btnNext})=>{ 
+  if(m.nextButtonIsPressed){
+    btnNext.attribs('class=pressed button')
+    selectNextContact()
+    c.showMailPhoneTouched(v) 
+    v.matchIndex.innerText = m.selectedIndex + 1 || 0    
+  }
+  ///////| helper |///////
+  function selectNextContact(){
+    if(notTooFarAhead()){
+      moveForward()
+    }
+    else{
+      selectFirstContact()
+    }
+    ///////| 2nd level helpers |//////
+    function notTooFarAhead(){
+      let notTooFar = false
+      let indexTooFar = v.contactSelector.length
+      let currentIndex = v.contactSelector.selectedIndex
+      //set to true if next index < size of current Array
+      notTooFar = (currentIndex + 1) < indexTooFar
+      // otherwise its false that it's notTooFar ahead
+      return notTooFar
+    }
+    function moveForward(){
+      //increment selected index of current array
+      ++v.contactSelector.selectedIndex
+      c.setContactDisplay(m)
+      c.showContactDisplay(v)
+    }
+    function selectFirstContact(){
+      //set selected index of current array to 0
+      v.contactSelector.selectedIndex = 0
+      c.setContactDisplay(m)      
+      c.showContactDisplay(v)      
+    }
+  }
+  setTimeout(()=>{
+    btnNext.attribs('class=released button')
+    m.buttonIsPressed = false
+  },100)  
+}
+///////////////////////////////////
+c.setPulseBackButton = (m)=>{
+  m.backButtonIsPressed = true
+  m.currentDirection = `back`
+}
+c.showPulseBackButton = ({btnBack})=>{ 
+  if(m.backButtonIsPressed){
+    btnBack.attribs('class=pressed button')
+    selectPriorContact()
+    c.showMailPhoneTouched(v)
+    v.matchIndex.innerText = m.selectedIndex + 1 || 0    
+  }
+  ///////| helper |/////////
+  function selectPriorContact(){
+    if(notTooFarBack()){
+      moveBack()
+    }
+    else{
+      selectLastContact()
+    }  
+  }
+    ///////| 2nd level helpers |//////
+    function notTooFarBack(){
+      let notTooFar = false
+      let currentIndex = v.contactSelector.selectedIndex
+      //set to true if next index >= 0
+      notTooFar = (currentIndex - 1) >= 0
+      // otherwise its false that it's notTooFar ahead
+      return notTooFar
+    }
+    function moveBack(){
+      //increment selected index of current array
+      v.contactSelector.selectedIndex -= 1
+      c.setContactDisplay(m)      
+      c.showContactDisplay(v)        
+    }
+    function selectLastContact(){
+      //set selected index of current array to 0
+      v.contactSelector.selectedIndex =  v.contactSelector.length - 1
+      c.setContactDisplay(m)      
+      c.showContactDisplay(v)        
+    }  
+  setTimeout(()=>{
+    btnBack.attribs('class=released button')
+    m.buttonIsPressed = false
+  },100)
+}
+///////////////////////////////////
+c.setFooterActive = (m)=>{
+  m.footerActive = !m.footerActive
+}
+c.showFooterActive = ({app, footerGlass})=>{  
+  m.footerActive
+   ? footerGlass.styles(`background: linear-gradient(-20deg, transparent, pink, transparent, pink, transparent)`)
+   : footerGlass.styles(`background: transparent`)  
+}
+///////////////////////////////
+c.setIconClicked = (m)=>{
+  m.source === v.phoneIcon
+    ? m.action = 'calling'
+    : m.source === v.mailIcon
+    ? m.action = 'mailing'
+    : m.action = 'none'
+}
+c.showIconClicked = ({contactSelector})=>{
+  let i = contactSelector.selectedIndex
+  let contact = m.currentContactsArray[i]
+  m.action === 'mailing'
+    ? sendMail()
+    : m.action === 'calling'
+    ? makeCall()
+    : null
+  ////////| helpers |///////
+  function sendMail(){
+    window.location.href = `mailto:${contact[1]} ${contact[0]} <${contact[3]}>`
+    m.action = 'none'
+  }
+  function makeCall(){
+    window.location.href = `tel:${contact[2]}`
+    m.action = 'none'  
+  }  
+
+}
+//////////////////////////////
+c.setClearIconText = (m)=>{}
+c.showClearIconText = (v)=>{
+  Array.from(m.source.querySelectorAll('span')).forEach(span =>{span.innerText = ``})
+}
+//////////////////////////////
+c.setAddNewContact = (m)=>{
+  //gather new user data into an array of strings
+  //suggetion: inputs are: v.newLast, v.newFirst, v.newPhone, v.newEmail
+  // const newContact = [v.newLast.value, v.newFirst.value, ...]
+  // m.arrayOfContactsArray.push(newContact)
+  // c.saveContactsToServer(m.arrayOfContactsArray)
+}
+c.showAddNewContact = (v)=>{}
+/////////////////////////////
+c.setContactDisplay = (m)=>{
+  m.selectedIndex = v.contactSelector.selectedIndex 
+  m.priorSelectedPrimaryKey = m.selectedPrimaryKey    
+  if(m.currentContactsArray[m.selectedIndex]){
+    m.selectedPrimaryKey = m.currentContactsArray[m.selectedIndex][6]    
+  }
+}
+c.showContactDisplay = ({nameHolder, faceHolder, actionHolder})=>{
+  nameHolder.innerHTML = ''
+  faceHolder.innerHTML = ''
+  actionHolder.innerHTML = ''
+  if(m.currentContactsArray[m.selectedIndex]){
+    const lastName = m.currentContactsArray[m.selectedIndex][0]
+    const firstName = m.currentContactsArray[m.selectedIndex][1]  
+    nameHolder.innerText = `${firstName} ${lastName}`
+  }    
+  c.showMailPhoneTouched(v)
+  //switch pictures only if its a different contact
+  if(m.selectedPrimaryKey !== m.priorSelectedPrimaryKey){
+    c.movePicture(7);
+  }
+  //if in search, show current contact index
+  v.matchCount.innerText = m.currentContactsArray.length
+  v.matchIndex.innerText = m.selectedIndex + 1 || 0
+}
+////////////////////////////////////
+c.setResize = (m)=>{
+  m.height = window.innerHeight
+  m.width = window.innerWidth
+}
+c.showResize = ({contactBox, faceHolder, nameHolder, actionHolder, app})=>{
+  
+  const boxes = Array.from(document.querySelectorAll(`.box`))
+  ;(m.width <= m.MAX_WIDTH)
+  ? boxes.forEach( box => box.styles(`width: 93%`) )
+  : boxes.forEach( box => box.styles(`width: ${m.MAX_WIDTH}px`) )
+  
+  const isLandscape = (m.width >= m.height)
+  const isPortrait = (m.width < m.height)
+  if(isLandscape){
+    faceHolder.styles(`width: 5rem`)(`height: 5rem`)
+    nameHolder.styles(`margin-top: 1%`)
+    actionHolder.styles(`top: 35%`)
+    v.controlsAssembly.styles(`width: 85%`)
+  }
+  else if(isPortrait){
+    faceHolder.styles(`width: 7rem`)(`height: 7rem`) 
+    nameHolder.styles(`margin-top: 5%`)
+    actionHolder.styles(`top: 40%`)
+    v.controlsAssembly.styles(`width: 98.5%`)    
+  }
+  
+  m.width >= 600
+    ? app.styles(`width: 600px`)
+    : app.styles(`width: 100%`)
+}
+/////////////////////////////////////
+
+c.setMailPhoneTouched = (m) => {
+  /*
+    m.action = 'none' //either 'calling', 'mailing' or 'none'
+  */
+  ;(m.source === v.phoneIcon && m.action !== `calling`)
+  ? m.action = `calling`
+  :(m.source === v.mailIcon && m.action !== `mailing`)
+  ? m.action = `mailing`
+  : null//m.action = `none`
+}
+c.showMailPhoneTouched = ({actionHolder}) => {
+  const index = m.selectedIndex
+  const phoneIndex = 2
+  const mailIndex = 3
+  if(m.currentContactsArray[index]){
+    ;(m.action === `calling`)
+    ? actionHolder.innerText = m.currentContactsArray[index][phoneIndex]
+    :(m.action === `mailing`)
+    ? actionHolder.innerText = m.currentContactsArray[index][mailIndex]
+    : actionHolder.innerText = ``
+  }
+}
+/////////////////////////////////////
+c.setMailOrCall =(m)=>{
+  
+}
+c.showMailOrCall = ({actionHolder})=>{
+  ;(m.action === `calling`)
+  ? makeTheCall()
+  :(m.action === `mailing`)
+  ? sendTheMail()
+  : null
+  ///| helpers |///
+  function makeTheCall(){
+    window.location.href = `tel:${actionHolder.innerText}`
+  }
+  /////
+  function sendTheMail(){
+  const index = m.selectedIndex
+  const lastname = m.currentContactsArray[index][0]
+  const firstname = m.currentContactsArray[index][1]
+    window.location.href = `mailto: ${firstname} ${lastname}<${actionHolder.innerText}>`  
+  }
+
+}
+//////////////| aliases function |///////////////
+c.setMailOrCall2 = c.setMailOrCall
+c.showMailOrCall2 = c.showMailOrCall
+/////////////////////////////////////
+c.setClearAction = ()=>{
+  m.action = `none`
+}
+c.showClearAction = ({actionHolder})=>{
+  ; (m.action === `none`)
+  ? actionHolder.innerText = ``
+  : null
+}
+/////////////////////////////////////
+///////////////////////////////
+c.setCheckSwipe = (m)=>{}
+c.showCheckSwipe = (v)=>{  
+  const percent = Math.round(100 * (m.historyX[1] - m.historyX[0]) / m.width)
+  percent > 5
+    ? showNext()
+    : percent < -5
+    ? showPrior()
+    : null
+  /////| helpers |//////
+  function showNext(){
+    c.setPulseNextButton(m)
+    c.showPulseNextButton(v)
+  }
+  function showPrior(){
+    c.setPulseBackButton(m)
+    c.showPulseBackButton(v)  
+  }
+}
+///////////////////////////////
+c.setEdit = (m)=>{
+  m.nowEditing = true;
+}
+c.showEdit = (v)=>{
+  /*  
+  m.nowEditing
+    ? ((m,v)=>{
+        c.setClearSearch(m);
+        c.showClearSearch(v); 
+    })(m,v)
+    : null  
+  */  
+  m.nowEditing
+    ? v.editBox.styles(`visibility: visible`)(`opacity: 0.95`)
+    : v.editBox.styles(`visibility: hidden`)(`opacity: 0`) 
+  
+  m.nowEditing
+    ? v.editBtn.styles(`box-shadow: inset 2px 2px 10px black`)
+    : v.editBtn.styles(`box-shadow: 2px 2px 10px black`)
+    
+    m.source === v.faceHolder
+    ? v.editBox.styles(`background-image: url(images/${m.currentContactsArray[m.selectedIndex][5]})`)
+    : v.editBox.styles(`background-image: linear-gradient(-20deg, hsl(210, 33%, 30%), hsl(210, 33%, 50%),  hsl(210, 33%, 30%))`)
+    const currentContact = m.currentContactsArray[m.selectedIndex]
+    const max = currentContact.length;
+  
+    v.lastname.attribs(`placeholder=${currentContact[0]}`)
+    v.firstname.attribs(`placeholder=${currentContact[1]}`)
+    v.phone.attribs(`placeholder=${currentContact[2]}`)
+    v.email.attribs(`placeholder=${currentContact[3]}`)
+    if(currentContact[4] !== null && currentContact[4] !== 'null'){
+      v.group.attribs(`placeholder=${currentContact[4]}`)      
+    }
+    else{
+        v.group.attribs(`placeholder=""`)
+    }
+    
+  
+}
+///////////////////////////////
+c.setStopEdit = (m)=>{
+  m.nowEditing = false;
+}
+c.showStopEdit = ({editBox, btnCancelEdit, photoChooserAssembly})=>{
+  photoChooserAssembly.styles(`background-image: url(images/${m.defaultPhoto})`) 
+  
+  m.nowEditing
+    ? v.editBtn.styles(`box-shadow: inset 2px 2px 10px black`)
+    : v.editBtn.styles(`box-shadow: 2px 2px 10px black`)
+  
+  m.nowEditing
+    ? editBox.styles(`visibility: visible`)(`opacity: 0.95`)
+    : editBox.styles(`visibility: hidden`)(`opacity: 0`)
+   //////| helper |//////
+   // more to be done
+   m.source === v.btnCancelEdit
+    ? clearChanges()//photoChooserAssembly.styles(`background-image: url(${m.defaultPhoto})`)
+    : m.source === v.btnSaveEdit
+    ? saveEdit() : null
+  //////| helpers |//////
+    function clearChanges(){
+      v.lastname.value = ''
+      v.firstname.value = ''
+      v.phone.value = ''
+      v.email.value = ''
+      v.group.value = ''
+      if(v.photoChooser.files && v.photoChooser.files[0]){
+        v.photoChooser = ""
+      }      
+      photoChooserAssembly.styles(`background-image: url(images/${m.noPhotoFilename})`)      
+    }  
+    function saveEdit(){ //On June 10, 2018, I did a large edit on saveEdit(), and some associated functions
+   
+		const index = m.selectedIndex
+		//save my edits to current contact
+		if(v.lastname.value !== ""){
+			m.currentContactsArray[index][0] = v.lastname.value.trim()
+		}
+		if(v.firstname.value !== ""){
+			m.currentContactsArray[index][1] = v.firstname.value.trim()
+		}
+		if(v.phone.value !== ""){
+			m.currentContactsArray[index][2] = v.phone.value.trim()
+		}
+		if(v.email.value !== ""){
+			m.currentContactsArray[index][3] = v.email.value.trim()    
+		}
+		if(v.group.value !== "" && v.group.value !== null){
+			m.currentContactsArray[index][4] = v.group.value.trim()    
+		}
+    if(v.photoChooser.files && v.photoChooser.files[0]){
+      m.currentContactsArray[index][5] =  v.photoChooser.files[0].name.trim()
+      savePhotoToServer()
+      ///////| helper function |//////
+      function savePhotoToServer(){
+				const file = v.photoChooser.files[0]
+				const filename = file.name				
+				const postman = new XMLHttpRequest()            
+				const envelope = new FormData()
+				const reader = new FileReader()				
+				reader.readAsDataURL(file)
+                //////////////////////////////////////
+				reader.onload = () => {
+					envelope.append(`filename`, filename)
+					envelope.append(`contents`, reader.result)
+					postman.open(`POST`, `savePhoto.php`)
+					postman.send(envelope)
+					//////////////////////////////////////
+					postman.onload = ()=>{
+						if(postman.status !== 200){alert("Trouble saving photo: " + filename)}
+					}
+					postman.onerror = ()=>{
+						console.log("Trouble connecting to server.")
+					}
+				}        
+      }
+    }
+    
+    //get the primary key and save changes locally and to the server
+    const primaryKey = m.currentContactsArray[index][6]    
+    c.saveChangedContact(primaryKey, m.currentContactsArray[index])	
+    c.saveContactsToServer(m.arrayOfContactArrays)    
+    
+    // now clear out the edit fields for the next edit session
+    v.lastname.value = ''
+    v.firstname.value = ''
+    v.phone.value = ''
+    v.email.value = ''
+    v.group.value = ''
+    m.selectedPhoto = ''
+    if(v.photoChooser.files && v.photoChooser.files[0]){
+      v.photoChooser = ""
+    }
+    
+    //now update current contact array based on primary keys of current contacts array
+     const newCurrentContactsArray = m.arrayOfContactArrays.filter(memberBigList =>{
+      return m.currentContactsArray.some(memberLittleList =>{
+        return memberBigList[6] === memberLittleList[6]
+      })
+    })
+    
+    //now alphabetize it
+    m.currentContactsArray = L.sortArrayOfStringArrays(newCurrentContactsArray)
+    
+    //determine a more accurate selected index from primary key of current contact
+    const newSelectedIndex = m.currentContactsArray.reduce((newIndex, m, i)=>{
+      //if the member's primary key is the current one, use its index
+      m[6] === primaryKey
+        ? newIndex = i
+        : newIndex
+      return newIndex
+    }, 0)
+    
+    //fill, change primary key and show image (now included in fillSelector)
+    c.fillSelector( m.currentContactsArray, newSelectedIndex ) 
+
+    //MAYBE renew the search, but not sure when, so saving it for last
+    c.newSearch()
+  }
+}
+//////////| alias for setStopEdit |////////
+c.setEditButtonOut = (m)=>{}
+c.showEditButtonOut = (v)=>{
+  c.setStopEdit(m)
+  c.showStopEdit(v)
+}
+///////////////////////////////
+c.setKeyDirection = (m)=>{
+  //if(m.nowEditing){return}
+  const keycode = m.eventObject.which
+  m.correctKey = true
+  keycode === 39
+    ? m.currentDirection = `next`
+    : keycode === 37
+    ? m.currentDirection = `back`
+    : m.correctKey = false
+}
+c.showKeyDirection = (v)=>{
+  if(m.nowEditing || !m.correctKey){return}
+    m.currentDirection === `next`
+    ? showNext()
+    : m.currentDirection === `back`
+    ? showPrior()
+    : null
+    /////| helpers |//////
+    function showNext(){
+      c.setPulseNextButton(m)
+      c.showPulseNextButton(v)
+    }
+    function showPrior(){
+      c.setPulseBackButton(m)
+      c.showPulseBackButton(v)  
+    }
+}
+///////////////////////////////
+c.setChosenPhoto = (m)=>{
+  if(v.photoChooser.files && v.photoChooser.files[0].name){
+    m.selectedPhoto = v.photoChooser.files[0].name       
+  }else{
+    m.selectedPhoto = ''
+  }
+}
+c.showChosenPhoto = ({photoChooser, photoChooserAssembly})=>{ 
+  if ( !(photoChooser.files && photoChooser.files[0]) ){ 
+    return
+  }
+  const file = photoChooser.files && photoChooser.files[0]
+  m.currentChosenPhoto = file
+  const filename = file.name
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = ()=>{
+    photoChooserAssembly.styles(`background-image: url(${reader.result})`)
+    delete photoChooser.files[0]
+  }
+}
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+c.setNewChosenPhoto = (m)=>{
+  if(v.newPhotoChooser.files && v.newPhotoChooser.files[0].name){
+    m.newSelectedPhoto = v.newPhotoChooser.files[0].name       
+  }else{
+    m.newSelectedPhoto = ''
+  }
+}
+c.showNewChosenPhoto = ({newPhotoChooser, newContactPhotoAssembly})=>{ 
+  if ( !(newPhotoChooser.files && newPhotoChooser.files[0]) ){ 
+    return
+  }
+  const file = newPhotoChooser.files && newPhotoChooser.files[0]
+  m.currentChosenPhoto = file
+  const filename = file.name
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = ()=>{
+    newContactPhotoAssembly.styles(`background-image: url(${reader.result})`)
+    delete newPhotoChooser.files[0]
+  }
+}
+///////////////////////////////
+c.setDeleteContact = (m) => {
+  m.selectedPrimaryKey = m.currentContactsArray[m.selectedIndex][6]
+  m.nowEditing
+    ? m.shroudVisible = false
+    : m.shroudVisible = true
+}
+c.showDeleteContact = (v) => {
+  m.shroudVisible
+    ? v.shroud.styles(`visibility: visible`)(`opacity: 1`)
+    : v.shroud.styles(`visibility: hidden`)(`opacity: 0`)
+    
+  const firstname = m.currentContactsArray[m.selectedIndex][1]
+  const lastname = m.currentContactsArray[m.selectedIndex][0]
+  v.shroudMessage.innerHTML = `Are you sure you want to delete <br/> <b>${firstname} ${lastname}</b>?`
+}
+///////////////////////////////
+c.setShroudHidden = (m) => {
+  m.shroudVisible = false  
+}
+c.showShroudHidden = (v) => {
+  m.shroudVisible
+    ? v.shroud.styles(`visibility: visible`)(`opacity: 1`)
+    : v.shroud.styles(`visibility: hidden`)(`opacity: 0`)
+}
+///////////////////////////////
+c.setKillContact = (m) => {
+  m.backup =  m.arrayOfContactArrays;
+  
+  const imageName = m.arrayOfContactArrays.reduce((imageName, member)=>{
+    member[6] === m.selectedPrimaryKey
+        ? imageName = member[5]
+        : null
+    return imageName        
+  },"")
+  
+  if ( `DefaultImage.png` !== imageName && `contacts2.png` !== imageName ){
+    c.deleteImageFromServer(imageName)      
+  }
+
+  m.arrayOfContactArrays = m.arrayOfContactArrays.filter(member => member[6] !== m.selectedPrimaryKey)
+  m.currentContactsArray = m.currentContactsArray.filter(member => member[6] !== m.selectedPrimaryKey)
+  c.saveContactsToServer(m.arrayOfContactArrays)
+  /*
+    Because we eliminated a contact, the current selected index is pointing
+    to the next contact, or to nothing. If pointing to nothing, make it point to 
+    the first contact.
+  */
+  const maxIndex = m.currentContactsArray.length - 1
+  if(m.selectedIndex > maxIndex){
+    m.selectedIndex = 0
+  }  
+}
+c.showKillContact = (v) => {
+  for(let x of m.currentContactsArray){
+    console.log(x[0])
+  }
+  ////////
+  c.fillSelector(m.currentContactsArray, m.selectedIndex )
+}
+///////////////////////////////
+c.setAddContact = (m) => {
+  m.buildingNewContact = true;
+}
+c.showAddContact = (v) => {
+  m.buildingNewContact
+  ? v.addBox.styles(`visibility: visible`)(`opacity: 0.95`)
+  : v.addBox.styles(`visibility: hidden`)(`opacity: 0`)
+  
+  m.buildingNewContact
+  ? v.addContactBtn.styles(`box-shadow: inset 2px 2px 10px black`)
+  : v.addContactBtn.styles(`box-shadow: 2px 2px 10px black`)
+  
+  m.buildingNewContact
+  ? ((m,v)=>{
+        c.setClearSearch(m);
+        c.showClearSearch(v); 
+    })(m,v)
+  : null
+}
+///////////////////////////////
+c.setStopAdd = (m)=>{
+  m.buildingNewContact = false;  
+}
+c.showStopAdd = (v)=>{
+  m.buildingNewContact
+  ? v.addBox.styles(`visibility: visible`)(`opacity: 0.95`)
+  : v.addBox.styles(`visibility: hidden`)(`opacity: 0`)
+  
+  m.buildingNewContact
+  ? v.addContactBtn.styles(`box-shadow: inset 2px 2px 10px black`)
+  : v.addContactBtn.styles(`box-shadow: 2px 2px 10px black`)
+  
+  m.source === v.saveAddBtn
+    ? saveNew()
+    : m.source === v.cancelAddBtn
+    ? clearAddChanges()
+    : null
+    //////| helpers |////// 
+    function saveNew(){
+        //only save values if a full name was provided, else return
+        if(!v.newLastname.value || !v.newFirstname.value ){
+            alert(`You must provide a full name`)
+            return
+        }
+        //create new contact array:
+        const newContact = []
+        //save fields in the proper order
+        newContact.push(v.newLastname.value.trim())    //firstname
+        newContact.push(v.newFirstname.value.trim())   //lastname
+        newContact.push(v.newPhone.value.trim())       //phone
+        newContact.push(v.newEmail.value.trim())       //email
+        newContact.push(v.newGroup.value.trim())       //group
+        v.newPhotoChooser.files && v.newPhotoChooser.files[0] //photo
+            ? handleImage()
+            : newContact[5] = m.noPhotoFilename
+        newContact[6] = Date.now()                      //primary key 
+        ///////| helper handle image |////// 
+        function handleImage(){
+            newContact[5] = v.newPhotoChooser.files[0].name
+            //...and save image to server, then clear out chosen file and new info fields
+            c.saveFileToServerPath(clearAddChanges, v.newPhotoChooser.files[0], `images/`)    
+        }
+        
+        //save new contact to master list (in memory)
+        m.arrayOfContactArrays.push(newContact)
+        //now alphabetize it
+        m.arrayOfContactArrays = L.sortArrayOfStringArrays(m.arrayOfContactArrays)
+        //now save new master list to the server
+        c.saveContactsToServer(m.arrayOfContactArrays)
+
+        //do the search again,which now includes the new contact
+        c.newSearch()
+        
+        //clear fields
+        setTimeout(clearAddChanges,100)
+    }
+    //----------------------------//
+    function clearAddChanges(){
+        v.newLastname.value = ''
+        v.newFirstname.value = ''
+        v.newPhone.value = ''
+        v.newEmail.value = ''
+        v.newGroup.value = '' 
+        delete v.newPhotoChooser.files[0]
+        v.newContactPhotoAssembly.styles(`background-image: url(images/${m.defaultPhoto})`)
+    } 
+}
+///////////////////////////////////
+c.setAddButtonOut = (m)=>{
+    c.setStopAdd(m)
+}
+c.showAddButtonOut = (v)=>{
+  c.showStopAdd(v)
+}
+///////////////////////////////
+c.setToggleMenu = (m)=>{
+    m.menuIsOpen = !m.menuIsOpen
+}
+c.showToggleMenu = (v)=>{
+   if(m.menuIsOpen){
+        v.searchAssembly.styles(`visibility: hidden`)(`opacity: 0`)
+        v.txtSearch.styles(`visibility: hidden`)(`opacity: 0`)
+        
+        //hide the endcaps of the search assembly to avoid some issues: 1) accidently clearing the search
+        //2) blocking the edit button
+        Array.from(document.querySelectorAll('.endcap')).forEach(endcap => endcap.styles('visibility: hidden')('opacity: 0'))  
+        
+        v.controlsAssembly
+            .styles
+                ( `background-image: linear-gradient( white, #aaa)` )//(`border: 1px solid magenta`)
+                (`box-shadow: 1px 1px 10px`)
+        v.burgerTop.styles(`transform: rotateZ(35deg)`)
+        v.burgerMiddle.styles(`transform: rotateY(90deg)`)
+        v.burgerBottom.styles(`transform: rotateZ(-35deg)`)       
+        v.menuButtonsAssembly
+            .styles
+                (`visibility: visible`)
+                (`opacity: 1`)
+        
+        for ( let burgerLine of Array.from(document.querySelectorAll(`.burgerLines`)) ){
+            burgerLine.styles(`background-color: red`)
+        }    
+   }
+   else if(!m.menuIsOpen){
+       v.searchAssembly.styles(`visibility: visible`)(`opacity: 1`)
+       v.txtSearch.styles(`visibility: visible`)(`opacity: 1`)         
+       if(!m.searchIsEmpty){           
+           Array.from(document.querySelectorAll('.endcap')).forEach(endcap => endcap.styles('visibility: visible')('opacity: 0.55'));          
+       }
+       v.controlsAssembly
+        .styles
+            (`background-image: none`)
+            (`box-shadow: 0 0 0`)       
+       v.burgerTop.styles(`transform: rotateZ(0deg)`)
+       v.burgerMiddle.styles(`transform: rotateY(0deg)`)
+       v.burgerBottom.styles(`transform: rotateZ(0deg)`)
+
+       v.menuButtonsAssembly.styles(`visibility: hidden`)(`opacity: 0`)
+       
+       //restore search assembly's end caps
+       // Array.from(document.querySelectorAll('.endcap')).forEach(endcap => endcap.styles('visibility: visible')('opacity: 0.55'))           
+       
+       for ( let burgerLine of Array.from(document.querySelectorAll(`.burgerLines`)) ){
+            burgerLine.styles(`background-color: black`)
+       }
+   }
+}
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+///////////////////////////////
+
+";

@@ -1,0 +1,73 @@
+s:1458:"/*
+
+Created: 2018-07-10
+Modified: N/A
+Purpose: To pollute the global scope then initialize our plugin.
+
+*/
+/* global L
+ * global m
+ * global v
+ * global c
+*/
+const m = {}
+const v = {}
+const c = {}
+
+/////////////////////////////
+c.initialize = function(eventObject) {
+	c.initializeModel(eventObject)
+	
+	L.attachAllElementsById(v)
+	
+	let eventTypes = [
+		`change`,
+		`click`,
+		`dblclick`,
+		`input`,
+		`keydown`,
+		`keyup`,
+		`load`,
+		`mousedown`,
+		`mousemove`,
+		`mouseout`,
+		`mouseover`,
+		`mouseup`,
+		`offline`,
+		`online`,
+		`orientationchange`,
+		`resize`,
+		`touchend`,
+		`touchmove`,
+		`touchstart`,
+	]
+	
+	//Clever way: for each member of the eventTypes array, have the window listen for the event
+	eventTypes.forEach((event)=>{window.addEventListener(event, c.designateFunction)})
+	
+	/*
+		
+		let eventType;
+		for(eventType of eventTypes){
+			window.addEventListener(eventType, c.designateFunction)
+		}
+	
+	*/
+	
+}
+/////////////////////////////
+c.initializeModel = function(eventObject){
+	m.eventObject = eventObject    //the event object itself
+	m.source = eventObject.target  //where the event took place
+	m.type = eventObject.type      //what the event was
+	m.id = eventObject.target.id   //the id of the element where the event occurred
+	
+	//Shortcuts to combine similar mobile and computer events
+	m.pressed = m.type === `mousedown` || m.type === `touchstart`
+	m.released = m.type === `mouseup` || m.type === `touchend`
+	
+	//et cetera ....
+	
+}
+
+";

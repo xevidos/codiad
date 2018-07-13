@@ -1,0 +1,60 @@
+s:2621:"<!doctype html>
+<!--  -->
+<!--  -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            Abbas' Color Picker
+        </title>
+        <link rel="icon" href="/images/favicon.png">        
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />    
+
+        <!-- normalize.css starts the document with a "clean slate" of styles 
+            <link rel="stylesheet" href="css/normalize.css">
+        -->
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="js/prefixfree.js"></script>
+        <script src="js/AbbasLib.js"></script>
+    </head>
+    <body id='bod'>
+        <div id="content">             
+            <div id="ball" class="dragme" title="Drag"></div>            
+            <div id="colorWheel" ></div>
+        </div>
+        <br/>
+        <div id="copyDiv"><span id="hsla" title="Click, Swipe and Copy (or Double-Click)">Initializing</span></div><br>
+        <table id="controls" title="Mouse Wheel">
+          <tr>
+            <td class="labels"><span id="hueSpan" >hue</span> 
+            <td class="sliders"><input type="range" id="hue"  min="0" max="360" step="1"> 
+            <td class="keyboard"><input type="number" id="hueNum"  min="0" max="360" step="1" class="numInput">
+          <tr>
+            <td class="labels"><span id="satSpan" >saturation</span>
+            <td class="sliders"><input type="range" id="saturation"  min="0" max="100" step="1">
+            <td class="keyboard"><input type="number" id="saturationNum"  min="0" max="100" step="1" class="numInput">
+          <tr>
+            <td class="labels"><span id="lightSpan">lightness</span>
+            <td class="sliders"><input type="range" id="light" min="0" max="100" step="1">
+            <td class="keyboard"><input type="number" id="lightNum" min="0" max="100" step="1" class="numInput">
+          <tr>
+            <td class="labels"><span id="opacitySpan">alpha</span> 
+            <td class="sliders"><input type="range" id="opacity" min="0" max="1" step="0.01">
+            <td class="keyboard"><input type="number" id="opacityNum" min="0" max="1" step="0.01" class="numInput">				
+        </table>
+        <br/><br/>  
+        <center><div id="mnemonicWord">mnemonic</div></center>        
+        <div id="mnemonicPicture"></div>
+        
+        <div id="info">
+            X: <input id="x">
+            Y: <input id="y"><br>
+            angle: <input id="angle"> <br>
+            radius: <input id="radius">
+        </div>
+    </body>
+    <script src="js/script.js"></script>
+</html>
+<!--  -->
+<!--  -->
+";

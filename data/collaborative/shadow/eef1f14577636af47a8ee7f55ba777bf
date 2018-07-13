@@ -1,0 +1,209 @@
+s:4684:"<?php
+
+/**
+ * 
+ * 
+ *
+ * @package 
+ * @author  Isaac Brown
+ *
+ * The function below will stop direct access to this file.
+ */
+
+if ( ! defined( "U29tZSByYW5kb20gc3RyaW5nIHRoYXQgbm8gb25lIHdpbGwgZXZlciBndWVzcy4gIFRoaXMgd2lsbCBiZSB0aGUgcHVibGljIGZpbGUgcGFzc3dvcmQuIElmIHlvdSB3YW50IHRvIGRlY29kZSB0aGlzLCB0aGVuIGdvb2QgZm9yIHlvdS4gIFRoaXMgaXMgZm9yIEFiYmFzcycgYXBwbGljYXRpb24uICBBbnkgcXVlc3Rpb25zIGFzayBBYmJhc3Mgb3IgZW1haWwgbWUgYXQgeGV2aWRvc0BnbWFpbC5jb20u" ) ) {echo "Access code required";exit();}
+
+/**
+ * Plugin class. This class should ideally be used to work with the
+ * public-facing side of the application.
+ *
+ * @package 
+ * @author  Isaac Brown <xevidos@gmail.com>
+ */
+
+class mypit {
+
+	const VERSION = '1.0.0';
+
+
+	/**
+	 * Unique identifier for your plugin.
+	 *
+	 *
+	 * The variable name is used as the text domain when internationalizing strings
+	 * of text. Its value should match the Text Domain file header in the main
+	 * plugin file.
+	 *
+	 * @var      string
+	 */
+	protected $plugin_slug = '';
+
+	/**
+	 * Instance of this class.
+	 */
+	protected static $instance = null;
+
+	/**
+	 * Initialize the plugin by setting localization and loading public scripts and styles.
+	 */
+	private function __construct() {
+		
+		// Trigger initial
+		$this->init();
+	}
+
+	/**
+	 * Return the plugin slug.
+	 *
+	 * @since    1.0.0
+	 *
+	 * @return    Plugin slug variable.
+	 */
+	public function get_plugin_slug() {
+		return $this->plugin_slug;
+	}
+
+	/**
+	 * Return an instance of this class.
+	 *
+	 * @since     1.0.0
+	 *
+	 * @return    object    A single instance of this class.
+	 */
+	public static function get_instance() {
+		// If the single instance hasn't been set, set it now.
+		if ( null == self::$instance ) {
+			self::$instance = new self;
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Fired for each blog when the plugin is activated.
+	 *
+	 * @since    1.0.0
+	 */
+	private static function install() {}
+
+	/**
+	 * Fired for each blog when the plugin is uninstalled.
+	 *
+	 * @since    1.0.0
+	 */
+	private static function uninstall() {}
+
+	/**
+	 * Load the plugin text domain for translation.
+	 *
+	 * @since    1.0.0
+	 */
+	public function init() {}
+
+	/**
+	 * Register and enqueue public-facing style sheet.
+	 *
+	 * @since    1.0.0
+	 */
+	public function enqueue_scripts() {}
+	
+	/**
+	 * Register and enqueue public-facing style sheet.
+	 *
+	 * @since    1.0.0
+	 */
+	public function enqueue_styles() {}
+
+	/**
+	 * Connect to specified MYSQL database with preset login details.
+	 *
+	 * @since    1.0.0
+	 */	
+	public static function sql_connect( $database = "" ) {
+		
+		switch( $database ) {
+				
+			default :
+				
+				$database = "main";
+				$host = "localhost";
+				$password = base64_decode( "UCF0QWRtIW4=" );
+				$username = "main";
+			break;
+		}
+		
+		$connection = mysqli_connect( $host, $username, $password, $database );
+		return( $connection );
+	}
+	
+	/**
+	 * Execute an sql query with binded variables
+	 *
+	 * This allows you to use POST or GET values without
+	 * having to worry about people hacking your query.
+	 *
+	 * @since    1.0.0
+	 */	
+	public static function sql( $sql, $bind, $bind_vars, $error, $last_id = FALSE ) {
+
+		$connection = self::sql_connect();
+
+		$result = mysqli_prepare( $connection, $sql ) or die( "<section class='container'><p>" . $error . ":<br>Query:" . $sql . "<br>" . mysqli_error( $connection ) . "</p></section>" );
+
+		//call_user_func_array(array($result, "bind_param"), array_merge(array($bind), $bind_vars));
+		$result->bind_param( $bind, ...$bind_vars );
+		$result->execute();
+		
+		if ( $last_id === FALSE ) {
+			
+			$return = $result->get_result();
+		} else {
+			
+			$return = mysqli_insert_id( $connection );
+		}		
+		$result->close();
+		
+		return( $return );
+	}
+
+	
+	/**
+	 * Execute a basic sql query
+	 *
+	 * This allows should only be used for statements without user input.
+	 *
+	 * @since    1.0.0
+	 */	
+	public static function sql_internal( $sql, $error ) {
+		
+		$connection = self::sql_connect();
+		$result = mysqli_query( $connection, $sql ) or die( "<section class='container'><p>" . $error . ":<br>Query:" . $sql . "<br>" . mysqli_error( $connection ) . "</p></section>" );
+		return( $result );
+	}
+	
+	
+	/**
+	 * Connect to a microsoft sql database with preset login details.
+	 *
+	 * @since    1.0.0
+	 */	
+	public static function ms_sql_connect( $database ) {
+		
+		
+		$server = "";
+		$connection_info = array();
+		
+		$connection_info["Database"] = $database;
+		$connection_info["UID"] = "";
+		$connection_info["PWD"] = "";
+
+		$connection = sqlsrv_connect( $server , $connection_info );
+		
+		if( $connection === false ) {
+			
+			echo "<p>Error connecting to database.</p><br><br>";
+			die( print_r( sqlsrv_errors(), true ) );
+		}
+		
+		return( $connection );
+	}
+}";

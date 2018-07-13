@@ -1,0 +1,9 @@
+.prefixer-settings input {
+    display: inline;
+    line-height: 18px;
+    margin: 0;
+}
+
+.prefixer-settings a {
+    color: white;
+}

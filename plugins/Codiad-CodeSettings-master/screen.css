@@ -1,0 +1,11 @@
+#hotkey_div {
+    overflow-y: scroll;
+}
+
+#hotkey_list td {
+    vertical-align: middle;
+}
+
+.command_win, .command_mac{
+    //width: 100px;
+}

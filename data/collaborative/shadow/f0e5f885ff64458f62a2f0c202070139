@@ -1,0 +1,20 @@
+s:441:"<?php
+    session_start();
+
+    $secretPassword = "password";
+
+    // two access levels:
+    $deny = 'deny';
+    $allow = 'allow';
+    
+    //set to lowest access level before testing:
+    $_SESSION["accessLevel"] = $deny;
+
+    //if the password is secret ...
+    if($_POST['userPassword'] === $secretPassword){
+        $_SESSION["accessLevel"] = $allow;        
+    }
+    
+    //return the access level
+    exit($_SESSION["accessLevel"])
+?>";

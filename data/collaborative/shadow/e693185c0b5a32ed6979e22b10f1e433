@@ -1,0 +1,83 @@
+s:2415:"<!doctype html>
+<html id="root">
+  
+  <head>
+    <meta charset="utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">    
+    <meta name="mobile-web-app-capable" content="yes">
+	  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>50's Music</title>
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.0/jsmediatags.js"></script> 
+    <!--<script src="jsmediatags.js"></script>-->
+    <script src="https://SabbaKilam.github.io/modules/L.js"></script>
+    <!--<script src="L.js"></script>-->
+    <script src="MVC.js"></script>
+    <script src="methodsREACT.js"></script>
+    <script src="methodsUPDATE.js"></script>
+    <script src="methodsHELPER.js"></script>    
+  </head>
+  
+  <body id="body">
+     
+      <div id="background"></div>
+      <div id="progressBar"></div>
+      <div id="controlsHolder" class="portraitBottom">
+                
+        <div id="controlsAssembly">
+          
+          <div id="controls">
+		  
+			<div id="btnNonStop"></div>	
+			
+            <input type="file" id="fileElement" accept="audio/mp3" multiple>
+            <br>
+            <button id="btnPlay" class="btnWide">↓ <b>Play</b> or <b>Choose</b> ↓</button>
+            <br>         
+            <select id="documentSelector">
+              <option>(no songs)</option>
+            </select>
+            <br>
+            <button id="btnDelete" class="btnWide">↑ <b>Delete</b> this Song ↑</button>            
+          </div>
+          
+          <div id="controlsBlocker"></div>
+        </div>
+        <audio id="player" controls></audio> 
+      </div>
+      
+      <div id="pictureHolder" class="portraitTop"></div>
+
+      <footer>
+        <span id="logout">Logout</span>
+        <span id="info"></span>
+        <div id="footerGlass"></div>
+      </footer>
+      
+      <div id="passwordWall" class="passwordWall">
+        <div id="passwordHolder">
+          <span id="spanPassword">Password</span><br>
+          <input type="password" placeholder="Type Password" id="passwordInput">          
+        </div>
+      </div>
+      
+      <!--====| NO HTML BELOW THIS LINE |===-->
+      <script>
+        /*global c*/
+        window.addEventListener(`DOMContentLoaded`, c.initialize, true)
+      </script>
+  </body>
+  
+</html>
+
+
+
+
+
+
+
+
+
+
+";

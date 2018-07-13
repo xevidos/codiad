@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) Codiad & Andr3as, distributed
+ * as-is and without warranty under the MIT License.
+ * See http://opensource.org/licenses/MIT for more information. 
+ * This information must remain intact.
+ */
+.more_control {
+	cursor: pointer;
+}
+.more_control .item-icon {
+    display: inline;
+    font-size: 100%;
+}
+#permissions_dialog .more table td{
+    border: none;
+    padding: 0;
+}
+#permissions_dialog .more input {
+    display: inline;
+}

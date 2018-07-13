@@ -1,0 +1,236 @@
+s:6332:"/*global L*/
+/*global m*/
+/*global v*/
+/*global c*/
+//============================//
+//////////////////////////////////////////
+c.setResize = (m, callback, arg) => {
+  m.width = window.innerWidth
+  m.height = window.innerHeight
+  arg ? callback(arg) : null
+}
+c.showResize = ({controlsAssembly, controlsHolder, pictureHolder, player}) => {
+  m.busyResizing = true
+  const isPortrait = m.height >= m.width;
+  if(isPortrait){
+    controlsHolder.attribs(`class=portraitBottom`)
+    pictureHolder.attribs(`class=portraitTop`)
+    controlsAssembly
+      .styles
+        (`height: 60%`)
+        (`top: 47%`)
+    const controlsSpecs = controlsHolder.getBoundingClientRect()
+    v.player.styles(`bottom: ${controlsSpecs.top/1.2}px`)(`top: auto`)      
+  }
+  else{
+    m.noPicture 
+    ? controlsHolder.attribs(`class=landscapeRightNoPicture`)
+    : controlsHolder.attribs(`class=landscapeRight`)
+
+    pictureHolder.attribs(`class=landscapeLeft`)
+    controlsAssembly
+      .styles
+        (`height: 55%`)
+        (`top: 20%;`)
+    const controlsSpecs = controlsHolder.getBoundingClientRect()
+    v.player.styles(`top: ${controlsSpecs.bottom/1.345}px`)(`bottom: auto`)    
+  }
+  //password holder
+  isPortrait
+  ? v.passwordHolder.styles(`width: 100vw`)
+  : v.passwordHolder.styles(`width: ${m.MAX_WIDTH}px`)
+
+  setTimeout(()=>{
+    m.busyResizing = false    
+  },200)
+
+}
+///////////////////////////////////////
+c.showInfo = ({info}) => {
+  const msg = `${m.id}: ${m.type}, prior event: ${m.priorType[1]}`
+  //const msg = `${m.id}: ${m.type}, clicked?: ${m.clicked}`
+  
+  info.innerText = msg;
+}
+//////////////////////////////////////////
+c.setPlay = (m, show, arg)=>{
+  if(m.busyWithPictureOnly){return}
+  m.playing = true
+  arg ? show(arg) : null
+}
+c.showPlay = ({player})=>{
+  if(m.busyWithPictureOnly){return}
+  c.playChosenSong()
+}
+//////////////////////////////////////////
+c.setPictureOnly = (m, show, arg)=>{
+  if(m.busyWithPictureOnly){return}
+  
+  m.showPictureOnly = !m.showPictureOnly
+  m.playing = true
+  
+  arg ? show(arg) : null  
+}
+c.showPictureOnly =({background, pictureHolder, controlsBlocker})=>{
+  if(m.busyWithPictureOnly){return}
+  m.busyWithPictureOnly = true
+  
+  clearInterval(m.pictureBusyId)
+  
+  v.controlsBlocker.styles(`visibility: visible`)  
+  /*
+    if m.showPictureOnly, bring background to the front
+  */
+  m.showPictureOnly
+  ? showPictureOnly()
+  : restorePictureState()
+  
+  ///////| helpers |//////
+  function showPictureOnly(){
+    //bring background in front
+    background.styles(`z-index: 10`)
+    //show current pictureData (m.pictureData), if there is one
+    if(!m.noPicture){
+      background
+        .styles
+          (`background-image: url(${m.pictureData})`)
+          (`background-size: contain`)
+          (`background-repeat: no-repeat`)
+          (`background-position: center`)
+    }
+  }
+  function restorePictureState(){
+    //put background behind
+    background.styles(`z-index: 0`)
+    //restore default background picture
+    background
+      .styles
+        (`background-image: url(${m.defaultBackground})`)
+        //(`background-size: cover`)
+        (`background-repeat: no-repeat`)
+        (`background-position: center`)
+    setTimeout(()=>{
+     background.styles(`background-size: cover`)       
+    },200)
+  }
+  m.pictureBusyId = setTimeout(()=>{
+    m.busyWithPictureOnly = false    
+    controlsBlocker.styles(`visibility: hidden`)      
+  }, 500)
+}
+//////////////////////////////////////////
+c.setLogout = (m, show, arg)=>{
+  m.loggedIn = false
+  if(arg && show && typeof show === 'function'){show(arg)}
+}
+c.showLogout =  ({passwordWall, passwordInput})=>{
+  if(!m.loggedIn){
+    //put up password wall and clear input
+    passwordWall
+      .styles
+        (`visibility: visible`)
+        (`opacity: 1`)
+    passwordInput.value = `` 
+    passwordInput.focus()
+    // lower access level
+    const killer = new XMLHttpRequest()
+    killer.open('GET', `php/logout.php`)
+    killer.send()
+    killer.onload = ()=>{
+      if(killer.status === 200){
+        killer.responseText === 'allow'
+        ? m.loggedIn = true
+        : m.loggedIn = false
+      }
+      else{
+        const msg = `Trouble logging out.`
+        console.log(msg)
+        alert(msg)
+        m.loggedIn = false      
+      }
+    }
+    killer.onerror = ()=>{
+      const msg = `Trouble connecting to server.`
+      console.log(msg)
+      alert(msg)
+      m.loggedIn = false
+    }
+  }
+}
+//////////////////////////////////////////
+c.setLogin = (m, show, arg)=>{
+  const postman = new XMLHttpRequest()
+  const envelope = new FormData()
+  envelope.append(`userPassword`, v.passwordInput.value)
+  postman.open(`POST`, `php/login.php`)
+  postman.send(envelope)
+  //--------------------//
+  postman.onload = ()=>{
+    if(postman.status === 200){
+      postman.responseText === 'allow'
+      ? m.loggedIn = true
+      : m.loggedIn = false
+    }
+    else{
+      const msg = `Trouble checking password.`
+      console.log(msg)
+      alert(msg)
+      m.loggedIn = false      
+    }
+  }
+  postman.onerror = ()=>{
+    const msg = `Trouble connecting to server.`
+    console.log(msg)
+    alert(msg)
+    m.loggedIn = false
+  }
+  //--------------------//
+  if(arg && show && typeof show === 'function'){show(arg)}  
+}
+c.showLogin = ({passwordWall, passwordInput})=>{
+  if(m.loggedIn){
+    //bring down wall
+    passwordWall
+      .styles
+        (`visibility: hidden`)
+        (`opacity: 0`)
+    passwordInput.value = `` 
+    //get music list from server
+    c.getFileList()
+  }
+}
+//////////////////////////////////////////
+c.setToggleNonStop = (m)=>{
+	m.nonStop = !m.nonStop
+}
+c.showToggleNonStop = (v)=>{
+	m.nonStop
+		?(()=>{
+			v.btnNonStop
+				.styles
+					(`box-shadow: inset 3px 3px 15px black`)
+					(`opacity: 1`)				
+		})()
+		:(()=>{
+			v.btnNonStop
+				.styles
+					(`box-shadow: 3px 3px 15px black`)
+					(`opacity: 0.55`)				
+		})()
+	
+	/*
+		If non-stop:
+		1. player should be in autoplay
+		2. end event should increment selected index (or set it to 0)
+	*/
+	m.nonStop
+		? v.player.attribs(`autoplay=autoplay`)
+		: v.player.attribs(`autoplay=false`)
+}
+
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////";

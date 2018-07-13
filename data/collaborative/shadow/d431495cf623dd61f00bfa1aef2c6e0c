@@ -1,0 +1,333 @@
+s:10581:"/*global L*/
+/*global m*/
+/*global v*/
+/*global c*/
+
+//=========================================================================//
+c.getFileList = function (){
+    const getter = new XMLHttpRequest()
+    getter.open('POST', 'php/getFileList.php')
+    getter.send()
+    getter.onload = function(){
+        if(getter.status === 200){
+          c.fillDocumentSelector(getter.responseText)
+          console.log(getter.responseText)          
+        }
+        else{
+            console.log('Trouble getting file list.')            
+        }
+    }
+}
+//======================================================================//
+c.fillDocumentSelector = function (filesString){
+    const currentFilename = v.documentSelector.options[v.documentSelector.selectedIndex] && v.documentSelector.options[v.documentSelector.selectedIndex].innerText
+    v.documentSelector.innerHTML = ''
+    const filenameArray = filesString.split('\n')
+    filenameArray.pop() // get rid of the blank last entry
+
+    if(filenameArray.length === 0){
+          const option = document.createElement('option')
+          option.innerText = "(No Music Files)"
+          v.documentSelector.appendChild(option) 
+          v.player.styles(`visibility: hidden`)
+    }
+    else{
+      filenameArray.forEach( filename =>{
+          const option = document.createElement('option')
+          option.innerText = filename
+          v.documentSelector.appendChild(option)
+      })    
+    }
+
+    v.documentSelector.selectedIndex = filenameArray.indexOf(currentFilename)
+    v.documentSelector.selectedIndex === -1 ? v.documentSelector.selectedIndex = 0 : null
+
+}
+
+//=====================================================================//
+c.uploadFiles =(eventObject)=>{
+  if(  !(v.fileElement.files && v.fileElement.files[0]) ){return}
+  if(m.busyWithPictureOnly){return}
+  
+  let allFilesMp3 = Array.from(v.fileElement.files).every( file=> getExtention(file) === `mp3` )
+  if(!allFilesMp3){
+    alert(`Only .mp3 files allowed.`)
+    return
+  }
+  //----| helper |------//
+  function getExtention(file){
+    let name = file.name
+    let maxIndex = name.length -1
+    let extLength = maxIndex - name.lastIndexOf(`.`)
+    return name.slice(-extLength)
+  }
+  L.uploadFiles(c.showUploadProgress, v.fileElement, "php/uploadFile.php")
+}
+//===========================================//
+c.showUploadProgress = (loaded, total, index)=>{
+  const numberOfFiles = v.fileElement.files.length
+  if(numberOfFiles === 0){return}
+  const pct = Math.round(100 * m.averageUploadFraction)
+  m.fractionArray[index] = loaded/total
+  m.averageUploadFraction = m.fractionArray.reduce(function(sum, value){
+      return sum + value/numberOfFiles
+  }, 0)
+  
+  v.progressBar.styles(`width: ${pct}%`)
+  
+  console.log(`loaded: ${(100 * m.averageUploadFraction).toFixed(0)}`)
+  if(  (loaded === 1 && total === 1) || pct === 100 ){// && index === (numberOfFiles-1)
+    c.getFileList()     
+    setTimeout(()=>{
+      c.clearUploadData()
+      v.progressBar.styles(`width: 0`)
+    }, 1000) 
+  }
+}
+//=============================================//
+c.playChosenSong = () => {
+  if(m.busyWithPictureOnly){return}  
+  c.setResize(m, c.showResize, v) //not sure if invoking here is overkill  
+  const base = m.musicFilesUrl
+  const index = v.documentSelector.selectedIndex
+  const src = `${base}${v.documentSelector.options[index].innerText}`
+  v.player.pause()
+  setTimeout(()=>{//this delay improves performance
+    v.player.src = src
+    v.player.styles(`visibility: visible`)
+    v.player.play()
+    m.playing = true
+  },25)
+  
+  v.background
+    .styles
+      (`background-image: url(${m.defaultBackground})`)
+      (`background-size: cover`)    
+  
+  //attempt to show image
+  var jsmediatags = window.jsmediatags  ;
+  if(!jsmediatags){
+    m.noPicture = true    
+    console.log("Can't find the 'jsmediatags' object.");
+    console.log("Try https://github.com/aadsm/jsmediatags/tree/master/dist/jsmediatags.min.js");
+    console.log("... or https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.0/jsmediatags.js")
+    c.setResize(m, c.showResize, v)    
+    return;
+  }
+  // url from local host
+  const url = `${base}${v.documentSelector.options[index].innerText}`
+  jsmediatags.read(url, {
+    onSuccess: (tag) => {
+      console.log(tag);
+      let tags = tag.tags;
+      //========================//
+      var image = tags.picture;
+      if (image) {
+        m.noPicture = false        
+        const base64String = image.data.reduce((string, datum) => string += String.fromCharCode(datum), '');
+        m.pictureData = "data:" + image.format + ";base64," + window.btoa(base64String);
+        v.pictureHolder
+          .styles
+            (`background-image: url(${m.pictureData})`)
+            (`background-size: contain`)
+            (`background-repeat: no-repeat`)
+            (`background-position: center`)
+            (`background-size: contain`)
+            (`background-color: black`) 
+        v.controlsHolder
+          .styles
+            (`background-color: black`)            
+        v.controlsAssembly
+          .styles
+            (`background-color: #eee`)
+        c.setResize(m, c.showResize, v)               
+      }
+      else{//no image
+        m.noPicture = true      
+        console.log("No image found :(")
+        v.pictureHolder
+          .styles
+            (`background-image: url()`)
+            (`background-color: transparent`)            
+        v.controlsHolder
+          .styles
+            (`background-color: transparent`)
+        v.controlsAssembly
+          .styles
+            (`background-color: rgba(238, 238, 238, 0.4)`)            
+        c.setResize(m, c.showResize, v) 
+      }       
+      //=========================//
+      //=====| show picture |====//
+      //=========================//
+	  ////////////////////////////
+	  c.showPicture(1000)//argument is delay-time in milliseconds
+	  ///////////////////////////
+    },
+    onError: (error) => {
+      console.log(error);
+      return;
+    }
+  });  
+  
+}
+//==========================================================//
+c.clearUploadData = ()=>{
+  m.fractionArray = [];
+  m.averageUploadFraction = 0;
+}
+//================================================//
+c.respondToEnded = ()=>{
+	m.nonStop
+		? pointToNextSong()
+		: m.playing = false
+		//---| helper |---//
+		function pointToNextSong(){
+			v.documentSelector.selectedIndex + 1 < v.documentSelector.options.length
+				? v.documentSelector.selectedIndex = v.documentSelector.selectedIndex + 1
+				: v.documentSelector.selectedIndex = 0
+			setTimeout(c.playChosenSong, 20)	
+		}
+	c.showPicture(1000)
+
+}
+//========================================//
+c.respondToPause = ()=>{
+  if(m.busyWithPictureOnly){return}
+  m.playing = false
+}
+//============================================//
+c.respondToPlay = ()=> {
+  if(m.busyWithPictureOnly){return} 
+  m.playing = true 
+}
+//============================================//
+c.deleteFile = ()=>{
+  if(m.busyWithPictureOnly){return} 
+  
+  const index = v.documentSelector.selectedIndex
+  const filename = v.documentSelector.options[index].innerText
+  
+  const msg = `OK to DELETE ${filename}?\n( Otherwise, CANCEL )`
+  const okToDelete = confirm(msg)
+  if(okToDelete){
+    const killer = new XMLHttpRequest()
+    const envelope = new FormData()
+    envelope.append(`filename`, filename)
+    killer.open(`POST`, `php/deleteFile.php`)
+    killer.send(envelope)
+    //--------------------------//
+    killer.onload = ()=>{
+      if(killer.status !== 200){
+        console.log("Trouble deleting the file.")      
+      }
+      else{
+        c.getFileList()    
+      }
+    }
+    killer.onerror = ()=>{
+      console.log("Trouble Connecting to server.")
+    }     
+  }
+}
+//========================================//
+c.getAccessLevel = ()=>{
+   const reporter = new XMLHttpRequest()
+  reporter.open(`GET`, `php/getAccessLevel.php`)
+  reporter.send()
+  //----------------//
+  reporter.onload = ()=>{
+    if(reporter.status === 200){
+      reporter.responseText === 'allow'
+      ? m.loggedIn = true
+      : m.loggedIn = false
+      console.log(reporter.responseText)
+      if(!m.loggedIn){
+        c.setLogout(m, c.showLogout, v)
+      }      
+    }
+  }
+  reporter.onerror = ()=>{
+    const msg = `Trouble connecting to server.`
+    console.log(msg)
+  }
+}
+//--------------------------------------//
+
+c.pollForPaswordWall = ()=>{
+  const reporter = new XMLHttpRequest()
+  reporter.open(`GET`, `php/getAccessLevel.php`)
+  reporter.send()
+  //----------------//
+  reporter.onload = ()=>{
+    if(reporter.status === 200){
+      reporter.responseText === 'allow'
+      ? m.loggedIn = true
+      : m.loggedIn = false
+      //console.log(reporter.responseText)
+      if(!m.loggedIn){
+        //put up password wall
+        passwordWall
+          .styles
+            (`visibility: visible`)
+            (`opacity: 1`)
+      }      
+    }
+    else{
+      const msg = `Trouble with password.`
+      console.log(msg)   
+    }
+  }
+  reporter.onerror = ()=>{
+    const msg = `Trouble connecting to server.`
+    console.log(msg)  
+  }  
+  
+}
+////////////////////////////////////////
+c.queueInitialRandomSong = ()=>{
+    c.showToggleNonStop(v)  
+    setTimeout(()=>{
+        m.selectedIndex = Math.floor( v.documentSelector.options.length * Math.random() )
+        v.documentSelector.selectedIndex = m.selectedIndex 
+        v.player.src =`${m.musicFilesUrl}${v.documentSelector.options[m.selectedIndex].innerText}`
+        c.playChosenSong()        
+    }, 320)
+    setTimeout(()=>{v.player.pause()},475)
+}
+////////////////////////////////////////
+c.showPicture = function(delay=2000){
+	setTimeout(()=>{
+		m.showPictureOnly
+			?  showPictureOnly()
+			:  restorePictureState()
+		////| helpers |////	
+	    function showPictureOnly(){
+			 //bring background in front
+		    v.background.styles(`z-index: 10`)
+		    //show current pictureData (m.pictureData), if there is one
+		    if(!m.noPicture){
+		      v.background
+		        .styles
+		          (`background-image: url(${m.pictureData})`)
+		          (`background-size: contain`)
+		          (`background-repeat: no-repeat`)
+		          (`background-position: center`)
+	    	}
+		}
+		function restorePictureState(){
+			//put background behind
+			v.background.styles(`z-index: 0`)
+			//restore default background picture
+			v.background
+			  .styles
+			    (`background-image: url(${m.defaultBackground})`)
+			    (`background-repeat: no-repeat`)
+			    (`background-position: center`)
+			setTimeout(()=>{
+			 v.background.styles(`background-size: cover`)       
+			},300)
+		}		
+	}, delay)
+}
+//////////////////////////////////////////////";

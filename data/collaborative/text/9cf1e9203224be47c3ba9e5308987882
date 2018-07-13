@@ -1,0 +1,39 @@
+s:675:"html, body {
+	height: 100%;
+	margin: 0px;
+}
+
+body {
+	background-color: #dfdfdf;
+	width: 100%;
+}
+
+.button {
+	-webkit-transition-duration: 0.4s; /* Safari */
+	background-color:  lightblue;/*#1f2059; PIT Blue */
+	border: none;
+	border-radius: 5px;
+	box-shadow: 5px 5px 10px rgba(0,0,0,1);
+	color: white;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	transition-duration: 0.4s;
+}
+
+
+#firstButton{
+	display: inline-block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: black;
+	outline: none;
+	font-weight: bold;
+	text-shadow: 0 1px 0 white;
+}";

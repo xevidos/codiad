@@ -1,0 +1,34 @@
+s:553:"* {
+	box-sizing: border-box;
+}
+
+html{
+	font-size: calc(calc(0.5vh + 0.5vw) + 12px);
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+.button {
+
+	-webkit-transition-duration: 0.4s; /* Safari */
+	outline: none;
+	background-color: #1f2059; /* PIT Blue */
+	border: none;
+	border-radius: 5px;
+	box-shadow: 5px 5px 8px #000000;
+	color: white;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	transition-duration: 0.4s;
+}";

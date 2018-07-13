@@ -1,0 +1,367 @@
+s:6560:"*  {
+  box-sizing: border-box;
+}
+html{
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  font-family: sans-serif;
+  background-color: black;
+  font-size: 30px; 
+  user-select: none;  
+  overflow: hidden;  
+}
+
+body{
+  position: fixed;
+  padding: 0;
+  margin: 0;  
+  height: 100%;
+  width: 100%;
+  text-shadow: 0 1px 0 white;
+  transition: all 0.25s ease; 
+  overflow: hidden;
+}
+
+#background{
+  position: fixed;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;  
+  right: 0;
+  background-image: url(images/twostalks.gif);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: black;
+  transition: all 0.125s ease;
+}
+#pictureHolder{
+  background-color: transparent;
+}
+
+#controlsHolder{
+  background-color: transparent;
+  overflow: hidden;
+  z-index: 6;
+}
+
+#btnNonStop{
+	position: absolute;
+	border-radius: 50%;
+	height: calc(calc(2.75vh + 2.75vw) + 4px);
+	width: calc(calc(2.75vh + 2.75vw) + 4px);
+	margin: 5px;/*calc(1vh + 1vw);*/
+	
+	background-image: url(images/nsb.png);
+	background-repeat: no-repeat;
+	background-size: calc(calc(2vh + 2vw) + 11px) calc(calc(2vh + 2vw) + 11px);
+	background-position: center ;
+	background-color: lightblue ;
+    
+	box-shadow: 5px 5px 20px black;
+	opacity: 0.55;
+	
+	transition: all 0.25s ease;
+}
+
+#btnNonStop:active{
+	box-shadow: inset 5px 5px 20px black;
+	opacity: 1;
+}
+
+
+#controlsBlocker{
+  position: fixed;
+  margin: auto;
+  top: -25%;
+  bottom: -22%;
+  left: 0;  
+  right: 0;
+  visibility: hidden;
+  z-index: 9;
+  /* for testing:
+  background-color: white;
+  opacity: 1;
+  */
+}
+
+#fileElement{
+  border-radius: 0.5rem;
+  border: 1px solid gray;
+  box-shadow: 0.15rem 0.15rem 0.30rem #222;  
+  width: 55%;
+  padding: 2px;
+  visibility: hidden;
+}
+
+select{
+  display: inline-block;
+  width: 88%;
+  height: 18%;
+  text-align: center;
+  font-family: sans-serif;
+  font-weight: bold; 
+  font-size: 0.5rem;  
+}
+option{
+  display: inline-block;  
+  text-align: center;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+audio{
+  display: inline-block;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);  
+  color: gray;
+  text-shadow: 0 1px 0 white;
+  width: 99.8%;
+  border-radius: 0.125rem;
+  opacity: 0.50;
+  background-color: transparent;
+  z-index: -1;
+}
+
+.released{
+  box-shadow: 2px 2px 4px black;
+  font-size:20px;
+  background: #f8f8f8;  
+  color: #181818;
+  text-shadow: 0 1px 0 white;
+}
+
+.pressed{
+  box-shadow: inset 2px 2px 4px black;
+  font-size:19.9px;
+  background: #f2f2f2;  
+  color: black;
+  text-shadow: 0 2px 0 white;  
+}
+
+footer{
+  position: fixed;
+  width: 100%;
+  height: 0.85rem;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: lightgray;
+  overflow: hidden;
+  text-align: center;
+  z-index: 10;
+  visibility: hidden;
+}
+
+#info{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /*font-size: 0.5rem; */
+  font-size: calc(1vw + 8.5px);  
+  width: 100%;
+  font-family: sans-serif;
+  z-index: -1;
+}
+#logout{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /*font-size: 0.5rem; */
+  font-size: calc(1vw + 8.5px);  
+  width: 100%;
+  font-family: sans-serif; 
+
+}
+
+#footerGlass{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);  
+}
+
+#progressBar{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 5px;
+  background-color: red;
+  border-bottom: 1px solid gray;
+  border-radius: 2.5px;
+  z-index: 10;
+}
+
+.portraitTop{
+  /* center at top */
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  width: 100%;
+  height: 50%;  
+  text-align: center;
+  background: transparent;
+}
+
+.portraitBottom{
+  /* center at bottom */
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  width: 100%;
+  height: 50%;
+  text-align: center;
+  background: #eee;
+  z-index: 5;
+}
+
+.landscapeLeft{
+  /* center at left */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  width: 50%;
+  height: 100%;
+  text-align: center;
+  background: transparent;  
+}
+
+.landscapeRight{
+  /* center at right */
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  width: 50%;
+  height: 100%;
+  text-align: center;
+  background: #eee;    
+}
+
+.landscapeRightNoPicture{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 50%;
+  height: 100%;
+  text-align: center;
+  background: #eee;  
+}
+
+.passwordWall{
+  position: fixed;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;  
+  right: 0;
+  background-image: linear-gradient(-20deg, lightblue, white, lightblue);
+  /*
+  visibility: visible;
+  opacity: 1;
+  */
+  visibility: hidden;
+  opacity: 0;  
+  transition: all 0.37s ease;
+  z-index: 12;
+  
+}
+#passwordHolder{
+  position: absolute;
+  top: 50%;
+  left: 50%;  
+  transform: translate(-50%, -50%);
+  text-align: center;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  width: 75vw;
+  font-size: 0.75rem;  
+  background-image: linear-gradient(-20deg, gray, transparent, gray);
+  box-shadow: 5px 5px 15px black;
+}
+#passwordInput{
+  font-size: 0.70rem;
+  text-align: center;
+  width: 78%;
+}
+
+#controlsAssembly{
+  position: absolute;  
+  width: 100%;
+  height: 75%;
+  padding: 0.25rem;
+  padding-bottom: 0;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  border: 1px solid gray;
+  border-radius: 0.5rem;
+  background-color: #eee;
+  background-color: rgba(238, 238, 238, 0.4);  
+}
+
+#controls{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding-bottom: 1.5rem;
+  transform: translate(-50%, -50%);  
+  border: 1px solid gray;
+  width: 100%;
+  border-radius: 0.25rem;
+}
+
+.btnWide{
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+    vertical-align: middle;
+    width: 55%;
+    left: 50%;    
+    transform: translate(-50%, -50%);
+    box-shadow: 0.275rem 0.275rem 0.40rem gray;
+    border-radius: 1.5rem;
+    background-image: linear-gradient(-20deg, hsla(210, 75%, 60%, 0.5), #f5f5f5, hsla(210, 75%, 60%, 0.5));
+    cursor: pointer;
+    outline: none;
+    height: 18%;   
+    padding: 2px;
+    line-height: 0.80;
+}
+#btnPlay{
+    width: 55%;
+    top: 40%;
+}
+#btnDelete{
+    width: 55%;
+    bottom: -4%;
+	visibility: hidden;
+}
+
+#documentSelector{
+    display: inline-block;
+    padding: 2px;    
+    box-shadow: 0.275rem 0.275rem 0.40rem #444;
+    border-radius: 1.5rem; 
+    background-image: linear-gradient(-20deg, hsla(210, 75%, 60%, 0.5), #f5f5f5, hsla(210, 75%, 60%, 0.5));    
+}";

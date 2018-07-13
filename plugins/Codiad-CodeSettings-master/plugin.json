@@ -1,0 +1,16 @@
+[{ "author" : "Andr3as",
+    "version": "0.3.2",
+    "name" : "CodeSettings",
+    "url" : "https://github.com/Andr3as/Codiad-CodeSettings",
+    "exclude" : "",
+    "rightbar" : [{
+        "action" : "codiad.CodeSettings.showDialog();",
+        "icon" : "icon-keyboard",
+        "title" : "CodeSettings"
+        }],
+    "config": [{
+        "file": "dialog.php",
+        "icon": "icon-keyboard",
+        "title": "CodeSettings"
+    }]
+}]

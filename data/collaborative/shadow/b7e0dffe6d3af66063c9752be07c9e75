@@ -1,0 +1,30 @@
+s:798:"<!doctype html>
+<html>
+	<head>
+		<title>Web 2 Template</title>
+		<meta charset="utf-8">
+		<meta name="viewport"
+			content="width=device-width,
+			initial-scale=1,
+			minimum-scale=1,
+			maximum-scale=1,
+			user-scalable=no">
+		<link rel="stylesheet" href="./css/styles.css">
+		<script src="./L.js" type="application/javascript"></script>
+		<script src="./js/Initialize.js" type="application/javascript"></script>
+		<script src="./js/Qualify.js" type="application/javascript"></script>
+		<script src="./js/Update.js" type="application/javascript"></script>
+		<script src="./js/Xtra.js" type="application/javascript"></script>
+	</head>
+	<body>
+		
+		<button class="button" id="firstButton">Click</button>
+		
+		<script>
+			window.addEventListener('load', c.initialize);
+		</script>
+	</body>
+</html>
+
+
+";

@@ -1,0 +1,723 @@
+{
+	"showSettingsMenu": {
+		"name": "showSettingsMenu",
+		"bindKey": {
+			"win": "Ctrl-,",
+			"mac": "Command-,"
+		},
+		"readOnly": true
+	},
+	"selectall": {
+		"name": "selectall",
+		"bindKey": {
+			"win": "Ctrl-A",
+			"mac": "Command-A"
+		},
+		"readOnly": true
+	},
+	"centerselection": {
+		"name": "centerselection",
+		"bindKey": {
+			"win": null,
+			"mac": "Ctrl-L"
+		},
+		"readOnly": true
+	},
+	"gotoline": {
+		"name": "gotoline",
+		"bindKey": {
+			"win": "Ctrl-L",
+			"mac": "Command-L"
+		},
+		"readOnly": true
+	},
+	"fold": {
+		"name": "fold",
+		"bindKey": {
+			"win": "Alt-L|Ctrl-F1",
+			"mac": "Command-Alt-L|Command-F1"
+		},
+		"readOnly": true
+	},
+	"unfold": {
+		"name": "unfold",
+		"bindKey": {
+			"win": "Alt-Shift-L|Ctrl-Shift-F1",
+			"mac": "Command-Alt-Shift-L|Command-Shift-F1"
+		},
+		"readOnly": true
+	},
+	"foldall": {
+		"name": "foldall",
+		"bindKey": {
+			"win": "Alt-0",
+			"mac": "Command-Option-0"
+		},
+		"readOnly": true
+	},
+	"unfoldall": {
+		"name": "unfoldall",
+		"bindKey": {
+			"win": "Alt-Shift-0",
+			"mac": "Command-Option-Shift-0"
+		},
+		"readOnly": true
+	},
+	"findnext": {
+		"name": "findnext",
+		"bindKey": {
+			"win": "Ctrl-K",
+			"mac": "Command-G"
+		},
+		"readOnly": true
+	},
+	"findprevious": {
+		"name": "findprevious",
+		"bindKey": {
+			"win": "Ctrl-Shift-K",
+			"mac": "Command-Shift-G"
+		},
+		"readOnly": true
+	},
+	"find": {
+		"name": "find",
+		"bindKey": {
+			"win": "Ctrl-F",
+			"mac": "Command-F"
+		},
+		"readOnly": true
+	},
+	"overwrite": {
+		"name": "overwrite",
+		"bindKey": "Insert",
+		"readOnly": true
+	},
+	"selecttostart": {
+		"name": "selecttostart",
+		"bindKey": {
+			"win": "Ctrl-Shift-Home",
+			"mac": "Command-Shift-Up"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true,
+		"group": "fileJump"
+	},
+	"gotostart": {
+		"name": "gotostart",
+		"bindKey": {
+			"win": "Ctrl-Home",
+			"mac": "Command-Home|Command-Up"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true,
+		"group": "fileJump"
+	},
+	"selectup": {
+		"name": "selectup",
+		"bindKey": {
+			"win": "Shift-Up",
+			"mac": "Shift-Up"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"golineup": {
+		"name": "golineup",
+		"bindKey": {
+			"win": "Up",
+			"mac": "Up|Ctrl-P"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selecttoend": {
+		"name": "selecttoend",
+		"bindKey": {
+			"win": "Ctrl-Shift-End",
+			"mac": "Command-Shift-Down"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true,
+		"group": "fileJump"
+	},
+	"gotoend": {
+		"name": "gotoend",
+		"bindKey": {
+			"win": "Ctrl-End",
+			"mac": "Command-End|Command-Down"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true,
+		"group": "fileJump"
+	},
+	"selectdown": {
+		"name": "selectdown",
+		"bindKey": {
+			"win": "Shift-Down",
+			"mac": "Shift-Down"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"golinedown": {
+		"name": "golinedown",
+		"bindKey": {
+			"win": "Down",
+			"mac": "Down|Ctrl-N"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectwordleft": {
+		"name": "selectwordleft",
+		"bindKey": {
+			"win": "Ctrl-Shift-Left",
+			"mac": "Option-Shift-Left"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotowordleft": {
+		"name": "gotowordleft",
+		"bindKey": {
+			"win": "Ctrl-Left",
+			"mac": "Option-Left"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selecttolinestart": {
+		"name": "selecttolinestart",
+		"bindKey": {
+			"win": "Alt-Shift-Left",
+			"mac": "Command-Shift-Left"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotolinestart": {
+		"name": "gotolinestart",
+		"bindKey": {
+			"win": "Alt-Left|Home",
+			"mac": "Command-Left|Home|Ctrl-A"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectleft": {
+		"name": "selectleft",
+		"bindKey": {
+			"win": "Shift-Left",
+			"mac": "Shift-Left"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotoleft": {
+		"name": "gotoleft",
+		"bindKey": {
+			"win": "Left",
+			"mac": "Left|Ctrl-B"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectwordright": {
+		"name": "selectwordright",
+		"bindKey": {
+			"win": "Ctrl-Shift-Right",
+			"mac": "Option-Shift-Right"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotowordright": {
+		"name": "gotowordright",
+		"bindKey": {
+			"win": "Ctrl-Right",
+			"mac": "Option-Right"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selecttolineend": {
+		"name": "selecttolineend",
+		"bindKey": {
+			"win": "Alt-Shift-Right",
+			"mac": "Command-Shift-Right"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotolineend": {
+		"name": "gotolineend",
+		"bindKey": {
+			"win": "Alt-Right|End",
+			"mac": "Command-Right|End|Ctrl-E"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectright": {
+		"name": "selectright",
+		"bindKey": {
+			"win": "Shift-Right",
+			"mac": "Shift-Right"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"gotoright": {
+		"name": "gotoright",
+		"bindKey": {
+			"win": "Right",
+			"mac": "Right|Ctrl-F"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectpagedown": {
+		"name": "selectpagedown",
+		"bindKey": "Shift-PageDown",
+		"readOnly": true
+	},
+	"pagedown": {
+		"name": "pagedown",
+		"bindKey": {
+			"win": null,
+			"mac": "Option-PageDown"
+		},
+		"readOnly": true
+	},
+	"gotopagedown": {
+		"name": "gotopagedown",
+		"bindKey": {
+			"win": "PageDown",
+			"mac": "PageDown|Ctrl-V"
+		},
+		"readOnly": true
+	},
+	"selectpageup": {
+		"name": "selectpageup",
+		"bindKey": "Shift-PageUp",
+		"readOnly": true
+	},
+	"pageup": {
+		"name": "pageup",
+		"bindKey": {
+			"win": null,
+			"mac": "Option-PageUp"
+		},
+		"readOnly": true
+	},
+	"gotopageup": {
+		"name": "gotopageup",
+		"bindKey": "PageUp",
+		"readOnly": true
+	},
+	"scrollup": {
+		"name": "scrollup",
+		"bindKey": {
+			"win": "Ctrl-Up",
+			"mac": null
+		},
+		"readOnly": true
+	},
+	"scrolldown": {
+		"name": "scrolldown",
+		"bindKey": {
+			"win": "Ctrl-Down",
+			"mac": null
+		},
+		"readOnly": true
+	},
+	"selectlinestart": {
+		"name": "selectlinestart",
+		"bindKey": "Shift-Home",
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selectlineend": {
+		"name": "selectlineend",
+		"bindKey": "Shift-End",
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"togglerecording": {
+		"name": "togglerecording",
+		"bindKey": {
+			"win": "Ctrl-Alt-E",
+			"mac": "Command-Option-E"
+		},
+		"readOnly": true
+	},
+	"replaymacro": {
+		"name": "replaymacro",
+		"bindKey": {
+			"win": "Ctrl-Shift-E",
+			"mac": "Command-Shift-E"
+		},
+		"readOnly": true
+	},
+	"jumptomatching": {
+		"name": "jumptomatching",
+		"bindKey": {
+			"win": "Ctrl-P",
+			"mac": "Ctrl-Shift-P"
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"selecttomatching": {
+		"name": "selecttomatching",
+		"bindKey": {
+			"win": "Ctrl-Shift-P",
+			"mac": null
+		},
+		"multiSelectAction": "forEach",
+		"readOnly": true
+	},
+	"cut": {
+		"name": "cut",
+		"multiSelectAction": "forEach"
+	},
+	"removeline": {
+		"name": "removeline",
+		"bindKey": {
+			"win": "Ctrl-D",
+			"mac": "Command-D"
+		},
+		"multiSelectAction": "forEachLine"
+	},
+	"duplicateSelection": {
+		"name": "duplicateSelection",
+		"bindKey": {
+			"win": "Ctrl-Shift-D",
+			"mac": "Command-Shift-D"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"sortlines": {
+		"name": "sortlines",
+		"bindKey": {
+			"win": "Ctrl-Alt-S",
+			"mac": "Command-Alt-S"
+		},
+		"multiSelectAction": "forEachLine"
+	},
+	"togglecomment": {
+		"name": "togglecomment",
+		"bindKey": {
+			"win": "Ctrl-/",
+			"mac": "Command-/"
+		},
+		"multiSelectAction": "forEachLine"
+	},
+	"toggleBlockComment": {
+		"name": "toggleBlockComment",
+		"bindKey": {
+			"win": "Ctrl-Shift-/",
+			"mac": "Command-Shift-/"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"modifyNumberUp": {
+		"name": "modifyNumberUp",
+		"bindKey": {
+			"win": "Ctrl-Shift-Up",
+			"mac": "Alt-Shift-Up"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"modifyNumberDown": {
+		"name": "modifyNumberDown",
+		"bindKey": {
+			"win": "Ctrl-Shift-Down",
+			"mac": "Alt-Shift-Down"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"replace": {
+		"name": "replace",
+		"bindKey": {
+			"win": "Ctrl-H",
+			"mac": "Command-Option-F"
+		}
+	},
+	"undo": {
+		"name": "undo",
+		"bindKey": {
+			"win": "Ctrl-Z",
+			"mac": "Command-Z"
+		}
+	},
+	"redo": {
+		"name": "redo",
+		"bindKey": {
+			"win": "Ctrl-Shift-Z|Ctrl-Y",
+			"mac": "Command-Shift-Z|Command-Y"
+		}
+	},
+	"copylinesup": {
+		"name": "copylinesup",
+		"bindKey": {
+			"win": "Alt-Shift-Up",
+			"mac": "Command-Option-Up"
+		}
+	},
+	"movelinesup": {
+		"name": "movelinesup",
+		"bindKey": {
+			"win": "Alt-Up",
+			"mac": "Option-Up"
+		}
+	},
+	"copylinesdown": {
+		"name": "copylinesdown",
+		"bindKey": {
+			"win": "Alt-Shift-Down",
+			"mac": "Command-Option-Down"
+		}
+	},
+	"movelinesdown": {
+		"name": "movelinesdown",
+		"bindKey": {
+			"win": "Alt-Down",
+			"mac": "Option-Down"
+		}
+	},
+	"del": {
+		"name": "del",
+		"bindKey": {
+			"win": "Delete",
+			"mac": "Delete|Ctrl-D|Shift-Delete"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"backspace": {
+		"name": "backspace",
+		"bindKey": {
+			"win": "Shift-Backspace|Backspace",
+			"mac": "Ctrl-Backspace|Shift-Backspace|Backspace|Ctrl-H"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"cut_or_delete": {
+		"name": "cut_or_delete",
+		"bindKey": {
+			"win": "Shift-Delete",
+			"mac": null
+		},
+		"multiSelectAction": "forEach"
+	},
+	"removetolinestart": {
+		"name": "removetolinestart",
+		"bindKey": {
+			"win": "Alt-Backspace",
+			"mac": "Command-Backspace"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"removetolineend": {
+		"name": "removetolineend",
+		"bindKey": {
+			"win": "Alt-Delete",
+			"mac": "Ctrl-K"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"removewordleft": {
+		"name": "removewordleft",
+		"bindKey": {
+			"win": "Ctrl-Backspace",
+			"mac": "Alt-Backspace|Ctrl-Alt-Backspace"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"removewordright": {
+		"name": "removewordright",
+		"bindKey": {
+			"win": "Ctrl-Delete",
+			"mac": "Alt-Delete"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"outdent": {
+		"name": "outdent",
+		"bindKey": {
+			"win": "Shift-Tab",
+			"mac": "Shift-Tab"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"indent": {
+		"name": "indent",
+		"bindKey": {
+			"win": "Tab",
+			"mac": "Tab"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"blockoutdent": {
+		"name": "blockoutdent",
+		"bindKey": {
+			"win": "Ctrl-[",
+			"mac": "Ctrl-["
+		},
+		"multiSelectAction": "forEachLine"
+	},
+	"blockindent": {
+		"name": "blockindent",
+		"bindKey": {
+			"win": "Ctrl-]",
+			"mac": "Ctrl-]"
+		},
+		"multiSelectAction": "forEachLine"
+	},
+	"insertstring": {
+		"name": "insertstring",
+		"multiSelectAction": "forEach"
+	},
+	"inserttext": {
+		"name": "inserttext",
+		"multiSelectAction": "forEach"
+	},
+	"splitline": {
+		"name": "splitline",
+		"bindKey": {
+			"win": null,
+			"mac": "Ctrl-O"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"transposeletters": {
+		"name": "transposeletters",
+		"bindKey": {
+			"win": "Ctrl-T",
+			"mac": "Ctrl-T"
+		}
+	},
+	"touppercase": {
+		"name": "touppercase",
+		"bindKey": {
+			"win": "Ctrl-U",
+			"mac": "Ctrl-U"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"tolowercase": {
+		"name": "tolowercase",
+		"bindKey": {
+			"win": "Ctrl-Shift-U",
+			"mac": "Ctrl-Shift-U"
+		},
+		"multiSelectAction": "forEach"
+	},
+	"addCursorAbove": {
+		"name": "addCursorAbove",
+		"bindKey": {
+			"win": "Ctrl-Alt-Up",
+			"mac": "Ctrl-Alt-Up"
+		},
+		"readonly": true
+	},
+	"addCursorBelow": {
+		"name": "addCursorBelow",
+		"bindKey": {
+			"win": "Ctrl-Alt-Down",
+			"mac": "Ctrl-Alt-Down"
+		},
+		"readonly": true
+	},
+	"addCursorAboveSkipCurrent": {
+		"name": "addCursorAboveSkipCurrent",
+		"bindKey": {
+			"win": "Ctrl-Alt-Shift-Up",
+			"mac": "Ctrl-Alt-Shift-Up"
+		},
+		"readonly": true
+	},
+	"addCursorBelowSkipCurrent": {
+		"name": "addCursorBelowSkipCurrent",
+		"bindKey": {
+			"win": "Ctrl-Alt-Shift-Down",
+			"mac": "Ctrl-Alt-Shift-Down"
+		},
+		"readonly": true
+	},
+	"selectMoreBefore": {
+		"name": "selectMoreBefore",
+		"bindKey": {
+			"win": "Ctrl-Alt-Left",
+			"mac": "Ctrl-Alt-Left"
+		},
+		"readonly": true
+	},
+	"selectMoreAfter": {
+		"name": "selectMoreAfter",
+		"bindKey": {
+			"win": "Ctrl-Alt-Right",
+			"mac": "Ctrl-Alt-Right"
+		},
+		"readonly": true
+	},
+	"selectNextBefore": {
+		"name": "selectNextBefore",
+		"bindKey": {
+			"win": "Ctrl-Alt-Shift-Left",
+			"mac": "Ctrl-Alt-Shift-Left"
+		},
+		"readonly": true
+	},
+	"selectNextAfter": {
+		"name": "selectNextAfter",
+		"bindKey": {
+			"win": "Ctrl-Alt-Shift-Right",
+			"mac": "Ctrl-Alt-Shift-Right"
+		},
+		"readonly": true
+	},
+	"splitIntoLines": {
+		"name": "splitIntoLines",
+		"bindKey": {
+			"win": "Ctrl-Alt-L",
+			"mac": "Ctrl-Alt-L"
+		},
+		"readonly": true
+	},
+	"alignCursors": {
+		"name": "alignCursors",
+		"bindKey": {
+			"win": "Ctrl-Alt-A",
+			"mac": "Ctrl-Alt-A"
+		}
+	},
+	"Find": {
+		"name": "Find",
+		"bindKey": {
+			"win": "Ctrl-F",
+			"mac": "Command-F"
+		}
+	},
+	"Replace": {
+		"name": "Replace",
+		"bindKey": {
+			"win": "Ctrl-R",
+			"mac": "Command-R"
+		}
+	},
+	"Move Up": {
+		"name": "Move Up",
+		"bindKey": {
+			"win": "Ctrl-up",
+			"mac": "Command-up"
+		}
+	},
+	"Move Down": {
+		"name": "Move Down",
+		"bindKey": {
+			"win": "Ctrl-down",
+			"mac": "Command-up"
+		}
+	}
+}

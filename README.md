@@ -1,1 +1,1 @@
-Custom versions of codiad and codiad plugins.
+Custom versions of codiad.
