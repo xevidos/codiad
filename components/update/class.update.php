@@ -30,9 +30,9 @@ class Update
     public function __construct()
     {
         ini_set("user_agent", "Codiad");
-        $this->remote = "http://update.codiad.com/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}";
-        $this->commits = "https://api.github.com/repos/Codiad/Codiad/commits";
-        $this->archive = "https://github.com/Codiad/Codiad/archive/master.zip";
+        $this->remote = "https://codiad.telaaedifex.com/update/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}";
+        $this->commits = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/";
+        $this->archive = "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip";
     }
 
     //////////////////////////////////////////////////////////////////
