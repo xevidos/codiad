@@ -12,73 +12,14 @@
         .load(function() {
             codiad.filemanager.init();
         });
-        
-    
+
     codiad.filemanager = {
 
         clipboard: '',
-        
-        noFiles: [
-        	//Files
-        	'exe',
-        	'zip',
-        	'tar',
-        	'tar.gz',
-        	],
-        noImages: [
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	],
-        noMusic: [
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
-        
-    	noOpen: [
-        	//Files
-        	'exe',
-        	'zip',
-        	'tar',
-        	'tar.gz',
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
-        noBrowser: [
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
-        
+
+        noOpen: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'exe', 'zip', 'tar', 'tar.gz'],
+        noBrowser: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+
         controller: 'components/filemanager/controller.php',
         dialog: 'components/filemanager/dialog.php',
         dialogUpload: 'components/filemanager/dialog_upload.php',
@@ -445,7 +386,7 @@
                         this.openInModal(path);
                     }
                  } else {
-                    codiad.message.error(i18n('Unable to open file in Browser while using absolute path.'));
+                    codiad.message.error(i18n('Unable to open file in Browser'));
                  }
             }
         },
@@ -467,20 +408,8 @@
             });
         },
         openInModal: function(path) {
-        	
-        	let type = "";
-        	var ext = this.getExtension(path).toLowerCase();
-        	
-        	if ( this.noMusic.includes(ext) ) {
-        		
-        		type = 'music_preview';
-        	} else if ( this.noImages.includes(ext) ) {
-        		
-        		type = 'preview';
-        	}
-        	
             codiad.modal.load(250, this.dialog, {
-                        action: type,
+                        action: 'preview',
                         path: path
                     });
         },

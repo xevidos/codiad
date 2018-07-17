@@ -71,21 +71,6 @@ switch($_GET['action']){
     <button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
     <?php
     break;
-    
-    //////////////////////////////////////////////////////////////////
-    // Preview
-    //////////////////////////////////////////////////////////////////
-    case 'music_preview':
-    ?>
-    <label><?php i18n("Inline Preview"); ?></label>
-    <div><br><br>
-    <audio controls>
-		<source src="<?php echo(str_replace(BASE_PATH . "/", "", WORKSPACE) . "/" . $_GET['path']); ?>">
-	</audio>
-    <br><br></div>
-    <button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
-    <?php
-    break;
 
     //////////////////////////////////////////////////////////////////
     // Overwrite
