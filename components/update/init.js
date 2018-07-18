@@ -51,6 +51,21 @@
                 .attr('src', archive);            
             $.get(_this.controller + '?action=clear');             
             codiad.modal.unload();    
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        // Update Codiad
+        //////////////////////////////////////////////////////////////////
+
+        update: function () {
+            var _this = this;
+            console.log( $.get(_this.controller + '?action=update', function( response ){
+            	
+            	if( ! ( response === "" || response === null || response === "#" ) ) {
+            		window.open( window.location.protocol + "//" + response, "_self" )
+            	}
+            }))
+            //codiad.modal.unload();
         }
 
     };

@@ -52,8 +52,8 @@ define("WSURL", BASE_URL . "/workspace");
 //define("MARKETURL", "http://market.codiad.com/json");
 
 // Update Check
-define("UPDATEURL", "https://codiad.telaaedifex.com/update/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}");
-define("ARCHIVEURL", "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip");
-define("COMMITURL", "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/");
+//define("UPDATEURL", "https://codiad.telaaedifex.com/update/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}");
+//define("ARCHIVEURL", "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip");
+//define("COMMITURL", "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/");
 
 ?>
