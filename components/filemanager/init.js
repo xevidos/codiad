@@ -10,34 +10,6 @@
 		
 		$(window)
 		.load(function() {
-			
-			codiad.filemanager.CodiadnoFiles = [
-				//Files
-				'exe',
-				'pdf',
-				'zip',
-				'tar',
-				'tar.gz',
-			]
-			codiad.filemanager.CodiadnoImages = [
-				//Images
-				'ico',
-				'icon',
-				'jpg',
-				'jpeg',
-				'png',
-				'gif',
-				'bmp',
-			]
-			codiad.filemanager.CodiadnoAudio = [
-				//Music
-				'aac',
-				'aif',
-				'mp3',
-				'mp4',
-				'wav',
-				'ogg',
-			]
 			codiad.filemanager.init();
 		});
 	
