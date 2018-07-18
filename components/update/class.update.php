@@ -41,7 +41,7 @@ class Update {
 		$this->archive = "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip";
 		$this->commits = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/";
 		$this->tags = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/tags/";
-		//$this->protocol = $this->CheckProtocol();
+		$this->protocol = $this->CheckProtocol();
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -127,9 +127,26 @@ class Update {
 		
 		
 		
-		
+		//echo var_dump( $response );
 		//return "[".formatJSEND("success", array("currentversion"=>$local[0]['version'],"remoteversion"=>$latest,"message"=>$message,"archive"=>$archive,"nightly"=>$nightly,"name"=>$local[0]['name']))."]";
 		return "[".formatJSEND("success", array("currentversion"=>$current_version,"remoteversion"=>$response["name"],"message"=>$response["message"],"archive"=>$archive,"nightly"=>$nightly,"name"=>$response["author_name"]))."]";
+	}
+	
+	function CheckProtocol() {
+		
+		if( extension_loaded( 'curl' ) ) {
+			
+			//Curl is loaded
+			return "curl";
+		} elseif( ini_get('allow_url_fopen') ) {
+			
+			//Remote get file is enabled
+			return "fopen";
+		} else {
+			
+			//None are enabled exit.
+			return "none";
+		}
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -187,6 +204,6 @@ class Update {
 			break;
 		}
 		
-		return json_decode(file_get_contents($remoteurl), true);
+		//return( json_decode( file_get_contents( $remoteurl ), true ) );
 	}
 }

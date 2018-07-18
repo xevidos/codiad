@@ -12,9 +12,10 @@
 // Verify Session or Key
 //////////////////////////////////////////////////////////////////
 
+require_once('../../common.php');
 checkSession();
 
-	switch($_GET['action']){
+switch($_GET['action']){
 	
 	//////////////////////////////////////////////////////////////////////
 	// Update
@@ -32,7 +33,7 @@ checkSession();
 		
 	} else {
 		
-		require_once('class.update.php');
+		require_once('./class.update.php');
 		$update = new Update();
 		$vars = json_decode($update->Check(), true);
 		
