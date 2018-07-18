@@ -4,86 +4,86 @@
  *  [root]/license.txt for more. This information must remain intact.
  */
 
-(function(global, $){
+	(function(global, $){
+	
+		var codiad = global.codiad;
+		
+		$(window)
+		.load(function() {
+			
+			codiad.filemanager.CodiadnoFiles = [
+				//Files
+				'exe',
+				'pdf',
+				'zip',
+				'tar',
+				'tar.gz',
+			]
+			codiad.filemanager.CodiadnoImages = [
+				//Images
+				'ico',
+				'icon',
+				'jpg',
+				'jpeg',
+				'png',
+				'gif',
+				'bmp',
+			]
+			codiad.filemanager.CodiadnoAudio = [
+				//Music
+				'aac',
+				'aif',
+				'mp3',
+				'mp4',
+				'wav',
+				'ogg',
+			]
+			codiad.filemanager.init();
+		});
+	
 
-    var codiad = global.codiad;
-
-    $(window)
-        .load(function() {
-            codiad.filemanager.init();
-        });
-        
-    
     codiad.filemanager = {
 
         clipboard: '',
-        
-        noFiles: [
-        	//Files
-        	'exe',
-        	'zip',
-        	'tar',
-        	'tar.gz',
-        	],
-        noImages: [
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	],
-        noMusic: [
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
-        
-    	noOpen: [
-        	//Files
-        	'exe',
-        	'zip',
-        	'tar',
-        	'tar.gz',
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
-        noBrowser: [
-        	//Images
-        	'jpg',
-        	'jpeg',
-        	'png',
-        	'gif',
-        	'bmp',
-        	//Music
-        	'aac',
-        	'aif',
-        	'mp3',
-        	'mp4',
-        	'wav',
-        	'ogg',
-        	],
         
         controller: 'components/filemanager/controller.php',
         dialog: 'components/filemanager/dialog.php',
         dialogUpload: 'components/filemanager/dialog_upload.php',
 
         init: function() {
+        	
+        	this.noAudio = [
+				//Audio
+				'aac',
+				'aif',
+				'mp3',
+				'mp4',
+				'wav',
+				'ogg',
+			],
+        	this.noFiles = [
+				//Files
+				'exe',
+				'pdf',
+				'zip',
+				'tar',
+				'tar.gz',
+			],
+			this.noImages = [
+				//Images
+				'ico',
+				'icon',
+				'jpg',
+				'jpeg',
+				'png',
+				'gif',
+				'bmp',
+			],
+			
+	        
+	    	this.noOpen = this.noAudio.concat( this.noFiles, this.noImages ),
+	        this.noBrowser = this.noAudio.concat( this.noImages ),
+	        
             // Initialize node listener
             this.nodeListener();
             // Load uploader
@@ -471,7 +471,7 @@
         	let type = "";
         	var ext = this.getExtension(path).toLowerCase();
         	
-        	if ( this.noMusic.includes(ext) ) {
+        	if ( this.noAudio.includes(ext) ) {
         		
         		type = 'music_preview';
         	} else if ( this.noImages.includes(ext) ) {
