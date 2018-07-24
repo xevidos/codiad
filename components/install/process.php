@@ -18,6 +18,7 @@
     $users = $path . "/data/users.php";
     $projects = $path . "/data/projects.php";
     $active = $path . "/data/active.php";
+    $sessions = $path . "/data/sessions";
     $config = $path . "/config.php";
 
 //////////////////////////////////////////////////////////////////////
@@ -112,7 +113,16 @@ if (!file_exists($users) && !file_exists($projects) && !file_exists($active)) {
     $project_data = array("name"=>$project_name,"path"=>$project_path);
 
     saveJSON($projects, array($project_data));
-
+	
+	/**
+	 * Create sessions path.
+	 */
+	
+	if ( ! is_dir( $sessions ) ) {
+		
+		mkdir( $sessions, 770 );
+	}
+	
     //////////////////////////////////////////////////////////////////
     // Create Users file
     //////////////////////////////////////////////////////////////////
