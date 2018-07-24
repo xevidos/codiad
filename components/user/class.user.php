@@ -112,8 +112,9 @@ class User
         		session_id( $session );
         		session_start();
         		//echo var_dump( $_SESSION ) . "\n\n";
-        		
-        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username ) || empty( $_SESSION ) ) {
+        		$_SESSION['lang'] = $this->lang;
+                $_SESSION['theme'] = $this->theme;
+        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username && ( isset( $_SESSION['lang'] )  && isset( $_SESSION['theme'] ) ) ) || empty( $_SESSION ) ) {
         		    
         		    session_unset();
         			session_destroy();
