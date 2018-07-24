@@ -305,6 +305,9 @@ class updater {
 		
 		//Trigger update
 		$this->update();
+		
+		//Delete File
+		unlink( __FILE__ );
 	}
 	
 	function check_protocol() {
