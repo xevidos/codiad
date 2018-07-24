@@ -170,6 +170,8 @@ class updater {
 		
 	function update() {
 		
+		$sessions = "../../data/sessions";
+		
 		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Downloading latest version ... </p>';</script>";
 		if ( ! $this->download() ) {
 			
@@ -185,6 +187,17 @@ class updater {
 		}
 		
 		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Updating ... </p>';</script>";
+		
+		//Add Sessions path if not there.
+		
+		/**
+		 * Create sessions path.
+		 */
+		
+		if ( ! is_dir( $sessions ) ) {
+			
+			mkdir( $sessions, 770 );
+		}
 		
 		$src = $this->path . "/codiad-master/";
 		$src_folder = $this->path . "/codiad-master";
