@@ -57,6 +57,7 @@ class User
                 $_SESSION['user'] = $this->username;
                 $_SESSION['lang'] = $this->lang;
                 $_SESSION['theme'] = $this->theme;
+                $_SESSION['login_session'] = true;
                 if ($user['project']!='') {
                     $_SESSION['project'] = $user['project'];
                 }
@@ -114,7 +115,7 @@ class User
         		//echo var_dump( $_SESSION ) . "\n\n";
         		$_SESSION['lang'] = $this->lang;
                 $_SESSION['theme'] = $this->theme;
-        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username && ( isset( $_SESSION['lang'] )  && isset( $_SESSION['theme'] ) ) ) || empty( $_SESSION ) ) {
+        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username && ( isset( $_SESSION['lang'] )  && isset( $_SESSION['theme'] ) ) && isset( $_SESSION['login_session'] ) && $_SESSION['login_session'] == true ) || empty( $_SESSION ) ) {
         		    
         		    session_unset();
         			session_destroy();
