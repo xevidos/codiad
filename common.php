@@ -56,6 +56,10 @@
             if(!defined('DATA')) {
                 define('DATA', BASE_PATH . '/data');
             }
+            
+            if(!defined('SESSIONS_PATH')) {
+                define('SESSIONS_PATH', BASE_PATH . '/data/sessions');
+            }
 
             if(!defined('THEMES')){
                 define("THEMES", BASE_PATH . "/themes");
@@ -76,7 +80,7 @@
 
         public static function startSession() {
             Common::construct();
-
+			
             global $cookie_lifetime;
             if(isset($cookie_lifetime) && $cookie_lifetime != "") {
                 ini_set("session.cookie_lifetime", $cookie_lifetime);
@@ -84,7 +88,7 @@
 
             //Set a Session Name
             session_name(md5(BASE_PATH));
-
+			session_save_path( SESSIONS_PATH );
             session_start();
             
             //Check for external authentification
@@ -164,7 +168,9 @@
             $key = "";
             if(isset($_GET['key'])){ $key = $_GET['key']; }
             if(!isset($_SESSION['user']) && !in_array($key,$api_keys)){
-                exit('{"status":"error","message":"Authentication Error"}');
+            	
+                //exit('{"status":"error","message":"Authentication Error"}');
+                exit('{"status":"error","message":"Authentication Error<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant('BASE_URL') . '`</script>"}');
             }
         }
 

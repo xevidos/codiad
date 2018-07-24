@@ -12,7 +12,7 @@ class Update {
 	// CONSTANTS
 	//////////////////////////////////////////////////////////////////
 	
-	CONST VERSION = "v.2.8.8";
+	CONST VERSION = "v.2.8.7";
 	
 	//////////////////////////////////////////////////////////////////
 	// PROPERTIES
@@ -24,6 +24,7 @@ class Update {
 	public $archive = "";
 	public $version = "";
 	public $protocol = "";
+	public $update_fiile = "";
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
@@ -41,7 +42,9 @@ class Update {
 		$this->archive = "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip";
 		$this->commits = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/";
 		$this->tags = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/tags/";
+		$this->update_file = "https://gitlab.telaaedifex.com/xevidos/codiad/raw/master/components/update/update.php";
 		$this->protocol = $this->CheckProtocol();
+		
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -125,6 +128,22 @@ class Update {
 		$nightly = false;
 		$response = $this->getRemoteVersion("check");
 		
+		if ( $response["name"] > $current_version ) {
+			
+			$curl = curl_init();
+			curl_setopt($curl, CURLOPT_URL, $this->update_file);
+			//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
+			curl_setopt($curl, CURLOPT_HEADER, 0);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13');
+			$content = curl_exec($curl);
+			curl_close($curl);
+			
+			unlink( "./update.php" );
+			file_put_contents( "./update.php", $content );
+		}
 		
 		
 		//echo var_dump( $response );
