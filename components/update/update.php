@@ -207,6 +207,7 @@ class updater {
 		
 		
 		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Removing Update ... </p>';</script>";
+		unlink( $src . ".travis.yml" );
 		$this->remove_directory( $src );
 	}
 }
