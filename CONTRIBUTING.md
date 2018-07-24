@@ -26,6 +26,4 @@ If you have questions, please ask. Submit an issue or [contact us directly](mail
 
 **PHP Formatting**
 
-In order to maintain a consistant code structure we follow PSR2 standards and using travis CI to validate a proper formatting.
-
-[![Build Status](https://travis-ci.org/Codiad/Codiad.svg?branch=master)](https://travis-ci.org/Codiad/Codiad)
+In order to maintain a consistant code structure we follow PSR2 standards.

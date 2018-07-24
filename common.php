@@ -87,9 +87,13 @@
             }
 
             //Set a Session Name
-            session_name(md5(BASE_PATH));
+            session_name( md5( BASE_PATH ) );
 			session_save_path( SESSIONS_PATH );
             session_start();
+            
+            if(!defined('SESSION_ID')){
+                define("SESSION_ID", session_id());
+            }
             
             //Check for external authentification
             if(defined('AUTH_PATH')){
@@ -162,6 +166,7 @@
         //////////////////////////////////////////////////////////////////
 
         public static function checkSession(){
+        	
             // Set any API keys
             $api_keys = array();
             // Check API Key or Session Authentication
@@ -173,6 +178,7 @@
                 exit('{"status":"error","message":"Authentication Error<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant('BASE_URL') . '`</script>"}');
             }
         }
+        
 
         //////////////////////////////////////////////////////////////////
         // Get JSON
