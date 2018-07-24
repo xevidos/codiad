@@ -196,7 +196,7 @@ class updater {
 		
 		if ( ! is_dir( $sessions ) ) {
 			
-			mkdir( $sessions, 770 );
+			mkdir( $sessions, 755 );
 		}
 		
 		$src = $this->path . "/codiad-master/";
