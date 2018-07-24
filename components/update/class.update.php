@@ -42,6 +42,7 @@ class Update {
 		$this->commits = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/";
 		$this->tags = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/tags/";
 		$this->protocol = $this->CheckProtocol();
+		
 	}
 	
 	//////////////////////////////////////////////////////////////////

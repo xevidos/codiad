@@ -50,6 +50,9 @@ class User
         $users = getJSON('users.php');
         foreach ($users as $user) {
             if ($user['username']==$this->username && $user['password']==$this->password) {
+            	
+            	$this->checkDuplicateSessions();
+            	
                 $pass = true;
                 $_SESSION['user'] = $this->username;
                 $_SESSION['lang'] = $this->lang;
@@ -65,6 +68,64 @@ class User
         } else {
             echo formatJSEND("error", "Incorrect Username or Password");
         }
+    }
+    
+    
+    /**
+     * Check duplicate sessions
+     * 
+     * This function checks to see if the user is currently logged in
+     * on any other machine and if they are then log them off.  This
+     * will fix the issue with the new auto save attempting to save both
+     * users at the same time.
+     */
+    
+    public function checkDuplicateSessions() {
+
+        $all_sessions = array();
+		session_save_path( SESSIONS_PATH );
+        session_start();
+        $sessions = glob( SESSIONS_PATH . "/*" );
+        $this_session = session_id();
+        $username = "xevidos";
+        
+        foreach($sessions as $session) {
+        	
+        	//echo var_dump( $session ) . "\n\n";
+        	
+        	if ( strpos( $session, "sess_") == false ) {
+        		continue;
+        	}
+        	
+        	
+        	$session = str_replace( "sess_", "", $session );
+        	$session = str_replace(   SESSIONS_PATH . "/", "", $session );
+        	//This skips temp files that aren't sessions
+        	if( strpos( $session, "." ) == false ) {
+
+        		if ( $session == $this_session ) {
+        			
+        			continue;
+        		}
+        		
+        		session_save_path( SESSIONS_PATH );
+        		session_id( $session );
+        		session_start();
+        		//echo var_dump( $_SESSION ) . "\n\n";
+        		
+        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username ) || empty( $_SESSION ) ) {
+        		    
+        		    session_unset();
+        			session_destroy();
+        		} else {
+        			
+        			session_abort();
+        		}
+        	}
+        }
+        
+        session_id( $this_session );
+        session_start();
     }
 
     //////////////////////////////////////////////////////////////////

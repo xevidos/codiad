@@ -92,8 +92,13 @@
             });
 
             // Run resize command to fix render issues
-            codiad.editor.resize();
-            codiad.active.updateTabDropdownVisibility();
+            // Add a check to see if it is not undefined due to an
+            // error being generated on the login page.
+            if ( typeof( codiad.editor.resize() ) !== "undefined" ) {
+            	
+            	codiad.editor.resize();
+            	codiad.active.updateTabDropdownVisibility();
+            }
         });
 
         $('#settings').click(function(){

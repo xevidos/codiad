@@ -54,6 +54,11 @@ switch($_GET['action']){
 			<br><label><?php i18n("Changes on Codiad"); ?></label>
 			<pre style="overflow: auto; max-height: 200px; max-width: 510px;"><?php echo $vars[0]['data']['message']; ?></pre>
 			<?php
+		} elseif( $vars[0]['data']['remoteversion'] === "" || $vars[0]['data']['remoteversion'] === null ) {
+			
+			?>
+			<br><br><b><label><?php echo htmlentities("Error, could not check for updates.  Please try again later.  If this problem persists, then please contact the web administrator."); ?></label></b>
+			<?php
 		} else {
 			?>
 			<br><br><b><label><?php echo htmlentities("Your current version of Codiad is up to date."); ?></label></b>
