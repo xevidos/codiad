@@ -57,7 +57,10 @@ switch($_GET['action']){
 		} elseif( $vars[0]['data']['remoteversion'] === "" || $vars[0]['data']['remoteversion'] === null ) {
 			
 			?>
-			<br><br><b><label><?php echo htmlentities("Error, could not check for updates.  Please try again later.  If this problem persists, then please contact the web administrator."); ?></label></b>
+			<br><br><b><label>
+				<?php echo htmlentities("Error, could not check for updates.  Please try again later ..."); ?><br>
+				<?php echo htmlentities("If this problem persists, then please contact the web administrator."); ?>
+			</label></b>
 			<?php
 		} else {
 			?>
