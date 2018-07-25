@@ -175,6 +175,9 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 // External Authentification
 //define("AUTH_PATH", "/path/to/customauth.php");
 
+// Site Name
+//define("SITE_NAME", "My Codiad Editor");
+
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **
 //////////////////////////////////////////////////////////////////
@@ -191,11 +194,6 @@ define("WSURL", BASE_URL . "/workspace");
 
 // Marketplace
 //define("MARKETURL", "http://market.codiad.com/json");
-
-// Update Check
-define("UPDATEURL", "https://codiad.telaaedifex.com/update/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}");
-define("ARCHIVEURL", "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip");
-define("COMMITURL", "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/");
 ';
 
     saveFile($config, $config_data);
