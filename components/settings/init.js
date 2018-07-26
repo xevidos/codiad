@@ -45,7 +45,8 @@
 
             var sync_system = (localStorage.getItem('codiad.settings.system.sync') == "true");
             var sync_plugin = (localStorage.getItem('codiad.settings.plugin.sync') == "true");
-
+			var auto_save = (localStorage.getItem('codiad.settings.autosave') == "true");
+			
             if (sync_system || sync_plugin) {
                 for (var i = 0; i < localStorage.length; i++) {
                     key = localStorage.key(i);
@@ -55,12 +56,15 @@
                     if (pluginRegex.test(key) && sync_plugin) {
                         settings[key] = localStorage.getItem(key);
                     }
+                    if (pluginRegex.test(key) && auto_save) {
+                        settings[key] = localStorage.getItem(key);
+                    }
                 }
             }
-
+			
             settings['codiad.settings.system.sync'] = sync_system;
             settings['codiad.settings.plugin.sync'] = sync_plugin;
-
+			
             $.post(this.controller + '?action=save', {settings: JSON.stringify(settings)}, function(data){
                 parsed = codiad.jsend.parse(data);
             });

@@ -10,6 +10,12 @@
 
         parse: function(d) { // (Data)
             var obj = $.parseJSON(d);
+            
+            if( obj !== undefined && obj !== null ) {
+            	
+            	return;
+            }
+            
             if (obj.debug !== undefined && Array.isArray(obj.debug)) {
                 var debug = obj.debug.join('\nDEBUG: ');
                 if(debug !== '') {

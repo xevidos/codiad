@@ -4,7 +4,10 @@
     *  as-is and without warranty under the MIT License. See
     *  [root]/license.txt for more. This information must remain intact.
     */
-
+    ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+	error_reporting(E_ALL);
+    
     Common::startSession();
 
     //////////////////////////////////////////////////////////////////

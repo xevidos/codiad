@@ -58,9 +58,9 @@ switch($_GET['action']){
 			
 			?>
 			<br><br><b><label>
-				<?php echo htmlentities("Error, could not check for updates.  Please try again later ..."); ?><br>
-				<?php echo htmlentities("If this problem persists, then please contact the web administrator."); ?>
-			</label></b>
+                <?php echo htmlentities("Error, could not check for updates.  Please try again later ..."); ?><br>
+                <?php echo htmlentities("If this problem persists, then please contact the web administrator."); ?>
+            </label></b>
 			<?php
 		} else {
 			?>

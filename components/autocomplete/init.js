@@ -23,7 +23,7 @@
     // Show a popup with word completion suggestions.
     //
     //////////////////////////////////////////////////////////////////
-
+    
     codiad.autocomplete = {
 
         wordRegex: /[^a-zA-Z_0-9\$]+/,
@@ -75,7 +75,12 @@
                 this.show();
 
                 // handle click-out autoclosing.
-                var fn = function () {
+                var fn = function ( event ) {
+                	let keycodes = [ 9, 10, 13 ]
+                	
+                	/*if( ! keycodes.includes( event.keyCode ) ) {
+                		return;
+                	}*/
                     _this.hide();
                     $(window).off('click', fn);
                 };
@@ -236,14 +241,26 @@
         },
 
         onDocumentChange: function (e) {
-            if (e.data.text.search(/^\s+$/) !== -1) {
+        	
+            if ( e.data === undefined || e.data === null || e.data.text.search(/^\s+$/) !== -1) {
                 this.hide();
                 return;
             }
 
             var position = null;
             if (e.data.action === 'insertText') {
-                position = e.data.range.end;
+            	
+            	if( codiad.autosave.saving === false ) {
+                	position = e.data.range.end;
+            	} else {
+					var start = new Date().getTime();
+					for (var i = 0; i < 1e7; i++) {
+						if ((new Date().getTime() - start) > 50){
+							break;
+						}
+					}
+					position = e.data.range.end;
+            	}
             } else if (e.data.action === 'removeText') {
                 position = e.data.range.start;
             } else {
