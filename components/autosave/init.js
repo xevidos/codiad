@@ -26,6 +26,7 @@
 	codiad.auto_save = {
 	
 		// Allows relative `this.path` linkage
+		auto_save_trigger: null,
 		path: curpath,
 		saving: false,
 		settings: {
@@ -36,8 +37,12 @@
 		init: function() {
 			
 			this.get_settings();
+			//console.log( this.settings.autosave );
 			// Check if the auto save setting is true or false
 			if( this.settings.autosave === false || this.settings.autosave === "false" ) {
+				
+				window.clearInterval( this.auto_save_trigger );
+				console.log( 'Auto save disabled' );
 				return;
 			}
 			
@@ -55,8 +60,9 @@
 				console.log( 'Auto save paused' );
 			});
 			
+			console.log( 'Auto save Enabled' );
 			//let editor = document.getElementsByClassName( 'ace_content' )[0];
-			let auto_save_trigger = setInterval( this.auto_save, 256 );
+			this.auto_save_trigger = setInterval( this.auto_save, 256 );
 		},
 		
 		/**
@@ -87,7 +93,7 @@
 			codiad.active.save;
 			codiad.filemanager.saveFile(path, content, localStorage.removeItem(path), false);
 			var session = codiad.active.sessions[path];
-			if(typeof session != 'undefined') {
+			if( typeof session != 'undefined' ) {
 				session.untainted = content;
 				session.serverMTime = session.serverMTime;
 				if (session.listThumb) session.listThumb.removeClass('changed');
@@ -105,6 +111,7 @@
                 var localValue = localStorage.getItem('codiad.settings.' + key);
                 if (localValue !== null) {
                     _this.settings[key] = localValue;
+                    //console.log( `${key}, ${localValue}` );
                 }
             });
 		}

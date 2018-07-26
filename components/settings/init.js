@@ -62,6 +62,7 @@
                 }
             }
 			
+			settings['codiad.settings.autosave'] = auto_save;
             settings['codiad.settings.system.sync'] = sync_system;
             settings['codiad.settings.plugin.sync'] = sync_plugin;
 			
