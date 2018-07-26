@@ -120,7 +120,7 @@ if (!file_exists($users) && !file_exists($projects) && !file_exists($active)) {
 	
 	if ( ! is_dir( $sessions ) ) {
 		
-		mkdir( $sessions, 755 );
+		mkdir( $sessions, 0755 );
 	}
 	
     //////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ if (!file_exists($users) && !file_exists($projects) && !file_exists($active)) {
     $config_data = '<?php
 
 /*
-*  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
+*  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown (telaaedifex.com), distributed
 *  as-is and without warranty under the MIT License. See
 *  [root]/license.txt for more. This information must remain intact.
 */
@@ -175,6 +175,9 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 // External Authentification
 //define("AUTH_PATH", "/path/to/customauth.php");
 
+// Site Name
+//define("SITE_NAME", "My Codiad Editor");
+
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **
 //////////////////////////////////////////////////////////////////
@@ -191,11 +194,6 @@ define("WSURL", BASE_URL . "/workspace");
 
 // Marketplace
 //define("MARKETURL", "http://market.codiad.com/json");
-
-// Update Check
-define("UPDATEURL", "https://codiad.telaaedifex.com/update/?v={VER}&o={OS}&p={PHP}&w={WEB}&a={ACT}");
-define("ARCHIVEURL", "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip");
-define("COMMITURL", "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/");
 ';
 
     saveFile($config, $config_data);

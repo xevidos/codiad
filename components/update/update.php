@@ -199,6 +199,41 @@ class updater {
 			mkdir( $sessions, 755 );
 		}
 		
+		/**
+		 * If any directories in the array below are still set delete them.
+		 * 
+		 */
+		$folder_conflictions = array(
+			
+			$this->path . "/plugins/auto_save",
+			$this->path . "/plugins/Codiad-Auto-Save",
+			$this->path . "/plugins/Codiad-Auto-Save-master",
+			$this->path . "/plugins/Codiad-CodeSettings",
+			$this->path . "/plugins/Codiad-CodeSettings-master",
+		);
+		
+		foreach( $folder_conflictions as $dir ) {
+			
+			$this->remove_directory( $dir );
+		}
+		
+		/**
+		 * If any files in the array below are still set delete them.
+		 * 
+		 */
+		 
+		$file_conflictions = array(
+			
+			$this->path . "/.travis.yml",
+			$this->path . "/codiad-master/.travis.yml",
+		);
+		
+		foreach( $folder_conflictions as $file ) {
+			
+			unlink( $file );
+		}
+		
+		
 		$src = $this->path . "/codiad-master/";
 		$src_folder = $this->path . "/codiad-master";
 		$dest = $this->path . "/";
@@ -207,7 +242,6 @@ class updater {
 		
 		
 		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Removing Update ... </p>';</script>";
-		unlink( $src . ".travis.yml" );
 		$this->remove_directory( $src );
 	}
 }

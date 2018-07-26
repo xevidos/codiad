@@ -94,7 +94,7 @@
             // Run resize command to fix render issues
             // Add a check to see if it is not undefined due to an
             // error being generated on the login page.
-            if ( typeof( codiad.editor.resize() ) !== "undefined" ) {
+            if ( codiad.editor !== undefined && codiad.editor !== null ) {
             	
             	codiad.editor.resize();
             	codiad.active.updateTabDropdownVisibility();

@@ -5,6 +5,19 @@
 <hr>
 <label></label>
 <table class="settings">
+	
+	<tr>
+	
+		<td><?php i18n("Auto Save"); ?></td>
+		<td>
+			<select class="setting" data-setting="codiad.settings.autosave">
+				<option value="true"><?php i18n("True") ?></option>
+				<option value="false" default><?php i18n("False") ?></option>
+			</select>
+		</td>
+	
+	</tr>
+    
     <tr>
     
         <td><?php i18n("Right Sidebar Trigger"); ?></td>

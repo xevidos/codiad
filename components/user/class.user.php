@@ -50,29 +50,31 @@ class User
         $users = getJSON('users.php');
         foreach ($users as $user) {
             if ($user['username']==$this->username && $user['password']==$this->password) {
-            	
-            	$this->checkDuplicateSessions();
-            	
+				
                 $pass = true;
+                $_SESSION['id'] = SESSION_ID;
                 $_SESSION['user'] = $this->username;
                 $_SESSION['lang'] = $this->lang;
                 $_SESSION['theme'] = $this->theme;
-                $_SESSION['login_session'] = true;
+        		$_SESSION["login_session"] = true;
+                
                 if ($user['project']!='') {
                     $_SESSION['project'] = $user['project'];
                 }
+                
+                $this->checkDuplicateSessions( $this->username );
             }
         }
-
+		
         if ($pass) {
+        	
             echo formatJSEND("success", array("username"=>$this->username));
         } else {
             echo formatJSEND("error", "Incorrect Username or Password");
         }
     }
     
-    
-    /**
+    /**S
      * Check duplicate sessions
      * 
      * This function checks to see if the user is currently logged in
@@ -81,16 +83,18 @@ class User
      * users at the same time.
      */
     
-    public function checkDuplicateSessions() {
-
+    public static function checkDuplicateSessions( $username ) {
+    	
+    	//ini_set('display_errors', 1);
+		//ini_set('display_startup_errors', 1);
+		//error_reporting(E_ALL);
+    	session_write_close();
         $all_sessions = array();
-		session_save_path( SESSIONS_PATH );
-        session_start();
         $sessions = glob( SESSIONS_PATH . "/*" );
-        $this_session = session_id();
-        $username = "xevidos";
+        session_id( SESSION_ID );
+        // session_save_path( SESSIONS_PATH );
         
-        foreach($sessions as $session) {
+        foreach( $sessions as $session ) {
         	
         	//echo var_dump( $session ) . "\n\n";
         	
@@ -98,33 +102,28 @@ class User
         		continue;
         	}
         	
-        	
         	$session = str_replace( "sess_", "", $session );
-        	$session = str_replace(   SESSIONS_PATH . "/", "", $session );
+        	$session = str_replace( SESSIONS_PATH . "/", "", $session );
         	//This skips temp files that aren't sessions
         	if( strpos( $session, "." ) == false ) {
-
-        		if ( $session == $this_session ) {
-        			
-        			continue;
-        		}
         		
-        		session_save_path( SESSIONS_PATH );
         		session_id( $session );
         		session_start();
-        		//echo var_dump( $_SESSION ) . "\n\n";
-        		if ( ( isset( $_SESSION["user"] ) && $_SESSION["user"] == $username && ( isset( $_SESSION['lang'] )  && isset( $_SESSION['theme'] ) ) && isset( $_SESSION['login_session'] ) && $_SESSION['login_session'] == true ) || empty( $_SESSION ) ) {
+        		$_SESSION["id"] = $session;
+        		array_push( $all_sessions, $_SESSION );
+        		
+        		if ( isset( $_SESSION["user"] ) && $_SESSION["user"] === $username && isset( $_SESSION["login_session"] ) && $_SESSION["login_session"] === true && SESSION_ID !== session_id() ) {
         		    
-        		    session_unset();
-        			session_destroy();
+        		    session_destroy();
         		} else {
         			
         			session_abort();
         		}
         	}
         }
+        //echo '{"status":"error","message":"' . print_r( $all_sessions ) . '"}';
         
-        session_id( $this_session );
+        session_id( SESSION_ID );
         session_start();
     }
 
