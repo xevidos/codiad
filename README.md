@@ -32,7 +32,7 @@ Task List:
 * -Add ability to see what people are highlighting in collaboration mode.
 * Add mobile compatibility.
 
-* Clean up Collaborative compatibility
+* Clean up Collaborative compatibility.
 * Clean up update script.
 
 * Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit)
