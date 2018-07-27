@@ -33,10 +33,8 @@ Task List:
 * Add if file could not be saved 5 times close the editor.
 * Add multi level users.  ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility.
----
 * Clean up Collaborative compatibility.
 * Clean up update script.
----
 * Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit)
 * Fix site settings identification issue.
 
@@ -45,8 +43,6 @@ Completed:
 * Add Auto Save.
 * Add Self Updating Script.
 * Add Site renaming.
----
 * Fix Auto Complete.
 * Fix JS errors already showing.
----
 * Updated for PHP 7.2.
