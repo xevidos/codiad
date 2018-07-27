@@ -120,7 +120,7 @@ if (!file_exists($users) && !file_exists($projects) && !file_exists($active)) {
 	
 	if ( ! is_dir( $sessions ) ) {
 		
-		mkdir( $sessions, 0755 );
+		mkdir( $sessions, 00755 );
 	}
 	
     //////////////////////////////////////////////////////////////////

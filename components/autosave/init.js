@@ -17,7 +17,8 @@
 		
 		amplify.subscribe('settings.changed', function(){
 			//React here on changed settings
-			location.reload();
+			
+			codiad.auto_save.init();
 		});
 		
 		codiad.auto_save.init();
@@ -27,6 +28,7 @@
 	
 		// Allows relative `this.path` linkage
 		auto_save_trigger: null,
+		invalid_states: [ "", " ", null, undefined ],
 		path: curpath,
 		saving: false,
 		settings: {
@@ -39,6 +41,7 @@
 			this.get_settings();
 			//console.log( this.settings.autosave );
 			// Check if the auto save setting is true or false
+			// Also check to see if the editor is any of the invalid states
 			if( this.settings.autosave === false || this.settings.autosave === "false" ) {
 				
 				window.clearInterval( this.auto_save_trigger );
@@ -74,7 +77,7 @@
 		
 		auto_save: function() {
 			
-			if( this.settings.toggle === false ) {
+			if( this.settings.toggle === false  || this.settings.autosave === false || codiad.auto_save.invalid_states.includes( codiad.editor.getContent() ) ) {
 				
 				return;
 			}
@@ -86,6 +89,7 @@
 				this.saving = false;
 				return;
 			}
+			
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
 			let content = codiad.editor.getContent();

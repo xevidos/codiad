@@ -27,12 +27,25 @@ Task List:
 * Add ability to center bottom of code.
 * Add ability to hide cursors when in collaboration mode.
 * Add ability to login with LDAP.
-* Add ability to rename site.
 * Add ability to save users in database.
 * -Add ability to see what people are highlighting in collaboration mode.
+* Add custom market.
+* Add if file could not be saved 5 times close the editor.
 * Add mobile compatibility.
 
 * Clean up Collaborative compatibility.
 * Clean up update script.
 
 * Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit)
+* Fix site settings identification issue.
+
+
+Completed:
+* Add Auto Save.
+* Add Self Updating Script.
+* Add Site renaming.
+
+* Fix Auto Complete.
+* Fix JS errors already showing.
+
+* Update for PHP 7.2.

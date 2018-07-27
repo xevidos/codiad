@@ -35,7 +35,7 @@ date_default_timezone_set("America/Chicago");
 //define("AUTH_PATH", "/path/to/customauth.php");
 
 // Site Name
-//define("SITE_NAME", "My Codiad Editor");
+define("SITE_NAME", "Codiad");
 
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **

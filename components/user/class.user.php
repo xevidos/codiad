@@ -44,7 +44,49 @@ class User
 
     public function Authenticate()
     {
-
+		
+		if ( ! is_dir( SESSIONS_PATH ) ) {
+			
+			mkdir( SESSIONS_PATH, 00755 );
+		}
+		
+		$permissions = array(
+			"755",
+			"0755"
+		);
+		
+		$server_user = posix_getpwuid( posix_geteuid() );
+		$sessions_permissions = substr( sprintf( '%o', fileperms( SESSIONS_PATH ) ), -4 );
+		$sessions_owner = posix_getpwuid( fileowner( SESSIONS_PATH ) );
+		
+		if ( ! ( $sessions_owner === $server_user ) ) {
+			
+			try {
+				
+				chown( SESSIONS_PATH, $server_user );
+				echo( formatJSEND("error", "Error, incorrect owner of sessions folder.  The sessions folder owner has been sucessfully changed.  Please log in again." ) );
+				return;
+			} catch( Exception $e ) {
+				
+				echo( formatJSEND("error", "Error, incorrect owner of sessions folder.  Expecting: $server_user, Recieved: " . $sessions_owner ) );
+				return;
+			}
+		}
+		
+		if ( ! in_array( $sessions_permissions, $permissions ) ) {
+			
+			try {
+				
+				chmod( SESSIONS_PATH, 00755 );
+				echo( formatJSEND("error", "Error, incorrect permissions on sessions folder.  The sessions folder permissions have been sucessfully changed.  Please log in again." ) );
+				return;
+			} catch( Exception $e ) {
+				
+				echo( formatJSEND("error", "Error, incorrect permissions on sessions folder.  Expecting: 0755, Recieved: " . $sessions_permissions ) );
+				return;
+			}
+		}
+		
         $pass = false;
         $this->EncryptPassword();
         $users = getJSON('users.php');
@@ -74,7 +116,7 @@ class User
         }
     }
     
-    /**S
+    /**
      * Check duplicate sessions
      * 
      * This function checks to see if the user is currently logged in
@@ -126,7 +168,7 @@ class User
         session_id( SESSION_ID );
         session_start();
     }
-
+	
     //////////////////////////////////////////////////////////////////
     // Create Account
     //////////////////////////////////////////////////////////////////

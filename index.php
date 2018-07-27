@@ -21,13 +21,23 @@ if(isset($_SESSION['theme'])) {
   $theme = $_SESSION['theme'];
 }
 
+// Get Site name if set
+if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
+	
+	$site_name = SITE_NAME;
+} else {
+	
+	$site_name = "Codiad";
+}
+
 ?>
 <!doctype html>
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php i18n("CODIAD"); ?></title>
+    <title><?php i18n( $site_name ); ?></title>
+    <script>console.log( '<?php echo $site_name;?>' )</script>
     <?php
     // Load System CSS Files
     $stylesheets = array("jquery.toastmessage.css","reset.css","fonts.css","screen.css");

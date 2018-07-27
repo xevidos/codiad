@@ -196,7 +196,7 @@ class updater {
 		
 		if ( ! is_dir( $sessions ) ) {
 			
-			mkdir( $sessions, 755 );
+			mkdir( $sessions, 00755 );
 		}
 		
 		/**
