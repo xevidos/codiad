@@ -176,7 +176,7 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 //define("AUTH_PATH", "/path/to/customauth.php");
 
 // Site Name
-//define("SITE_NAME", "My Codiad Editor");
+define("SITE_NAME", "' . $_POST['sitename'] . '");
 
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **

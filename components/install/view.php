@@ -40,6 +40,7 @@ $autocomplete = array(
   'project_name' => '',
   'project_path' => '',
   'timezone' => '',
+  'site_name' => '',
 );
 
 if (!empty($query)) {
@@ -133,7 +134,14 @@ if ($newrelic) {
         <input type="password" name="password_confirm" value="<?php echo($autocomplete['password_confirm']); ?>">
 
     </div>
+	
+	<div style="float:left; width: 48%; margin-right: 4%;">
 
+        <label><?php i18n("Site Name"); ?></label>
+        <input type="text" name="site_name" value="<?php echo($autocomplete['site_name']); ?>">
+
+    </div>
+	
     <div style="clear:both;"></div>
 
     <hr>

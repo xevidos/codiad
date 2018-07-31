@@ -36,7 +36,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php i18n( $site_name ); ?></title>
+    <title><?php echo htmlentities( $site_name ); ?></title>
     <script>console.log( '<?php echo $site_name;?>' )</script>
     <?php
     // Load System CSS Files

@@ -712,7 +712,46 @@
                 });
             });
         },
-
+		
+		deleteInnerNode: function(path) {
+            var _this = this;
+            codiad.modal.load(400, this.dialog, {
+                action: 'delete',
+                path: path
+            });
+            $('#modal-content form')
+                .live('submit', function(e) {
+                e.preventDefault();
+                $.get(_this.controller + '?action=deleteInner&path=' + encodeURIComponent(path), function(data) {
+                    var deleteResponse = codiad.jsend.parse(data);
+                    if (deleteResponse != 'error') {
+                        var node = $('#file-manager a[data-path="' + path + '"]');
+						while(node.firstChild) {
+							node.removeChild(node.firstChild);
+						}
+						
+                        // Close any active files
+                        $('#active-files a')
+                            .each(function() {
+                                var curPath = $(this)
+                                    .attr('data-path');
+                                if (curPath.indexOf(path) == 0) {
+                                    codiad.active.remove(curPath);
+                                }
+                            });
+                            
+	                    //Rescan Folder
+	                    node.parent()
+	                    .find('a.open')
+	                    .each(function() {
+	                        _this.rescanChildren.push($(this)
+	                            .attr('data-path'));
+	                    });
+                    }
+                    codiad.modal.unload();
+                });
+            });
+        },
         //////////////////////////////////////////////////////////////////
         // Search
         //////////////////////////////////////////////////////////////////

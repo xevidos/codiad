@@ -78,6 +78,9 @@ switch ($action) {
     case 'delete':
             $Filemanager->delete();
         break;
+    case 'deleteInner':
+        	$Filemanager->delete( true );
+    break;
     case 'modify':
             $Filemanager->modify();
         break;

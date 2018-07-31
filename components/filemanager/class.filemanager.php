@@ -354,10 +354,10 @@ class Filemanager extends Common
     }
 
     //////////////////////////////////////////////////////////////////
-    // DELETE (Deletes a file or directory (+contents))
+    // DELETE (Deletes a file or directory (+contents or only contents))
     //////////////////////////////////////////////////////////////////
 
-    public function delete()
+    public function delete( $keep_parent=false )
     {
 
         function rrmdir($path, $follow)
@@ -375,10 +375,14 @@ class Filemanager extends Common
                     } elseif (is_dir("$path/$file")) {
                         rrmdir("$path/$file", $follow);
                     } else {
-                           unlink("$path/$file");
+                        unlink("$path/$file");
                     }
                 }
-                return rmdir($path);
+                if( $keep_parent === false ) {
+                	return rmdir($path);
+                } else {
+                	return;
+                }
             }
         }
 
@@ -396,6 +400,7 @@ class Filemanager extends Common
 
         $this->respond();
     }
+    
 
     //////////////////////////////////////////////////////////////////
     // MODIFY (Modifies a file name/contents or directory name)

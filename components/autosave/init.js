@@ -17,8 +17,12 @@
 		
 		amplify.subscribe('settings.changed', function(){
 			//React here on changed settings
+			//console.log( 'local storage:' + localStorage.getItem('codiad.settings.autosave') );
+			//console.log( 'class storage:' + codiad.auto_save.settings.autosave );
+			//console.log( 'settings storage:' + settings['codiad.settings.autosave'] );
 			
-			codiad.auto_save.init();
+			codiad.auto_save.settings.autosave = localStorage.getItem('codiad.settings.autosave');
+			codiad.auto_save.reload_interval();
 		});
 		
 		codiad.auto_save.init();
@@ -118,6 +122,17 @@
                     //console.log( `${key}, ${localValue}` );
                 }
             });
+		},
+		
+		reload_interval: function() {
+			
+			window.clearInterval( codiad.autosave.auto_save_trigger );
+			window.clearInterval( this.auto_save_trigger );
+			
+			if( codiad.autosave.settings.autosave === true || codiad.autosave.settings.autosave === "true" ) {
+				
+				codiad.autosave.auto_save_trigger = setInterval( codiad.autosave.auto_save, 256 );
+			}
 		}
 	};
 })(this, jQuery);
