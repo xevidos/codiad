@@ -60,6 +60,10 @@
             if(!defined('SESSIONS_PATH')) {
                 define('SESSIONS_PATH', BASE_PATH . '/data/sessions');
             }
+            
+            if( ! defined( 'SITE_ID' ) ) {
+                define( 'SITE_ID', $_SERVER[HTTP_HOST] . $_SERVER[REQUEST_URI] );
+            }
 
             if(!defined('THEMES')){
                 define("THEMES", BASE_PATH . "/themes");

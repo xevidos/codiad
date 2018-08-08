@@ -1506,7 +1506,37 @@
 
                 break;
             }
-        } 
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Enable editor
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        enableEditing: function(i) {
+            i = i || this.getActive();
+            if (! i) return;
+            i.textInput.setReadOnly( false );
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Disable editor
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        disableEditing: function(i) {
+            i = i || this.getActive();
+            if (! i) return;
+            i.textInput.setReadOnly( true );
+        },
 
     };
 

@@ -38,6 +38,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo htmlentities( $site_name ); ?></title>
     <script>console.log( '<?php echo $site_name;?>' )</script>
+    <script src="./js/socket.io.js"></script>
     <?php
     // Load System CSS Files
     $stylesheets = array("jquery.toastmessage.css","reset.css","fonts.css","screen.css");
@@ -411,7 +412,14 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
     <!-- ACE -->
     <script src="components/editor/ace-editor/ace.js"></script>
-
+	
+	<!-- Codiad System Variables -->
+	<script>
+		codiad.system = {};
+		codiad.system.site_id = `<?php echo SITE_ID;?>`;
+		codiad.system.session_id = `<?php echo SESSION_ID;?>`;
+	</script>
+	
     <!-- COMPONENTS -->
     <?php
 
@@ -425,7 +433,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
                 echo('<script src="components/'.$component.'/init.js"></script>"');
             }
         }
-        
+    	
         foreach($plugins as $plugin){
             if(file_exists(PLUGINS . "/" . $plugin . "/init.js")){
                 echo('<script src="plugins/'.$plugin.'/init.js"></script>"');
@@ -435,6 +443,5 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     }
 
     ?>
-
 </body>
 </html>
