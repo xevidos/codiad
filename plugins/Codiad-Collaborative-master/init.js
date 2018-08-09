@@ -9,20 +9,21 @@
 	var codiad = global.codiad,
 	scripts = document.getElementsByTagName('script'),
 	path = scripts[scripts.length-1].src.split('?')[0],
-	curpath = path.split('/').slice(0, -1).join('/')+'/';
+	curpath = path.split( '/' ).slice( 0, -1 ).join( '/ ') + '/';
 	
-	var site_id = codiad.system.site_id;
-	var session_id = window.session_id;
-	var editor = null;
-	var collaborator = null;
 	var buffer_dumped = false;
-	var last_applied_change = null;
-	var just_cleared_buffer = null;
+	var collaborator = null;
 	var current_editor = codiad.active.getPath();
-	var just_opened = false;
-	var loaded = false;
+	var cursor = null;
+	var editor = null;
 	var initial = false;
+	var just_cleared_buffer = null;
+	var just_opened = false;
+	var last_applied_change = null;
+	var loaded = false;
 	var loading = true;
+	var session_id = codiad.system.session_id;
+	var site_id = codiad.system.site_id;
 	
 	function Collaborator( file_path, session_id ) {
 		
@@ -58,26 +59,45 @@
 			if ( delta.initial === true ) {
 				
 				console.log( 'Setting initial content...' );
-				codiad.editor.setContent( '' );
+				//codiad.editor.setContent( '' );
 				codiad.editor.setContent( delta.content )
 				inital = false;
 			}
+			
+			setTimeout(function(){
+				if( cursor !== null ) {
+					console.log( 'Going to position: '  + cursor.row + ", " + cursor.column );
+					editor.gotoLine( cursor.row, cursor.column, true );
+				}
+			}, 256);
+			
 		}.bind() );
 		
 		this.collaboration_socket.on( "recieve_content", function( ) {
 				
-			console.log( 'Someone is joining...' );
+			console.log( 'Someone is joining ...' );
+			console.log( 'Cursor is at '  + cursor.row + ", " + cursor.column  );
 			
 			// Remove change callback
 			editor.removeEventListener( "change", handle_change );
-			
 			codiad.editor.disableEditing();
 			codiad.editor.setContent( '' );
-			collaborator.dump_buffer();
-			
+			collaborator.dump_buffer()
 			// registering change callback
 			editor.addEventListener( "change", handle_change );
-			setTimeout(function(){codiad.editor.enableEditing();}, 500);
+		}.bind() );
+		
+		this.collaboration_socket.on( "unlock", function( ) {
+				
+			console.log( 'Unlocking editors and going to ' + cursor.row + ", " + cursor.column );
+			
+			codiad.editor.enableEditing();
+			setTimeout(function(){
+				if( cursor !== null ) {
+					console.log( 'Going to position: '  + cursor.row + ", " + cursor.column );
+					editor.gotoLine( cursor.row, cursor.column, true );
+				}
+			}, 256);
 		}.bind() );
 		
 		window.collaboration_socket = this.collaboration_socket;
@@ -107,6 +127,13 @@
 	function handle_change( e ) {
 		
 		// TODO, we could make things more efficient and not likely to conflict by keeping track of change IDs
+		coords = editor.getCursorPosition();
+		if( coords.row !== 0 && coords.column !== 0 ) {
+			cursor = editor.getCursorPosition();
+			cursor.row = cursor.row + 1
+			console.log( 'Cursor at: '  + cursor.row + ", " + cursor.column );
+		}
+		
 		if( last_applied_change!=e && !just_cleared_buffer ) {
 			
 			collaborator.change( JSON.stringify(e) );
@@ -166,6 +193,7 @@
 		
 		collaborator = new Collaborator( session_id );
 		
+		//codiad.editor.disableEditing();
 		//collaborator.open_file(  )
 		content = codiad.editor.getContent()
 		codiad.editor.setContent( '' )
@@ -201,8 +229,28 @@
 	});
 	
 	$(window).blur(function() {
+		
+		if( editor !== null ) {
+			coords = editor.getCursorPosition();
+			if( coords.row !== 0 && coords.column !== 0 ) {
+				cursor = editor.getCursorPosition();
+				cursor.row = cursor.row + 1
+				console.log( 'Cursor at: '  + cursor.row + ", " + cursor.column );
+			}
+		}
 		close();
 	});
+	
+	/* When the window is clicked get the cursor position. 
+	$(window).click(function () {
+		
+		coords = editor.getCursorPosition();
+		if( coords.row !== 0 && coords.column !== 0 ) {
+			//cursor = editor.getCursorPosition();
+			//cursor.row = cursor.row + 1
+			//console.log( 'Cursor at: '  + cursor.row + ", " + cursor.column );
+		}
+	});*/
 	
 	/* Subscribe to know when a file become active. */
 	amplify.subscribe('active.onFocus', function (path) {
@@ -210,8 +258,9 @@
 		just_opened = true;
 		
 		if( current_editor !== codiad.active.getPath() && current_editor !== null ) {
-			
-			console.log( 'Closing Socket' );+
+		
+			cursor = null;
+			console.log( 'Closing Socket' );
 			close();
 		}
 		console.log( 'Last Editor: ' + current_editor );
@@ -222,6 +271,13 @@
 			body_loaded();
 		}
 		console.log( 'Focused Editor: ' + codiad.active.getPath() );
+		
+		coords = editor.getCursorPosition();
+		if( coords.row !== 0 && coords.column !== 0 ) {
+			cursor = editor.getCursorPosition();
+			cursor.row = cursor.row + 1
+			console.log( 'Cursor at: '  + cursor.row + ", " + cursor.column );
+		}
 	});
 	
 	//////////////////////////////////////////////////////////////////
@@ -234,6 +290,8 @@
 	//////////////////////////////////////////////////////////////////
 	
 	codiad.collaborative = {
+		
+		
 	};
 	
 })(this, jQuery);
