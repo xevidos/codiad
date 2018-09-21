@@ -37,8 +37,6 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo htmlentities( $site_name ); ?></title>
-    <script>console.log( '<?php echo $site_name;?>' )</script>
-    <script src="./js/socket.io.js"></script>
     <?php
     // Load System CSS Files
     $stylesheets = array("jquery.toastmessage.css","reset.css","fonts.css","screen.css");
