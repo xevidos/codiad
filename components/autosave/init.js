@@ -8,7 +8,7 @@
 	
 	// Define core
 	var codiad = global.codiad,
-	scripts= document.getElementsByTagName('script'),
+	scripts = document.getElementsByTagName('script'),
 	path = scripts[scripts.length-1].src.split('?')[0],
 	curpath = path.split('/').slice(0, -1).join('/')+'/';
 	
@@ -39,6 +39,7 @@
 			autosave: true,
 			toggle: true,
 		},
+		verbose: false,
 		
 		init: function() {
 			
@@ -49,7 +50,10 @@
 			if( this.settings.autosave === false || this.settings.autosave === "false" ) {
 				
 				window.clearInterval( this.auto_save_trigger );
-				console.log( 'Auto save disabled' );
+				
+				if( codiad.auto_save.verbose ) {
+					console.log( 'Auto save disabled' );
+				}
 				return;
 			}
 			
@@ -57,14 +61,18 @@
 			
 				//Turn auto save off if the user leaves the tab.
 				codiad.auto_save.settings.toggle = false;
-				console.log( 'Auto save resumed' );
+				if( codiad.auto_save.verbose ) {
+					console.log( 'Auto save resumed' );
+				}
 			});
 		
 			$(window).blur(function() {
 				
 				//Turn auto save off if the user leaves the tab.
 				codiad.auto_save.settings.toggle = false;
-				console.log( 'Auto save paused' );
+				if( codiad.auto_save.verbose ) {
+					console.log( 'Auto save paused' );
+				}
 			});
 			
 			console.log( 'Auto save Enabled' );
@@ -126,12 +134,15 @@
 		
 		reload_interval: function() {
 			
-			window.clearInterval( codiad.autosave.auto_save_trigger );
-			window.clearInterval( this.auto_save_trigger );
-			
-			if( codiad.autosave.settings.autosave === true || codiad.autosave.settings.autosave === "true" ) {
+			try {
 				
-				codiad.autosave.auto_save_trigger = setInterval( codiad.autosave.auto_save, 256 );
+				window.clearInterval( codiad.autosave.auto_save_trigger );
+				window.clearInterval( this.auto_save_trigger );
+			} catch( error ) {}
+			
+			if( codiad.auto_save.settings.autosave === true || codiad.auto_save.settings.autosave === "true" ) {
+				
+				codiad.auto_save.auto_save_trigger = setInterval( codiad.auto_save.auto_save, 256 );
 			}
 		}
 	};

@@ -135,6 +135,9 @@
                                 case "codiad.editor.tabSize":
                                     codiad.editor.setTabSize(val);
                                 break;
+                                case "codiad.editor.overScroll":
+                                    codiad.editor.setOverScroll(val);
+                                break;
                             }
                         }
                         localStorage.setItem(setting, val);

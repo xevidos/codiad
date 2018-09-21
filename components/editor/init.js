@@ -491,6 +491,7 @@
             i.getSession().setUseWrapMode(this.settings.wrapMode);
             this.setTabSize(this.settings.tabSize, i);
             this.setSoftTabs(this.settings.softTabs, i);
+            this.setOverScroll(this.settings.overScroll, i);
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1536,6 +1537,29 @@
             i = i || this.getActive();
             if (! i) return;
             i.textInput.setReadOnly( true );
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Set Overscroll
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        setOverScroll: function( s, i ) {
+        	
+            if (i) {
+                i.setOption( "scrollPastEnd", s );
+            } else {
+                this.settings.overScroll = s;
+                this.forEach(function(i) {
+                   i.setOption( "scrollPastEnd", s );
+                });
+            }
+            // LocalStorage
+            localStorage.setItem('codiad.editor.overScroll', s);
         },
 
     };

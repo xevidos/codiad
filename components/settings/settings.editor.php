@@ -173,4 +173,16 @@
         </td>
         
     </tr>
+    <tr>
+        <td><?php i18n("Over Scroll"); ?></td>
+        <td>
+        
+        <select class="setting" data-setting="codiad.editor.overScroll">
+            <option value="0" selected><?php i18n("None"); ?></option>
+            <option value="0.5"><?php i18n("Half"); ?></option>
+            <option value="1"><?php i18n("Full"); ?></option>
+        </select>
+        
+        </td>
+    </tr>
 </table>
