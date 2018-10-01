@@ -15,6 +15,7 @@ Features:
 * Auto Save.
 * Collaborative Editing.
 * Multi Cursor.
+* Overscroll ( Ability to center bottom of code ).
 * PHP 7.2 Compatibility.
 * Self updating.
 * Split editor mode.
@@ -24,24 +25,22 @@ When you see a - in front of a task that means it is a possibility but we aren't
 
 Task List:
   
-* Add ability to center bottom of code.
-* Add ability to hide cursors when in collaboration mode.
 * Add ability to login with LDAP.
 * Add ability to save users in database.
-* -Add ability to see what people are highlighting in collaboration mode.
 * Add custom market.
-* Add if file could not be saved 5 times close the editor.
-* Add multi level users.  ( Projects for only certain groups, Permission levels )
+* Add if file could not be saved 5 times close the open file.
+* Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility.
 * Clean up Collaborative compatibility.
 * Clean up update script.
-* Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit)
+* Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit).
 * Fix site settings identification issue.
 
 
 Completed:
 
 * Add Auto Save.
+* Add ability to center bottom of code.
 * Add Self Updating Script.
 * Add Site renaming.
 * Fix Auto Complete.
