@@ -11,8 +11,8 @@
  *
  */
 
-require_once('../common.php');
-require_once('./assets/classes/initialize.php');
+require_once( '../common.php' );
+require_once( './assets/classes/initialize.php' );
 new initialize();
 ?>
 <!doctype html>
