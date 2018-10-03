@@ -117,7 +117,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     // NOT LOGGED IN
     //////////////////////////////////////////////////////////////////
 
-    if(!isset($_SESSION['user'])){
+    if( ! isset( $_SESSION['user'] ) ) {
 
         $path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']),"/");
 
