@@ -427,45 +427,48 @@
                     .trigger('h-resize-init')
                     .trigger('v-resize-init');
             });
+            
+            //Load settings when initially starting up that way the first editor 
+            //we open doesn't have the default settings.
+            this.getSettings();
         },
 
         //////////////////////////////////////////////////////////////////
         //
-        // Retrieve editor settings from localStorage
+        // Retrieve editor settings from database
         //
         //////////////////////////////////////////////////////////////////
 
-        getSettings: function() {
+        getSettings: async function() {
+        	
             var boolVal = null;
-            var theme = localStorage.getItem('codiad.editor.theme');
-
             var _this = this;
-
-            $.each(['theme', 'fontSize', 'tabSize'], function(idx, key) {
-                var localValue = localStorage.getItem('codiad.editor.' + key);
-                if (localValue !== null) {
+			var options = [
+				'fontSize',
+				'overScroll',
+				'printMarginColumn',
+				'tabSize',
+				'theme',
+			];
+			
+            $.each(options, async function( idx, key ) {
+            	
+                var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
+                if ( localValue !== null ) {
+                	
                     _this.settings[key] = localValue;
                 }
             });
 
             $.each(['printMargin', 'highlightLine', 'indentGuides', 'wrapMode', 'rightSidebarTrigger', 'fileManagerTrigger', 'softTabs', 'persistentModal'],
-                   function(idx, key) {
-                       var localValue =
-                           localStorage.getItem('codiad.editor.' + key);
+                   async function(idx, key) {
+                       var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
                        if (localValue === null) {
                            return;
                        }
                        _this.settings[key] = (localValue == 'true');
                    });
-            $.each(['printMarginColumn'],
-                function(idx, key) {
-                    var localValue =
-                        localStorage.getItem('codiad.editor.' + key);
-                    if (localValue === null) {
-                        return;
-                    }
-                    _this.settings[key] = localValue;
-                });
+  
         },
 
         /////////////////////////////////////////////////////////////////
@@ -952,8 +955,8 @@
                     this.instances[k].setTheme('ace/theme/'+ t);
                 }
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.theme', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.theme', t );
         },
 
         /////////////////////////////////////////////////////////////////
@@ -994,8 +997,8 @@
                     i.setFontSize(s);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.fontSize', s);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.fontSize', s );
         },
 
 
@@ -1019,8 +1022,8 @@
                     i.setHighlightActiveLine(h);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.highlightLine', h);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.highlightLine', h );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1042,8 +1045,8 @@
                     i.setShowPrintMargin(p);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.printMargin', p);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.printMargin', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1065,8 +1068,8 @@
                     i.setPrintMarginColumn(p);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.printMarginColumn', p);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1088,8 +1091,8 @@
                     i.setDisplayIndentGuides(g);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.indentGuides', g);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.indentGuides', g );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1130,8 +1133,8 @@
                     i.getSession().setUseWrapMode(w);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.wrapMode', w);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.wrapMode', w );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1146,8 +1149,8 @@
 
         setPersistentModal: function(t, i) {
             this.settings.persistentModal = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.persistentModal', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.persistentModal', t );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1162,8 +1165,8 @@
 
         setRightSidebarTrigger: function(t, i) {
             this.settings.rightSidebarTrigger = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.rightSidebarTrigger', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1178,8 +1181,8 @@
 
         setFileManagerTrigger: function(t, i) {
             this.settings.fileManagerTrigger = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.fileManagerTrigger', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
             codiad.project.loadSide();
         },
         
@@ -1202,8 +1205,8 @@
                     i.getSession().setTabSize(parseInt(s));
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.tabSize', s);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.tabSize', s );
             
         },
         
@@ -1225,8 +1228,8 @@
                     i.getSession().setUseSoftTabs(t);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.softTabs', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.softTabs', t );
             
         },
         
@@ -1558,8 +1561,8 @@
                    i.setOption( "scrollPastEnd", s );
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.overScroll', s);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.overScroll', s );
         },
 
     };

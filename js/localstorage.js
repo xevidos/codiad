@@ -11,10 +11,46 @@
 Copyright (c) 2011 Wojo Design
 Dual licensed under the MIT or GPL licenses.
 */
-(function(){
-    var window = this;
+(function() {
+	
+	//var window = this;
+	
+	//Clear out local storage.
+	if( ! window.localStorage ) {
+		
+		window.globalStorage.clear();
+	} else {
+		
+		window.localStorage.clear();
+	}
+	
+	window.localStorage = {
+		
+		getItem: async function( key ) {
+			
+			let value = await codiad.settings.get_option( key );
+			return( value );
+		},
+		
+		key: async function() {
+			
+			
+		},
+		
+		removeItem: async function() {
+			
+			
+		},
+		
+		setItem: async function( key, value ) {
+			
+			let value = await codiad.settings.update_option( key, value );
+		},
+	}
+	
+    /*
 	// check to see if we have localStorage or not
-	if( !window.localStorage ){		
+	if( !window.localStorage ){
 
 		// globalStorage
 		// non-standard: Firefox 2+
@@ -64,7 +100,7 @@ Dual licensed under the MIT or GPL licenses.
 				
 					div.save( attrKey );
 					this.length--;
-					if( this.length < 0){
+					if( this.length < 0) {
 						this.length=0;
 					}
 				},
@@ -98,4 +134,5 @@ Dual licensed under the MIT or GPL licenses.
 			localStorage["length"] = div.XMLDocument.documentElement.attributes.length;
 		} 
 	} 
+	*/
 })();

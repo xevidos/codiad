@@ -91,8 +91,8 @@
         //////////////////////////////////////////////////////////////////
         // Load and list projects in the sidebar.
         //////////////////////////////////////////////////////////////////
-        loadSide: function() {
-            $('.sb-projects-content').load(this.dialog + '?action=sidelist&trigger='+localStorage.getItem('codiad.editor.fileManagerTrigger'));
+        loadSide: async function() {
+            $( '.sb-projects-content' ).load( this.dialog + '?action=sidelist&trigger='+ await codiad.settings.get_option( 'codiad.editor.fileManagerTrigger' ) );
             this._sideExpanded = true;
         },
         

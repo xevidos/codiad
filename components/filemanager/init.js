@@ -761,8 +761,8 @@
                 action: 'search',
                 path: path
             });
-            codiad.modal.load_process.done( function() {
-                var lastSearched = JSON.parse(localStorage.getItem("lastSearched"));
+            codiad.modal.load_process.done( async function() {
+                var lastSearched = JSON.parse( await codiad.settings.get_option("lastSearched"));
                 if(lastSearched) {
                     $('#modal-content form input[name="search_string"]').val(lastSearched.searchText);
                     $('#modal-content form input[name="search_file_type"]').val(lastSearched.fileExtension);

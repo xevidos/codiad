@@ -41,6 +41,12 @@ $autocomplete = array(
   'project_path' => '',
   'timezone' => '',
   'site_name' => '',
+  
+  'dbhost' => '',
+  'dbname' => '',
+  'dbuser' => '',
+  'dbpass' => '',
+  'dbtype' => '',
 );
 
 if (!empty($query)) {

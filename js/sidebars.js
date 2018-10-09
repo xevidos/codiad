@@ -19,8 +19,10 @@
 
             var _this = this;
 
-            amplify.subscribe('settings.loaded', function(settings){
-                var sbWidth = localStorage.getItem('codiad.sidebars.sb-left-width');
+            amplify.subscribe('settings.loaded', async function( settings ) {
+                var sbWidth = codiad.settings.get_option( 'codiad.sidebars.sb-left-width' );
+                var lock_left = codiad.settings.get_option( 'codiad.sidebars.lock-left-sidebar' );
+                var lock_right = codiad.settings.get_option( 'codiad.sidebars.lock-right-sidebar' );
 
                 if (sbWidth !== null) {
                     $('#sb-left').width(sbWidth);
@@ -28,12 +30,12 @@
                     $('#editor-region').trigger('h-resize-init');
                 }
 
-                if (localStorage.getItem('codiad.sidebars.lock-left-sidebar') === "false") {
+                if ( lock_left === "false" ) {
                     $('#lock-left-sidebar').trigger('click');
                     _this.closeLeftSidebar();
                 }
 
-                if (localStorage.getItem('codiad.sidebars.lock-right-sidebar') === "true") {
+                if ( lock_right === "true") {
                     $('#lock-right-sidebar').trigger('click');
                     _this.openRightSidebar();
                 }
@@ -56,8 +58,8 @@
                         .addClass('icon-lock');
 
                 }
-
-                localStorage.setItem('codiad.sidebars.lock-left-sidebar', _this.leftLock);
+				
+				codiad.settings.update_option( 'codiad.sidebars.lock-left-sidebar', _this.leftLock );
             });
             
             $('#lock-right-sidebar')
@@ -82,7 +84,7 @@
 
                 }
 
-                localStorage.setItem('codiad.sidebars.lock-right-sidebar', _this.rightLock);
+                codiad.settings.update_option( 'codiad.sidebars.lock-right-sidebar', _this.rightLock );
             });
 
             // Left Column Slider
@@ -120,7 +122,7 @@
                         $(window).resize();
                         $('#editor-region')
                             .trigger('h-resize-init');
-                        localStorage.setItem('codiad.sidebars.sb-left-width', $('#sb-left').width());
+                        codiad.settings.update_option( 'codiad.sidebars.sb-left-width', $('#sb-left').width() );
                     }
                 });
         },

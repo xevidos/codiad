@@ -49,7 +49,7 @@ class Common {
 		
 		if( ! defined( 'BASE_PATH' ) ) {
 			
-			define( 'BASE_PATH', rtrim( str_replace( "index.php", "", $_SERVER['SCRIPT_FILENAME'] ), "/" ) );
+			define( 'BASE_PATH', __DIR__ );
 		}
 		
 		if( ! defined( 'COMPONENTS' ) ) {
@@ -74,7 +74,7 @@ class Common {
 		
 		if( ! defined( 'SITE_ID' ) ) {
 			
-			define( 'SITE_ID', $_SERVER[HTTP_HOST] . $_SERVER[REQUEST_URI] );
+			define( 'SITE_ID', $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 		}
 		
 		if( ! defined( 'THEMES' ) ) {
@@ -91,7 +91,108 @@ class Common {
 			
 			define( "LANGUAGE", "en" );
 		}
+		
+		require_once( COMPONENTS . "/sql/class.sql.php" );
 	}
+	
+	//////////////////////////////////////////////////////////////////
+	// New Methods
+	//////////////////////////////////////////////////////////////////
+	
+	public static function return( $output, $action = "return" ) {
+			
+		switch( $action ) {
+			
+			case( "exit" ):
+				
+				exit( $output );
+			break;
+			
+			case( "json" ):
+				
+				exit( '{"status":"error","message":"' . $output . '<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant( 'BASE_URL' ) . '`</script>"}' );
+			break;
+			
+			case( "return" ):
+				
+				return( $output );
+			break;
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Check access to application
+	//////////////////////////////////////////////////////////////////
+	
+	public static function check_access( $action = "return" ) {
+		
+		if( ! self::check_session() ) {
+			
+			session_destroy();
+			self::return( "Access Denied", "json" );
+		}
+		
+		
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Check Session / Key
+	//////////////////////////////////////////////////////////////////
+	
+	public static function check_session( $action = "return" ) {
+		
+		
+		
+		if( ! isset( $_SESSION['user'] ) && ! in_array( $key, $api_keys ) ) {
+			
+			//exit('{"status":"error","message":"Authentication Error"}');
+			exit( '{"status":"error","message":"Authentication Error<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant('BASE_URL') . '`</script>"}' );
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Start Sessions
+	//////////////////////////////////////////////////////////////////
+	
+	public static function start_session() {
+		
+		Common::construct();
+		global $cookie_lifetime;
+		
+		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
+			
+			ini_set( "session.cookie_lifetime", $cookie_lifetime );
+		}
+		
+		//Set a Session Name
+		session_name( md5( BASE_PATH ) );
+		session_save_path( SESSIONS_PATH );
+		session_start();
+		
+		if( ! defined( 'SESSION_ID' ) ) {
+			
+			define( "SESSION_ID", session_id() );
+		}
+		
+		//Check for external authentification
+		if( defined( 'AUTH_PATH' ) ) {
+			
+			require_once( AUTH_PATH );
+		}
+		
+		global $lang;
+		if ( isset( $_SESSION['lang'] ) ) {
+			
+			include BASE_PATH . "/languages/{$_SESSION['lang']}.php";
+		} else {
+			
+			include BASE_PATH . "/languages/" . LANGUAGE . ".php";
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Old Methods
+	//////////////////////////////////////////////////////////////////
 	
 	//////////////////////////////////////////////////////////////////
 	// SESSIONS
@@ -114,7 +215,7 @@ class Common {
 		
 		if(! defined( 'SESSION_ID' ) ) {
 			
-			define("SESSION_ID", session_id());
+			define( "SESSION_ID", session_id() );
 		}
 		
 		//Check for external authentification

@@ -15,13 +15,9 @@
 	// Instantiates plugin
 	$(function() {
 		
-		amplify.subscribe('settings.changed', function(){
-			//React here on changed settings
-			//console.log( 'local storage:' + localStorage.getItem('codiad.settings.autosave') );
-			//console.log( 'class storage:' + codiad.auto_save.settings.autosave );
-			//console.log( 'settings storage:' + settings['codiad.settings.autosave'] );
+		amplify.subscribe('settings.changed', async function() {
 			
-			codiad.auto_save.settings.autosave = localStorage.getItem('codiad.settings.autosave');
+			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
 			codiad.auto_save.reload_interval();
 		});
 		
@@ -41,10 +37,10 @@
 		},
 		verbose: false,
 		
-		init: function() {
+		init: async function() {
 			
-			this.get_settings();
-			//console.log( this.settings.autosave );
+			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
+			
 			// Check if the auto save setting is true or false
 			// Also check to see if the editor is any of the invalid states
 			if( this.settings.autosave === false || this.settings.autosave === "false" ) {
@@ -117,19 +113,6 @@
 			}
 			
 			this.saving = false;
-		},
-		
-		get_settings: function() {
-
-            var _this = this;
-
-            $.each(['autosave'], function(idx, key) {
-                var localValue = localStorage.getItem('codiad.settings.' + key);
-                if (localValue !== null) {
-                    _this.settings[key] = localValue;
-                    //console.log( `${key}, ${localValue}` );
-                }
-            });
 		},
 		
 		reload_interval: function() {

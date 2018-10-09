@@ -22,19 +22,15 @@
         // Initilization
         //////////////////////////////////////////////////////////////////
 
-        init: function() {
+        init: async function() {
             var _this = this;
             this.loginForm.on('submit', function(e) {
                 e.preventDefault();
-                // Save Language
-                localStorage.setItem('codiad.language', $("#language").val());
-                // Save Theme
-                localStorage.setItem('codiad.theme', $("#theme").val());
                 _this.authenticate();
             });
             
             // Get Theme
-            var theme = localStorage.getItem('codiad.theme');
+            var theme = await codiad.settings.get_option( 'codiad.theme' );
             $("#theme option").each(function()
             {
                 if($(this).val() == theme) {
@@ -43,7 +39,7 @@
             });
             
             // Get Language
-            var language = localStorage.getItem('codiad.language');
+            var language = await codiad.settings.get_option('codiad.language');
             $("#language option").each(function()
             {
                 if($(this).val() == language) {

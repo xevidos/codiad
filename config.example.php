@@ -37,6 +37,12 @@ date_default_timezone_set("America/Chicago");
 // Site Name
 define("SITE_NAME", "Codiad");
 
+define("DBHOST", "localhost" );
+define("DBNAME", "database" );
+define("DBUSER", "username" );
+define("DBPASS", "password" );
+define("DBTYPE", "mysql" );
+
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **
 //////////////////////////////////////////////////////////////////
