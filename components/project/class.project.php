@@ -42,24 +42,85 @@ class Project extends Common {
 	// NEW METHODS
 	//////////////////////////////////////////////////////////////////
 	
-	public function add_project() {
+	public function add_project( $project_name, $project_path, $owner = null ) {
 		
+		if( $owner == null ) {
+			
+			$owner = $_SESSION["user"];
+		} else {
+			
+			$owner = 'nobody';
+		}
 		
+		$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
+		$bind = "sss";
+		$bind_variables = array( $project_name, $project_path, $owner );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project_name." ) );
+		
+		return( $return );
 	}
 	
-	public function delete_project() {
+	public function delete_project( $project_name, $project_path, $owner = null ) {
 		
+		if( $owner == null ) {
+			
+			$owner = $_SESSION["user"];
+		} else {
+			
+			$owner = 'nobody';
+		}
 		
+		$owner = $_SESSION["user"];
+		$sql = "DELETE FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$bind = "sss";
+		$bind_variables = array( $project_name, $project_path, $owner );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting project $project_name." ) );
+		
+		try {
+			
+			$json = json_decode( $return, true );
+			exit( $return );
+		} catch( exception $e ) {
+			
+			exit( formatJSEND( "success", "Successfully deleted project $project_name." ) );
+		}
 	}
 	
 	public function get_projects() {
 		
+		$sql = "SELECT * FROM `projects` WHERE `owner`=? OR `owner`='nobody' ORDER BY `name`;";
+		$bind = "s";
+		$bind_variables = array( $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
 		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$return = mysqli_fetch_all( $return, MYSQLI_ASSOC );
+		} else {
+			
+			$return = formatJSEND( "error", "Error fetching projects." );
+		}
+		
+		return( $return );
 	}
 	
-	public function rename_project() {
+	public function rename_project( $old_name, $new_name, $path ) {
 		
+		$sql = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$bind = "sss";
+		$bind_variables = array( $old_name, $path, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
 		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$sql = "UPDATE `projects` SET `name`=? WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+			$bind = "ssss";
+			$bind_variables = array( $new_name, $old_name, $path, $_SESSION["user"] );
+			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error renaming project." ) );
+		} else {
+			
+			exit( formatJSEND( "error", "Error renaming project, could not find specified project." ) );
+		}
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -234,10 +295,13 @@ class Project extends Common {
 			if ( $data['path'] != $this->path ) {
 				
 				$revised_array[] = array( "name" => $data['name'], "path" => $data['path'] );
+			} else {
+				
+				$this->rename_project( $data['name'], $_GET['project_name'], $data['path'] );
 			}
 		}
+		
 		$revised_array[] = $this->projects[] = array( "name" => $_GET['project_name'], "path" => $this->path );
-		$this->rename_project( $data['name'],  );
 		// Response
 		echo formatJSEND("success", null);
 	}
@@ -254,14 +318,12 @@ class Project extends Common {
 			if ( $data['path'] != $this->path ) {
 				
 				$revised_array[] = array( "name" => $data['name'], "path" => $data['path'] );
+			} else {
+				
+				$this->delete_project( $data['name'], $data['path'] );
 			}
 		}
-		// Save array back to JSON
-		$this->delete_project( , );
-		// Response
-		echo formatJSEND( "success", null );
 	}
-	
 	
 	//////////////////////////////////////////////////////////////////
 	// Check Duplicate
@@ -287,7 +349,7 @@ class Project extends Common {
 	public function SanitizePath() {
 		
 		$sanitized = str_replace( " ", "_", $this->path );
-		return preg_replace( '/[^\w-]/', '', $sanitized );
+		return preg_replace( '/[^\w-]/', '', strtolower( $sanitized ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////

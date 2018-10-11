@@ -8,12 +8,14 @@
 
 
 require_once('../../common.php');
+require_once('./class.project.php');
 
 //////////////////////////////////////////////////////////////////
 // Verify Session or Key
 //////////////////////////////////////////////////////////////////
 
 checkSession();
+$Project = new Project;
 
 switch( $_GET['action'] ) {
 	
@@ -23,11 +25,11 @@ switch( $_GET['action'] ) {
 	case 'sidelist':
 		
 		// Get projects data
-		$projects = Project::get_projects();
+		$projects = $Project->get_projects();
 		?>
 		<ul>
 			<?php
-			sort( $projects, SORT_NATURAL );
+			//natcasesort( $projects );
 			foreach( $projects as $project => $data ) {
 				
 				if( $_GET['trigger'] == 'true' ) {
@@ -52,65 +54,64 @@ switch( $_GET['action'] ) {
 	//////////////////////////////////////////////////////////////
 	
 	case 'list':
-	
-	// Get access control data
-	$projects_assigned = false;
-	if(file_exists(BASE_PATH . "/data/" . $_SESSION['user'] . '_acl.php')){
-	$projects_assigned = getJSON($_SESSION['user'] . '_acl.php');
-	}
-	
-	?>
-	<label><?php i18n("Project List"); ?></label>
-	<div id="project-list">
-	<table width="100%">
-	<tr>
-	<th width="70"><?php i18n("Open"); ?></th>
-	<th width="150"><?php i18n("Project Name"); ?></th>
-	<th width="250"><?php i18n("Path"); ?></th>
-	<?php if(checkAccess()){ ?><th width="70"><?php i18n("Delete"); ?></th><?php } ?>
-	</tr>
-	</table>
-	<div class="project-wrapper">
-	<table width="100%" style="word-wrap: break-word;word-break: break-all;">    
-	<?php
-	
-	// Get projects JSON data
-	$projects = getJSON('projects.php');
-	sort($projects);
-	foreach($projects as $project=>$data){
-	$show = true;
-	if($projects_assigned && !in_array($data['path'],$projects_assigned)){ $show=false; }
-	if($show){
-	?>
-	<tr>
-	<td width="70"><a onclick="codiad.project.open('<?php echo($data['path']); ?>');" class="icon-folder bigger-icon"></a></td>
-	<td width="150"><?php echo($data['name']); ?></td>
-	<td width="250"><?php echo($data['path']); ?></td>
-	<?php
-	if(checkAccess()){
-	if($_SESSION['project'] == $data['path']){
-	?>
-	<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
-	<?php
-	}else{
-	?>
-	<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']); ?>','<?php echo($data['path']); ?>');" class="icon-cancel-circled bigger-icon"></a></td>
-	<?php
-	}
-	}
-	?>
-	</tr>
-	<?php
-	}
-	}
-	?>
-	</table>
-	</div>
-	</div>
-	<?php if(checkAccess()){ ?><button class="btn-left" onclick="codiad.project.create();"><?php i18n("New Project"); ?></button><?php } ?>
-	<button class="<?php if(checkAccess()){ echo('btn-right'); } ?>" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
-	<?php
-	
+		
+		//Get projects data
+		$projects = $Project->get_projects();
+		?>
+		<label><?php i18n("Project List"); ?></label>
+		<div id="project-list">
+			<table width="100%">
+				<tr>
+					<th width="70"><?php i18n( "Open");?></th>
+					<th width="150"><?php i18n( "Project Name" );?></th>
+					<th width="250"><?php i18n( "Path" );?></th>
+					<?php if( checkAccess() ) { ?><th width="70"><?php i18n("Delete");?></th><?php } ?>
+				</tr>
+			</table>
+			<div class="project-wrapper">
+				<table width="100%" style="word-wrap: break-word;word-break: break-all;">
+					<?php
+					foreach( $projects as $project => $data ) {
+						
+						$show = true;
+						if( $projects_assigned && ! in_array( $data['path'], $projects_assigned ) ) {
+							
+							$show = false;
+						}
+						if( $show ) {
+							
+							?>
+							<tr>
+								<td width="70"><a onclick="codiad.project.open('<?php echo( $data['path'] );?>');" class="icon-folder bigger-icon"></a></td>
+								<td width="150"><?php echo($data['name']);?></td>
+								<td width="250"><?php echo($data['path']);?></td>
+								<?php
+								if( checkAccess() ) {
+									
+									if( $_SESSION['project'] == $data['path'] ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} else {
+										
+										?>
+										<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']);?>','<?php echo($data['path']);?>');" class="icon-cancel-circled bigger-icon"></a></td>
+										<?php
+									}
+								}
+								?>
+							</tr>
+							<?php
+						}
+					}
+					?>
+				</table>
+			</div>
+		</div>
+		<?php if(checkAccess()){ ?><button class="btn-left" onclick="codiad.project.create();"><?php i18n("New Project"); ?></button><?php } ?>
+		<button class="<?php if(checkAccess()){ echo('btn-right'); } ?>" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
+		<?php
 	break;
 	
 	//////////////////////////////////////////////////////////////////////

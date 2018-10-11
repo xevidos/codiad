@@ -108,11 +108,6 @@ class Common {
 				exit( $output );
 			break;
 			
-			case( "json" ):
-				
-				exit( '{"status":"error","message":"' . $output . '<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant( 'BASE_URL' ) . '`</script>"}' );
-			break;
-			
 			case( "return" ):
 				
 				return( $output );
@@ -129,10 +124,45 @@ class Common {
 		if( ! self::check_session() ) {
 			
 			session_destroy();
-			self::return( "Access Denied", "json" );
+			self::return( formatJSEND( "error", "Error fetching project information." ), "exit" );
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Check access to a project
+	//////////////////////////////////////////////////////////////////
+	public static function check_project_access( $project_name, $project_path, $action ) {
+		
+		$sql = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$bind = "sss";
+		$bind_variables = array( $project_name, $project_path, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$return = mysqli_fetch_assoc( $return );
+			
+			try {
+				
+				$users = json_decode( $return["access"] );
+			} catch( exception $e ) {
+				
+				$users = array();
+			}
+			
+			if( $return["owner"] == 'nobody' || $return["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
+				
+				$return = true;
+			} else {
+				
+				$return = false;
+			}
+		} else {
+			
+			$return = false;
 		}
 		
-		
+		self::return( $return, $action );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -213,7 +243,7 @@ class Common {
 		session_save_path( SESSIONS_PATH );
 		session_start();
 		
-		if(! defined( 'SESSION_ID' ) ) {
+		if( ! defined( 'SESSION_ID' ) ) {
 			
 			define( "SESSION_ID", session_id() );
 		}
@@ -410,26 +440,29 @@ class Common {
 	
 	public static function checkPath( $path ) {
 		
-		if( file_exists( DATA . "/" . $_SESSION['user'] . '_acl.php' ) ) {
+		$sql = "SELECT * FROM `projects` WHERE LOCATE( `path`, ? ) > 0 LIMIT 1;";
+		$bind = "s";
+		$bind_variables = array( $path );
+		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching project information." ) );
+		
+		if( mysqli_num_rows( $result ) > 0 ) {
 			
-			foreach ( getJSON( $_SESSION['user'] . '_acl.php' ) as $projects => $data ) {
+			$result = mysqli_fetch_assoc( $result );
+			
+			try {
 				
-				if ( strpos( $path, $data ) === 0) {
-					
-					return true;
-				}
+				$users = json_decode( $result["access"] );
+			} catch( exception $e ) {
+				
+				$users = array();
 			}
-		} else {
 			
-			foreach( getJSON( 'projects.php' ) as $project => $data ) {
+			if( $result["owner"] == 'nobody' || $result["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
 				
-				if ( strpos( $path, $data['path'] ) === 0 ) {
-					
-					return true;
-				}
+				return( true );
 			}
 		}
-		return false;
+		return( false );
 	}
 	
 	

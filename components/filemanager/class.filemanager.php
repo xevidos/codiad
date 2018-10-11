@@ -405,7 +405,15 @@ class Filemanager extends Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public function delete( $keep_parent = false ) {
-	
+		
+		if( Common::checkPath( $path ) ) {
+			
+			$this->status = "error";
+			$this->message = "No access.";
+			$this->respond();
+			return;
+		}
+		
 		function rrmdir( $path, $follow, $keep_parent = false ) {
 			
 			if ( is_file( $path ) ) {

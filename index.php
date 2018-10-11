@@ -183,8 +183,15 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     // AUTHENTICATED
     //////////////////////////////////////////////////////////////////
 
-    }else{
-
+    } else {
+	
+		define( "USER_WORKSPACE", WORKSPACE . "/" . $_SESSION["user"] );
+		
+		if( ! is_dir( USER_WORKSPACE ) ) {
+			
+			mkdir( USER_WORKSPACE, 0755 );
+		}
+	
     ?>
 
     <div id="workspace">

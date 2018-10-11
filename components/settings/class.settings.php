@@ -57,7 +57,7 @@ class Settings {
 		
 		if( $user_setting == null ) {
 			
-			$sql = "SELECT `value` FROM `options` WHERE `option_name`=?;";
+			$sql = "SELECT `value` FROM `options` WHERE `name`=?;";
 			$bind = "s";
 			$bind_variables = array( $option );
 			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching option: $option" ) );
@@ -71,7 +71,7 @@ class Settings {
 			}
 		} else {
 			
-			$sql = "SELECT `value` FROM `user_options` WHERE `option_name`=? AND `username`=?;";
+			$sql = "SELECT `value` FROM `user_options` WHERE `name`=? AND `username`=?;";
 			$bind = "ss";
 			$bind_variables = array( $option, $this->username );
 			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching option: $option" ) );
@@ -130,7 +130,7 @@ class Settings {
 	
 	public function update_option( $option, $value, $user_setting = null ) {
 		
-		$query = "INSERT INTO user_options ( `option_name`, `username`, `value` ) VALUES ( ?, ?, ? );";
+		$query = "INSERT INTO user_options ( `name`, `username`, `value` ) VALUES ( ?, ?, ? );";
 		$bind = "sss";
 		$bind_variables = array(
 			$option,
@@ -141,7 +141,7 @@ class Settings {
 		
 		if( $result !== true ) {
 			
-			$query = "UPDATE user_options SET `value`=? WHERE `option_name`=? AND `username`=?;";
+			$query = "UPDATE user_options SET `value`=? WHERE `name`=? AND `username`=?;";
 			$bind = "sss";
 			$bind_variables = array(
 				$value,
