@@ -22,6 +22,7 @@ class Project extends Common {
 	public $no_return    = false;
 	public $assigned     = false;
 	public $command_exec = '';
+	public $public_project = false;
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
@@ -44,12 +45,12 @@ class Project extends Common {
 	
 	public function add_project( $project_name, $project_path, $owner = null ) {
 		
-		if( $owner == null ) {
-			
-			$owner = $_SESSION["user"];
-		} else {
+		if( $this->public_project ) {
 			
 			$owner = 'nobody';
+		} else {
+			
+			$owner = $_SESSION["user"];
 		}
 		
 		$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
@@ -60,30 +61,103 @@ class Project extends Common {
 		return( $return );
 	}
 	
-	public function delete_project( $project_name, $project_path, $owner = null ) {
+	public function check_owner( $path = null, $exclude_public = false ) {
 		
-		if( $owner == null ) {
+		if( $path === null ) {
 			
-			$owner = $_SESSION["user"];
+			$path = $this->path;
+		}
+		$sql = "SELECT `owner` FROM `projects` WHERE `path`=?";
+		$bind = "s";
+		$bind_variables = array( $path );
+		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = false;
+		
+		if( mysqli_num_rows( $result ) > 0 ) {
+			
+			$owner = mysqli_fetch_assoc( $result )["owner"];
+			if( $exclude_public ) {
+				
+				if( $owner == $_SESSION["user"] ) {
+					
+					$return = true;
+				}
+			} else {
+				
+				if( $owner == $_SESSION["user"] || $owner == 'nobody' ) {
+					
+					$return = true;
+				}
+			}
+		}
+		return( $return );
+	}
+	
+	public function get_access( $path = null ) {
+		
+		if( $path === null ) {
+			
+			$path = $this->path;
+		}
+		$sql = "SELECT `access` FROM `projects` WHERE `path`=?";
+		$bind = "s";
+		$bind_variables = array( $path );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching project information." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$return = mysqli_fetch_assoc( $return )["access"];
 		} else {
 			
-			$owner = 'nobody';
+			$return = formatJSEND( "error", "Error fetching project info." );
 		}
 		
-		$owner = $_SESSION["user"];
-		$sql = "DELETE FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
-		$bind = "sss";
-		$bind_variables = array( $project_name, $project_path, $owner );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting project $project_name." ) );
+		return( $return );
+	}
+	
+	public function get_owner( $path = null ) {
 		
-		try {
+		if( $path === null ) {
 			
-			$json = json_decode( $return, true );
-			exit( $return );
-		} catch( exception $e ) {
-			
-			exit( formatJSEND( "success", "Successfully deleted project $project_name." ) );
+			$path = $this->path;
 		}
+		$sql = "SELECT `owner` FROM `projects` WHERE `path`=?";
+		$bind = "s";
+		$bind_variables = array( $path );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$return = mysqli_fetch_assoc( $return )["owner"];
+		} else {
+			
+			$return = formatJSEND( "error", "Error fetching project info." );
+		}
+		
+		return( $return );
+	}
+	
+	public function get_project( $project = null ) {
+		
+		if( $project === null ) {
+			
+			$project = $this->path;
+		}
+		
+		$sql = "SELECT * FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' ) ORDER BY `name`;";
+		$bind = "ss";
+		$bind_variables = array( $project, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			$return = mysqli_fetch_all( $return, MYSQLI_ASSOC )[0];
+		} else {
+			
+			$return = formatJSEND( "error", "Error fetching projects." );
+		}
+		
+		return( $return );
 	}
 	
 	public function get_projects() {
@@ -169,18 +243,20 @@ class Project extends Common {
 	
 	public function Open() {
 		
-		$pass = false;
-		foreach ( $this->projects as $project => $data ) {
+		$sql = "SELECT * FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$bind = "ss";
+		$bind_variables = array( $this->path, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
 			
-			if ( $data['path'] == $this->path ) {
-				
-				$pass = true;
-				$this->name = $data['name'];
-				$_SESSION['project'] = $data['path'];
-			}
-		}
-		if ( $pass ) {
-			
+			$return = mysqli_fetch_assoc( $return );
+			$sql = "UPDATE `users` SET `project`=? WHERE `username`=?;";
+			$bind = "ss";
+			$bind_variables = array( $this->path, $_SESSION["user"] );
+			sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+			$this->name = $return['name'];
+			$_SESSION['project'] = $return['path'];
 			echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
 		} else {
 			
@@ -203,6 +279,11 @@ class Project extends Common {
 				$this->path = $this->SanitizePath();
 			}
 			if ( $this->path != '' ) {
+				
+				if( ! $this->public_project ) {
+					
+					$this->path =  $_SESSION["user"] . '/' . $this->path;
+				}
 				
 				$pass = $this->checkDuplicate();
 				if ( $pass ) {
@@ -312,16 +393,17 @@ class Project extends Common {
 	
 	public function Delete() {
 		
-		$revised_array = array();
-		foreach ( $this->projects as $project => $data ) {
+		$sql = "DELETE FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$bind = "ss";
+		$bind_variables = array( $this->path, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting project $project_name." ) );
+		
+		if( sql::check_sql_error( $return ) ) {
 			
-			if ( $data['path'] != $this->path ) {
-				
-				$revised_array[] = array( "name" => $data['name'], "path" => $data['path'] );
-			} else {
-				
-				$this->delete_project( $data['name'], $data['path'] );
-			}
+			echo( formatJSEND( "success", "Successfully deleted $project_name." ) );
+		} else {
+			
+			echo $return;
 		}
 	}
 	

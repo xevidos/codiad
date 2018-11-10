@@ -270,10 +270,10 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
                     <div class="project-list-title">
                         <h2><?php i18n("Projects"); ?></h2>
                         <a id="projects-collapse" class="icon-down-dir icon" alt="<?php i18n("Collapse"); ?>"></a>
-                        <?php if(checkAccess()) { ?>
+                        <?php //if(checkAccess()) { ?>
                         <a id="projects-manage" class="icon-archive icon"></a>
                         <a id="projects-create" class="icon-plus icon" alt="<?php i18n("Create Project"); ?>"></a>
-                        <?php } ?>
+                        <?php //} ?>
                     </div>
                     
                     <div class="sb-projects-content"></div>

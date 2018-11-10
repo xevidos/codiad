@@ -424,19 +424,19 @@ class Filemanager extends Common {
 				$files = array_diff( scandir( $path ), array( '.', '..' ) );
 				foreach ( $files as $file ) {
 					
-					if ( is_link( "$path/$file" ) ) {
+					if ( is_link( $path . "/" . $file ) ) {
 						
 						if ( $follow ) {
 							
-							rrmdir("$path/$file", $follow, false);
+							rrmdir( $path . "/" . $file, $follow, false);
 						}
-						unlink( "$path/$file" );
-					} elseif ( is_dir( "$path/$file" ) ) {
+						unlink( $path . "/" . $file );
+					} elseif ( is_dir( $path . "/" . $file ) ) {
 						
-						rrmdir( "$path/$file", $follow, false );
+						rrmdir( $path . "/" . $file, $follow, false );
 					} else {
 						
-						unlink( "$path/$file" );
+						unlink( $path . "/" . $file );
 					}
 				}
 				if( $keep_parent === false ) {
@@ -501,7 +501,7 @@ class Filemanager extends Common {
 		} else {
 				
 			// Change content
-			if ($this->content || $this->patch) {
+			if ( $this->content || $this->patch ) {
 					
 				if ( $this->content == ' ' ) {
 					

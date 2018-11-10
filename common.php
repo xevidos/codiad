@@ -99,21 +99,7 @@ class Common {
 	// New Methods
 	//////////////////////////////////////////////////////////////////
 	
-	public static function return( $output, $action = "return" ) {
-			
-		switch( $action ) {
-			
-			case( "exit" ):
-				
-				exit( $output );
-			break;
-			
-			case( "return" ):
-				
-				return( $output );
-			break;
-		}
-	}
+	
 	
 	//////////////////////////////////////////////////////////////////
 	// Check access to application
@@ -121,11 +107,11 @@ class Common {
 	
 	public static function check_access( $action = "return" ) {
 		
-		if( ! self::check_session() ) {
+		/*if( ! self::check_session() ) {
 			
 			session_destroy();
 			self::return( formatJSEND( "error", "Error fetching project information." ), "exit" );
-		}
+		}*/
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -165,19 +151,73 @@ class Common {
 		self::return( $return, $action );
 	}
 	
-	//////////////////////////////////////////////////////////////////
-	// Check Session / Key
-	//////////////////////////////////////////////////////////////////
-	
-	public static function check_session( $action = "return" ) {
+	public static function get_users( $return = "return" ) {
 		
+		$sql = "SELECT `username` FROM `users`;";
+		$bind = "";
+		$bind_variables = array();
+		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking users." ) );
 		
+		$user_list = array();
 		
-		if( ! isset( $_SESSION['user'] ) && ! in_array( $key, $api_keys ) ) {
+		foreach( $result as $row ) {
 			
-			//exit('{"status":"error","message":"Authentication Error"}');
-			exit( '{"status":"error","message":"Authentication Error<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant('BASE_URL') . '`</script>"}' );
+			array_push( $user_list, $row["username"] );
 		}
+		
+		if( mysqli_num_rows( $result ) > 0 ) {
+			
+			switch( $return ) {
+				
+				case( "json" ):
+					
+					$return = json_encode( $user_list );
+				break;
+				
+				case( "return" ):
+					
+					$return = $user_list;
+				break;
+			}
+		} else {
+			
+			$return = formatJSEND( "error", "Error selecting user information." );
+		}
+		return( $return );
+	}
+	
+	public static function is_admin() {
+		
+		$sql = "SELECT * FROM `users` WHERE `username`=? AND `access`=?;";
+		$bind = "ss";
+		$bind_variables = array( $_SESSION["user"], "admin" );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking user acess." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
+			
+			return( true );
+		} else {
+			
+			return( false );
+		}
+	}
+	
+	public static function logout() {
+		
+		$sql = "UPDATE `users` SET `token`=? WHERE `username`=?;";
+		$bind = "ss";
+		$bind_variables = array( null, $_SESSION["user"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error updating user information." ) );
+		
+		try {
+			
+			$json = json_decode( $return, true );
+			echo( $return );
+		} catch( exception $e ) {}
+		
+		session_unset();
+		session_destroy();
+		session_start();
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -217,6 +257,22 @@ class Common {
 		} else {
 			
 			include BASE_PATH . "/languages/" . LANGUAGE . ".php";
+		}
+	}
+	
+	public static function return( $output, $action = "return" ) {
+			
+		switch( $action ) {
+			
+			case( "exit" ):
+				
+				exit( $output );
+			break;
+			
+			case( "return" ):
+				
+				return( $output );
+			break;
 		}
 	}
 	
@@ -333,17 +389,20 @@ class Common {
 	
 	public static function checkSession() {
 		
-		// Set any API keys
-		$api_keys = array();
-		// Check API Key or Session Authentication
-		$key = "";
-		if( isset( $_GET['key'] ) ) {
+		$pass = false;
+		$sql = "SELECT * FROM `users` WHERE `username`=? AND `token`=PASSWORD( ? );";
+		$bind = "ss";
+		$bind_variables = array( $_SESSION["user"], $_SESSION["token"] );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking access." ) );
+		
+		if( mysqli_num_rows( $return ) > 0 ) {
 			
-			$key = $_GET['key'];
+			$pass = true;
 		}
-		if( ! isset( $_SESSION['user'] ) && ! in_array( $key, $api_keys ) ) {
+		
+		if( ! $pass ) {
 			
-			//exit('{"status":"error","message":"Authentication Error"}');
+			logout();
 			exit( '{"status":"error","message":"Authentication Error<script>window.location.href = window.location.protocol + `' . "//" . Common::getConstant('BASE_URL') . '`</script>"}' );
 		}
 	}
@@ -353,7 +412,7 @@ class Common {
 	// Get JSON
 	//////////////////////////////////////////////////////////////////
 	
-	public static function getJSON( $file, $namespace="" ) {
+	public static function getJSON( $file, $namespace = "" ) {
 		
 		$path = DATA . "/";
 		if( $namespace != "" ) {
@@ -431,7 +490,7 @@ class Common {
 	
 	public static function checkAccess() {
 		
-		return !file_exists( DATA . "/" . $_SESSION['user'] . '_acl.php' );
+		return self::is_admin();
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -509,6 +568,7 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
+function is_admin() { Common::is_admin(); }
 function debug($message) { Common::debug($message); }
 function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
 function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }
@@ -519,4 +579,6 @@ function formatJSEND($status,$data=false){ return Common::formatJSEND($status,$d
 function checkAccess() { return Common::checkAccess(); }
 function checkPath($path) { return Common::checkPath($path); }
 function isAvailable($func) { return Common::isAvailable($func); }
+function logout() { return Common::logout(); }
+function get_users() { return Common::get_users(); }
 ?>

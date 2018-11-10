@@ -30,7 +30,13 @@
             });
             
             // Get Theme
-            var theme = await codiad.settings.get_option( 'codiad.theme' );
+            if( codiad.settings !== undefined ) {
+            	
+            	var theme = await codiad.settings.get_option( 'codiad.theme' );
+            } else {
+            	
+            	var theme = 'default';
+            }
             $("#theme option").each(function()
             {
                 if($(this).val() == theme) {
@@ -39,7 +45,14 @@
             });
             
             // Get Language
-            var language = await codiad.settings.get_option('codiad.language');
+            if( codiad.settings !== undefined ) {
+            	
+            	var language = await codiad.settings.get_option('codiad.language');
+            } else {
+            	
+            	var language = 'en';
+            }
+            
             $("#language option").each(function()
             {
                 if($(this).val() == language) {
@@ -130,6 +143,7 @@
                 if (pass) {
                     $.post(_this.controller + '?action=create', {'username' : username , 'password' : password1 }, function(data) {
                         var createResponse = codiad.jsend.parse(data);
+                        console.log( data );
                         if (createResponse != 'error') {
                             codiad.message.success(i18n('User Account Created'))
                             _this.list();

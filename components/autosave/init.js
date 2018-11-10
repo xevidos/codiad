@@ -13,9 +13,9 @@
 	curpath = path.split('/').slice(0, -1).join('/')+'/';
 	
 	// Instantiates plugin
-	$(function() {
+	$( function() {
 		
-		amplify.subscribe('settings.changed', async function() {
+		amplify.subscribe( 'settings.changed', function() {
 			
 			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
 			codiad.auto_save.reload_interval();
@@ -25,7 +25,7 @@
 	});
 	
 	codiad.auto_save = {
-	
+		
 		// Allows relative `this.path` linkage
 		auto_save_trigger: null,
 		invalid_states: [ "", " ", null, undefined ],
@@ -37,7 +37,7 @@
 		},
 		verbose: false,
 		
-		init: async function() {
+		init: function() {
 			
 			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
 			
@@ -48,31 +48,33 @@
 				window.clearInterval( this.auto_save_trigger );
 				
 				if( codiad.auto_save.verbose ) {
+					
 					console.log( 'Auto save disabled' );
 				}
 				return;
 			}
 			
-			$(window).focus(function() {
+			$( window ).focus( function() {
 			
-				//Turn auto save off if the user leaves the tab.
-				codiad.auto_save.settings.toggle = false;
+				//Turn auto save on if the user comes back the tab.
+				codiad.auto_save.settings.toggle = true;
 				if( codiad.auto_save.verbose ) {
+					
 					console.log( 'Auto save resumed' );
 				}
 			});
 		
-			$(window).blur(function() {
+			$( window ).blur( function() {
 				
 				//Turn auto save off if the user leaves the tab.
 				codiad.auto_save.settings.toggle = false;
 				if( codiad.auto_save.verbose ) {
+					
 					console.log( 'Auto save paused' );
 				}
 			});
 			
 			console.log( 'Auto save Enabled' );
-			//let editor = document.getElementsByClassName( 'ace_content' )[0];
 			this.auto_save_trigger = setInterval( this.auto_save, 256 );
 		},
 		
@@ -103,15 +105,22 @@
 			let content = codiad.editor.getContent();
 			
 			codiad.active.save;
-			codiad.filemanager.saveFile(path, content, localStorage.removeItem(path), false);
+			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
 			var session = codiad.active.sessions[path];
 			if( typeof session != 'undefined' ) {
+				
 				session.untainted = content;
 				session.serverMTime = session.serverMTime;
-				if (session.listThumb) session.listThumb.removeClass('changed');
-				if (session.tabThumb) session.tabThumb.removeClass('changed');
+				if ( session.listThumb ) {
+					
+					session.listThumb.removeClass('changed');
+				}
+				
+				if ( session.tabThumb ) {
+					
+					session.tabThumb.removeClass('changed');
+				}
 			}
-			
 			this.saving = false;
 		},
 		
@@ -129,4 +138,4 @@
 			}
 		}
 	};
-})(this, jQuery);
+})( this, jQuery );

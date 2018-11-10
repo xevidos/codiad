@@ -8,6 +8,18 @@ class sql {
 		
 	}
 	
+	public static function check_sql_error( $sql ) {
+		
+		$return = false;
+		$result = json_decode( $sql );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE || $sql == NULL ) {
+			
+			$return = true;
+		}
+		return( $return );
+	}
+	
 	public static function connect() {
 		
 		$host = DBHOST;
@@ -30,7 +42,7 @@ class sql {
 		
 		if( $connection->error ) {
 			
-			$return = $connection->error;
+			$return = formatJSEND( "error", $connection->error );
 		}
 		
 		$connection->close();

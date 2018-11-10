@@ -5,9 +5,9 @@
     *  as-is and without warranty under the MIT License. See
     *  [root]/license.txt for more. This information must remain intact.
     */
-	
-    require_once('../../common.php');
-
+	require_once('../../common.php');
+    require_once('./class.user.php');
+	$User = new User();
     //////////////////////////////////////////////////////////////////
     // Verify Session or Key
     //////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@
         case 'list':
 
             $projects_assigned = false;
-            if(!checkAccess()){
+            if( ! checkAccess() ){
             ?>
             <label><?php i18n("Restricted"); ?></label>
             <pre><?php i18n("You can not edit the user list"); ?></pre>
@@ -44,13 +44,12 @@
             <?php
 
             // Get projects JSON data
-            $users = getJSON('users.php');
-            foreach($users as $user=>$data){
+            $users = $User->list_users();
+            foreach( $users as $user => $data ){
             ?>
             <tr>
                 <td width="150"><?php echo($data['username']); ?></td>
                 <td width="85"><a onclick="codiad.user.password('<?php echo($data['username']); ?>');" class="icon-flashlight bigger-icon"></a></td>
-                <td width="75"><a onclick="codiad.user.projects('<?php echo($data['username']); ?>');" class="icon-archive bigger-icon"></a></td>
                 <?php
                     if($_SESSION['user'] == $data['username']){
                     ?>
@@ -93,45 +92,6 @@
             <button class="btn-left"><?php i18n("Create Account"); ?></button>
 			<button class="btn-right" onclick="codiad.user.list();return false;"><?php i18n("Cancel"); ?></button>
             <form>
-            <?php
-            break;
-
-        //////////////////////////////////////////////////////////////////////
-        // Set Project Access
-        //////////////////////////////////////////////////////////////////////
-
-        case 'projects':
-
-            // Get project list
-            $projects = getJSON('projects.php');
-            // Get control list (if exists)
-            $projects_assigned = false;
-            if(file_exists(BASE_PATH . "/data/" . $_GET['username'] . '_acl.php')){
-                $projects_assigned = getJSON($_GET['username'] . '_acl.php');
-            }
-
-        ?>
-            <form>
-            <input type="hidden" name="username" value="<?php echo($_GET['username']); ?>">
-            <label><?php i18n("Project Access for "); ?><?php echo(ucfirst($_GET['username'])); ?></label>
-            <select name="access_level" onchange="if($(this).val()=='0'){ $('#project-selector').slideUp(300); }else{ $('#project-selector').slideDown(300).css({'overflow-y':'scroll'}); }">
-                <option value="0" <?php if(!$projects_assigned){ echo('selected="selected"'); } ?>><?php i18n("Access ALL Projects"); ?></option>
-                <option value="1" <?php if($projects_assigned){ echo('selected="selected"'); } ?>><?php i18n("Only Selected Projects"); ?></option>
-            </select>
-            <div id="project-selector" <?php if(!$projects_assigned){ echo('style="display: none;"'); }  ?>>
-                <table>
-                <?php
-                    // Build list
-                    foreach($projects as $project=>$data){
-                        $sel = '';
-                        if($projects_assigned && in_array($data['path'],$projects_assigned)){ $sel = 'checked="checked"'; }
-                        echo('<tr><td width="5"><input type="checkbox" name="project" '.$sel.' id="'.$data['path'].'" value="'.$data['path'].'"></td><td>'.$data['name'].'</td></tr>');
-                    }
-                ?>
-                </table>
-            </div>
-            <button class="btn-left"><?php i18n("Confirm"); ?></button>
-			<button class="btn-right" onclick="codiad.user.list();return false;"><?php i18n("Close"); ?></button>
             <?php
             break;
 
