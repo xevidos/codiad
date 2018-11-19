@@ -51,13 +51,25 @@
 		// Add user access
 		//////////////////////////////////////////////////////////////////
 		
-		add_user: function( user ) {
+		add_user: function() {
 			
 			var _this = this;
 			
 			$( '#modal-content form' ).live( 'submit', function( e ) {
 			
 				e.preventDefault();
+				username = $( '#modal-content form select[name="user_list"]' ).val();
+				project_path = $( '#modal-content form input[name="project_path"]' ).val()
+				
+				$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( username ), function( data ) {
+						
+						response = codiad.jsend.parse( data );
+						console.log( response );
+						if ( response != 'error' ) {
+							
+							codiad.project.manage_access( project_path );
+						}
+				});
 			});
 		},
 		
@@ -331,9 +343,22 @@
 		
 		remove_user: function( user ) {
 			
+			var _this = this;
+			
 			$( '#modal-content form' ).live( 'submit', function( e ) {
 			
 				e.preventDefault();
+				project_path = $( '#modal-content form input[name="project_path"]' ).val()
+				
+				$.get( _this.controller + '?action=remove_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( user ), function( data ) {
+						
+						response = codiad.jsend.parse( data );
+						console.log( response );
+						if ( response != 'error' ) {
+							
+							codiad.project.manage_access( project_path );
+						}
+				});
 			});
 		},
 		

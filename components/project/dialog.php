@@ -204,13 +204,13 @@ switch( $_GET['action'] ) {
 		$path = $_GET['path'];
 		$project = $Project->get_project( $path );
 		$access = json_decode( $project["access"], true );
-		$users = get_users();
+		$users = get_users( "return", true );
 		?>
 		<form>
 			<input type="hidden" name="project_path" value="<?php echo( $path );?>">
 			<label><span class="icon-pencil"></span><?php i18n( "Add Users" );?></label>
 			<input id="search_users" type="text" onkeyup="codiad.project.search_users();" />
-			<select id="user_list">
+			<select id="user_list" name="user_list">
 				<?php
 				foreach( $users as $user ) {
 					
@@ -250,7 +250,7 @@ switch( $_GET['action'] ) {
 				<?php
 			}
 			?>
-			<button class="btn-left" onclick="codiad.project.save_access();"><?php i18n( "Save" );?></button>&nbsp;<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n( "Cancel" );?></button>
+			<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n( "Done" );?></button>
 		<form>
 		<?php
 	break;

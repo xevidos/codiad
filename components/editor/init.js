@@ -1467,9 +1467,9 @@
         search: function(action, i) {
             i = i || this.getActive();
             if (! i) return;
-            var find = $('#modal input[name="find"]')
+            var find = $('#modal textarea[name="find"]')
                 .val();
-            var replace = $('#modal input[name="replace"]')
+            var replace = $('#modal textarea[name="replace"]')
                 .val();
             switch (action) {
             case 'find':

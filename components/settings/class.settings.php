@@ -8,6 +8,73 @@
 
 class Settings {
 	
+	const DEFAULT_OPTIONS = array(
+		array(
+			"name" => "codiad.editor.fileManagerTrigger",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.fontSize",
+			"value" => "14px",
+		),
+		array(
+			"name" => "codiad.editor.highlightLine",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.indentGuides",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.overScroll",
+			"value" => "0.5",
+		),
+		array(
+			"name" => "codiad.editor.persistentModal",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.printMargin",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.printMarginColumn",
+			"value" => "80",
+		),
+		array(
+			"name" => "codiad.editor.rightSidebarTrigger",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.softTabs",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.tabSize",
+			"value" => "4",
+		),
+		array(
+			"name" => "codiad.editor.theme",
+			"value" => "twilight",
+		),
+		array(
+			"name" => "codiad.editor.wrapMode",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.settings.autosave",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.settings.plugin.sync",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.settings.plugin.sync",
+			"value" => "true",
+		),
+	);
+	
 	//////////////////////////////////////////////////////////////////
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////

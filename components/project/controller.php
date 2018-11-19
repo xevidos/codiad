@@ -18,6 +18,42 @@ checkSession();
 
 $Project = new Project();
 
+if( $_GET['action'] == 'add_user' ) {
+	
+	$invalid_users = array(
+		"",
+		"null",
+		"undefined"
+	);
+	
+	if( ! in_array( $_GET['username'], $invalid_users ) ) {
+		
+		$Project->user = $_GET['username'];
+	} else {
+		
+		echo formatJSEND( "error", "No username set." );
+		return;
+	}
+	
+	if( $_GET['project_path'] != '' ) {
+		
+		$Project->path = $_GET['project_path'];
+	} else {
+		
+		echo formatJSEND( "error", "No project path set." );
+		return;
+	}
+	
+	if( $Project->check_owner( $_GET["project_path"], true ) ) {
+		
+		$Project->add_user();
+	} else {
+		
+		echo formatJSEND( "error", "You can not manage this project." );
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////
 // Create Project
 //////////////////////////////////////////////////////////////////
@@ -148,6 +184,41 @@ if( $_GET['action'] == 'open' ) {
 	}
 	$Project->path = $_GET['path'];
 	$Project->Open();
+}
+
+if( $_GET['action'] == 'remove_user' ) {
+	
+	$invalid = array(
+		"",
+		"null",
+		"undefined"
+	);
+	
+	if( ! in_array( $_GET['username'], $invalid ) ) {
+		
+		$Project->user = $_GET['username'];
+	} else {
+		
+		echo formatJSEND( "error", "No username set." );
+		return;
+	}
+	
+	if(	! in_array( $_GET['project_path'], $invalid ) ) {
+		
+		$Project->path = $_GET['project_path'];
+	} else {
+		
+		echo formatJSEND( "error", "No project path set." );
+		return;
+	}
+	
+	if( $Project->check_owner( $_GET["project_path"], true ) ) {
+		
+		$Project->remove_user();
+	} else {
+		
+		echo formatJSEND( "error", "You can not manage this project." );
+	}
 }
 
 //////////////////////////////////////////////////////////////////

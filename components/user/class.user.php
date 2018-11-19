@@ -6,6 +6,8 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+require_once( "../settings/class.settings.php" );
+
 class User {
 	
 	//////////////////////////////////////////////////////////////////
@@ -46,10 +48,38 @@ class User {
 		
 		if( sql::check_sql_error( $return ) ) {
 			
+			$this->set_default_options();
 			echo formatJSEND( "success", array( "username" => $this->username ) );
 		} else {
 			
 			echo formatJSEND( "error", "The Username is Already Taken" );
+		}
+	}
+	
+	public function delete_user() {
+		
+		$sql = "DELETE FROM `user_options` WHERE `username`=?;";
+		$bind = "s";
+		$bind_variables = array( $this->username );
+		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting user information." ) );
+		
+		if( sql::check_sql_error( $return ) ) {
+			
+			$sql = "DELETE FROM `users` WHERE `username`=?;";
+			$bind = "s";
+			$bind_variables = array( $this->username );
+			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting user information." ) );
+			
+			if( sql::check_sql_error( $return ) ) {
+				
+				echo formatJSEND( "success", null );
+			} else {
+				
+				echo $return;
+			}
+		} else {
+			
+			echo $return;
 		}
 	}
 	
@@ -77,6 +107,16 @@ class User {
 		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error can not select users." ) );
 		
 		return( $return );
+	}
+	
+	public function set_default_options() {
+		
+		$Settings = new Settings();
+		$Settings->username = $this->username;
+		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
+			
+			$Settings->update_option( $option["name"], $option["value"], true );
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////
@@ -252,18 +292,7 @@ class User {
 	
 	public function Delete() {
 		
-		$sql = "DELETE FROM `users` WHERE `username`=?;";
-		$bind = "ss";
-		$bind_variables = array( $this->username, $this->password );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting user information." ) );
-		
-		if( sql::check_sql_error( $return ) ) {
-			
-			echo formatJSEND( "success", null );
-		} else {
-			
-			echo $return;
-		}
+		$this->delete_user();
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -313,66 +342,6 @@ class User {
 			
 			echo( $return );
 		}
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Search Users
-	//////////////////////////////////////////////////////////////////
-	
-	public function search_users( $username, $return = "return" ) {
-		
-		$sql = "SELECT `username` FROM `users` WHERE `username` LIKE ?;";
-		$bind = "s";
-		$bind_variables = array( "%{$username}%" );
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error selecting user information." ) );
-		$user_list = array();
-		
-		foreach( $result as $row ) {
-			
-			array_push( $user_list, $row["username"] );
-		}
-		
-		if( mysqli_num_rows( $result ) > 0 ) {
-			
-			switch( $return ) {
-				
-				case( "exit" ):
-					
-					exit( formatJSEND( "success", $user_list ) );
-				break;
-				
-				case( "json" ):
-					
-					$return = json_encode( $user_list );
-				break;
-				
-				case( "return" ):
-					
-					$return = $user_list;
-				break;
-			}
-		} else {
-			
-			switch( $return ) {
-				
-				case( "exit" ):
-					
-					exit( formatJSEND( "error", "Error selecting user information." ) );
-				break;
-				
-				case( "json" ):
-					
-					$return = formatJSEND( "error", "Error selecting user information." );
-				break;
-				
-				case( "return" ):
-					
-					$return = null;
-				break;
-			}
-		}
-		
-		return( $return );
 	}
 	
 	//////////////////////////////////////////////////////////////////

@@ -87,7 +87,7 @@
         "title": "Help",
         "admin": false,
         "icon": "icon-help",
-        "onclick": "window.open('https://gitlab.telaaedifex.com/xevidos/codiad/wikis/home');"
+        "onclick": "window.open('https://gitlab.com/xevidos/codiad/wikis/home');"
     },
     {
         "title": "Logout",

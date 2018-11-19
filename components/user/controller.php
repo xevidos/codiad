@@ -129,7 +129,7 @@ if ( $_GET['action'] == 'search_users' ) {
 		
 		die( formatJSEND( "error", "Missing search term" ) );
 	}
-	$User->search_users( $_GET['search_term'], "exit" );
+	search_users( $_GET['search_term'], "exit", true );
 }
 
     //////////////////////////////////////////////////////////////////

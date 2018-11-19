@@ -117,7 +117,7 @@ class Common {
 	//////////////////////////////////////////////////////////////////
 	// Check access to a project
 	//////////////////////////////////////////////////////////////////
-	public static function check_project_access( $project_name, $project_path, $action ) {
+	public static function check_project_access( $project_path, $action ) {
 		
 		$sql = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
 		$bind = "sss";
@@ -151,13 +151,20 @@ class Common {
 		self::return( $return, $action );
 	}
 	
-	public static function get_users( $return = "return" ) {
+	public static function get_users( $return = "return", $exclude_current = false ) {
 		
-		$sql = "SELECT `username` FROM `users`;";
+		$sql = "SELECT `username` FROM `users`";
 		$bind = "";
 		$bind_variables = array();
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking users." ) );
 		
+		if( $exclude_current ) {
+			
+			$sql .= " WHERE `username`!=?";
+			$bind .= "s";
+			array_push( $bind_variables, $_SESSION["user"] );
+		}
+		
+		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking users." ) );
 		$user_list = array();
 		
 		foreach( $result as $row ) {
@@ -218,6 +225,74 @@ class Common {
 		session_unset();
 		session_destroy();
 		session_start();
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// Search Users
+	//////////////////////////////////////////////////////////////////
+	
+	public function search_users( $username, $return = "return", $exclude_current = false ) {
+		
+		$sql = "SELECT `username` FROM `users` WHERE `username` LIKE ?";
+		$bind = "s";
+		$bind_variables = array( "%{$username}%" );
+		
+		if( $exclude_current ) {
+			
+			$sql .= " AND `username`!=?";
+			$bind .= "s";
+			array_push( $bind_variables, $_SESSION["user"] );
+		}
+		
+		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error selecting user information." ) );
+		$user_list = array();
+		
+		foreach( $result as $row ) {
+			
+			array_push( $user_list, $row["username"] );
+		}
+		
+		if( mysqli_num_rows( $result ) > 0 ) {
+			
+			switch( $return ) {
+				
+				case( "exit" ):
+					
+					exit( formatJSEND( "success", $user_list ) );
+				break;
+				
+				case( "json" ):
+					
+					$return = json_encode( $user_list );
+				break;
+				
+				case( "return" ):
+					
+					$return = $user_list;
+				break;
+			}
+		} else {
+			
+			switch( $return ) {
+				
+				case( "exit" ):
+					
+					exit( formatJSEND( "error", "Error selecting user information." ) );
+				break;
+				
+				case( "json" ):
+					
+					$return = formatJSEND( "error", "Error selecting user information." );
+				break;
+				
+				case( "return" ):
+					
+					$return = null;
+				break;
+			}
+		}
+		
+		return( $return );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -580,5 +655,6 @@ function checkAccess() { return Common::checkAccess(); }
 function checkPath($path) { return Common::checkPath($path); }
 function isAvailable($func) { return Common::isAvailable($func); }
 function logout() { return Common::logout(); }
-function get_users() { return Common::get_users(); }
+function get_users( $return = "return", $exclude_current = false ) { return Common::get_users( $return, $exclude_current ); }
+function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
 ?>
