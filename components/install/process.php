@@ -1,8 +1,8 @@
 <?php
 
 /*
-*  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
-*  as-is and without warranty under the MIT License. See
+*  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown (telaaedifex.com),
+*  distributed as-is and without warranty under the MIT License. See
 *  [root]/license.txt for more. This information must remain intact.
 */
 
@@ -10,143 +10,152 @@
 // Paths
 //////////////////////////////////////////////////////////////////////
 
-    $path = $_POST['path'];
+$path = $_POST['path'];
 
-    $rel = str_replace('/components/install/process.php', '', $_SERVER['REQUEST_URI']);
+$rel = str_replace( '/components/install/process.php', '', $_SERVER['REQUEST_URI'] );
 
-    $workspace = $path . "/workspace";
-    $users = $path . "/data/users.php";
-    $projects = $path . "/data/projects.php";
-    $active = $path . "/data/active.php";
-    $sessions = $path . "/data/sessions";
-    $config = $path . "/config.php";
+$workspace = $path . "/workspace";
+$users = $path . "/data/users.php";
+$projects = $path . "/data/projects.php";
+$active = $path . "/data/active.php";
+$sessions = $path . "/data/sessions";
+$config = $path . "/config.php";
 
 //////////////////////////////////////////////////////////////////////
 // Functions
 //////////////////////////////////////////////////////////////////////
 
-function saveFile($file, $data)
-{
-    $write = fopen($file, 'w') or die("can't open file");
-    fwrite($write, $data);
-    fclose($write);
+function saveFile( $file, $data ) {
+	
+	$write = fopen( $file, 'w' ) or die( "can't open file" );
+	fwrite( $write, $data );
+	fclose( $write );
 }
 
-function saveJSON($file, $data)
-{
-    $data = "<?php/*|\r\n" . json_encode($data) . "\r\n|*/?>";
-    saveFile($file, $data);
+function saveJSON( $file, $data ) {
+	
+	$data = "<?php/*|\r\n" . json_encode( $data ) . "\r\n|*/?>";
+	saveFile( $file, $data );
 }
 
-function encryptPassword($p)
-{
-    return sha1(md5($p));
+function encryptPassword( $p ) {
+	
+	return sha1( md5( $p ) );
 }
 
-function cleanUsername($username)
-{
-    return preg_replace('#[^A-Za-z0-9'.preg_quote('-_@. ').']#', '', $username);
+function cleanUsername( $username ) {
+	
+	return preg_replace( '#[^A-Za-z0-9' . preg_quote( '-_@. ' ).  ']#', '', $username );
 }
 
-function isAbsPath($path)
-{
-    return $path[0] === '/';
+function isAbsPath( $path ) {
+	
+	return $path[0] === '/';
 }
 
-function cleanPath($path)
-{
-
-    // prevent Poison Null Byte injections
-    $path = str_replace(chr(0), '', $path);
-
-    // prevent go out of the workspace
-    while (strpos($path, '../') !== false) {
-        $path = str_replace('../', '', $path);
-    }
-
-    return $path;
+function cleanPath( $path ) {
+	
+	// prevent Poison Null Byte injections
+	$path = str_replace( chr( 0 ), '', $path );
+	
+	// prevent go out of the workspace
+	while ( strpos( $path, '../' ) !== false ) {
+		
+		$path = str_replace( '../', '', $path );
+	}
+	return $path;
 }
 
 //////////////////////////////////////////////////////////////////////
 // Verify no overwrites
 //////////////////////////////////////////////////////////////////////
 
-if (!file_exists($users) && !file_exists($projects) && !file_exists($active)) {
-    //////////////////////////////////////////////////////////////////
-    // Get POST responses
-    //////////////////////////////////////////////////////////////////
-
-    $username = cleanUsername($_POST['username']);
-    $password = encryptPassword($_POST['password']);
-    $project_name = $_POST['project_name'];
-    if (isset($_POST['project_path'])) {
-        $project_path = $_POST['project_path'];
-    } else {
-        $project_path = $project_name;
-    }
-    $timezone = $_POST['timezone'];
-
-    //////////////////////////////////////////////////////////////////
-    // Create Projects files
-    //////////////////////////////////////////////////////////////////
-
-    $project_path = cleanPath($project_path);
-
-    if (!isAbsPath($project_path)) {
-        $project_path = str_replace(" ", "_", preg_replace('/[^\w-\.]/', '', $project_path));
-        mkdir($workspace . "/" . $project_path);
-    } else {
-        $project_path = cleanPath($project_path);
-        if (substr($project_path, -1) == '/') {
-            $project_path = substr($project_path, 0, strlen($project_path)-1);
-        }
-        if (!file_exists($project_path)) {
-            if (!mkdir($project_path.'/', 0755, true)) {
-                die("Unable to create Absolute Path");
-            }
-        } else {
-            if (!is_writable($project_path) || !is_readable($project_path)) {
-                die("No Read/Write Permission");
-            }
-        }
-    }
-    $project_data = array("name"=>$project_name,"path"=>$project_path);
-
-    saveJSON($projects, array($project_data));
+if ( ( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) || ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
+	
+	//////////////////////////////////////////////////////////////////
+	// Get POST responses
+	//////////////////////////////////////////////////////////////////
+	
+	$username = cleanUsername( $_POST['username'] );
+	$password = encryptPassword( $_POST['password'] );
+	$project_name = $_POST['project_name'];
+	if ( isset( $_POST['project_path'] ) ) {
+	
+		$project_path = $_POST['project_path'];
+	} else {
+		
+		$project_path = $project_name;
+	}
+	$timezone = $_POST['timezone'];
+	
+	//////////////////////////////////////////////////////////////////
+	// Create Projects files
+	//////////////////////////////////////////////////////////////////
+	
+	$project_path = cleanPath( $project_path );
+	
+	if ( ! isAbsPath( $project_path ) ) {
+	
+		$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
+		mkdir( $workspace . "/" . $project_path );
+	} else {
+		
+		$project_path = cleanPath( $project_path );
+		if ( substr( $project_path, -1 ) == '/' ) {
+			
+			$project_path = substr( $project_path, 0, strlen( $project_path ) - 1 );
+		}
+		if ( ! file_exists( $project_path ) ) {
+			
+			if ( ! mkdir( $project_path . '/', 0755, true ) ) {
+				
+				die( "Unable to create Absolute Path" );
+			}
+		} else {
+			
+			if ( ! is_writable( $project_path ) || ! is_readable( $project_path ) ) {
+				
+				die( "No Read/Write Permission" );
+			}
+		}
+	}
+	$project_data = array("name"=>$project_name,"path"=>$project_path);
+	
+	saveJSON($projects, array($project_data));
 	
 	/**
-	 * Create sessions path.
-	 */
+	* Create sessions path.
+	*/
 	
 	if ( ! is_dir( $sessions ) ) {
-		
+	
 		mkdir( $sessions, 00755 );
 	}
 	
-    //////////////////////////////////////////////////////////////////
-    // Create Users file
-    //////////////////////////////////////////////////////////////////
-
-    $user_data = array("username"=>$username,"password"=>$password,"project"=>$project_path);
-
-    saveJSON($users, array($user_data));
-
-    //////////////////////////////////////////////////////////////////
-    // Create Active file
-    //////////////////////////////////////////////////////////////////
-
-    saveJSON($active, array(''));
-    
-    //////////////////////////////////////////////////////////////////
-    // Create Config
-    //////////////////////////////////////////////////////////////////
-
-
-    $config_data = '<?php
+	//////////////////////////////////////////////////////////////////
+	// Create Users file
+	//////////////////////////////////////////////////////////////////
+	
+	$user_data = array("username"=>$username,"password"=>$password,"project"=>$project_path);
+	
+	saveJSON($users, array($user_data));
+	
+	//////////////////////////////////////////////////////////////////
+	// Create Active file
+	//////////////////////////////////////////////////////////////////
+	
+	saveJSON($active, array(''));
+	
+	//////////////////////////////////////////////////////////////////
+	// Create Config
+	//////////////////////////////////////////////////////////////////
+	
+	
+	$config_data = '<?php
 
 /*
-*  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown (telaaedifex.com), distributed
-*  as-is and without warranty under the MIT License. See
+*  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown (telaaedifex.com),
+*  distributed as-is and without warranty under the MIT License. See
 *  [root]/license.txt for more. This information must remain intact.
 */
 
@@ -178,6 +187,13 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 // Site Name
 define("SITE_NAME", "' . $_POST['sitename'] . '");
 
+// Database Information
+define( "DBHOST", "' . $_POST['dbhost'] . '" );
+define( "DBNAME", "' . $_POST['dbname'] . '" );
+define( "DBUSER", "' . $_POST['dbuser'] . '" );
+define( "DBPASS", "' . $_POST['dbpass'] . '" );
+define( "DBTYPE", "mysql" );
+
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **
 //////////////////////////////////////////////////////////////////
@@ -195,8 +211,7 @@ define("WSURL", BASE_URL . "/workspace");
 // Marketplace
 //define("MARKETURL", "http://market.codiad.com/json");
 ';
-
-    saveFile($config, $config_data);
-
-    echo("success");
+	
+	saveFile( $config, $config_data );
+	echo( "success" );
 }

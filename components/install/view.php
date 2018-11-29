@@ -156,6 +156,15 @@ if ($newrelic) {
     <input type="text" name="project_name" value="<?php echo($autocomplete['project_name']); ?>">
     <label><?php i18n("Folder Name or Absolute Path"); ?></label>
     <input type="text" name="project_path" value="<?php echo($autocomplete['project_path']); ?>">
+    
+    <label><?php i18n("Database Host"); ?></label>
+    <input type="text" name="dbhost" value="<?php echo($autocomplete['dbhost']); ?>">
+    <label><?php i18n("Database Name"); ?></label>
+    <input type="text" name="dbname" value="<?php echo($autocomplete['dbname']); ?>">
+    <label><?php i18n("Database User"); ?></label>
+    <input type="text" name="dbuser" value="<?php echo($autocomplete['dbuser']); ?>">
+    <label><?php i18n("Database Pass"); ?></label>
+    <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
     <hr>
         <?php
         $location = array(
@@ -265,7 +274,9 @@ if ($newrelic) {
         echo($timezones);
         ?>
     </select>
-
+	
+	
+	
     <button><?php i18n("Install"); ?></button>
     </form>
     <?php
