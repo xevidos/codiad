@@ -34,7 +34,7 @@ Current Tasks:
 	- Permissions Management
 	- Plugin Management
 	- Project Management
-	- System Settigns
+	- System Settings
 	- User Management
 
 Task List:
