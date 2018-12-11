@@ -4,7 +4,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once('../../config.php');
 require_once('../../common.php');
 require_once('./class.update.php');
 
@@ -127,13 +126,21 @@ class updater {
 	
 	function convert() {
 		
+		require_once('../../common.php');
+		require_once('../sql/class.sql.php');
 		require_once('../settings/class.settings.php');
 		require_once('../project/class.project.php');
 		require_once('../user/class.user.php');
+		
+		$user_settings_file = DATA . "/settings.php";
+		$projects_file = DATA . "/projects.php";
+		$users_file = DATA . "/users.php";
+		
 		$Settings = new Settings();
 		$Project = new Project();
 		$User = new User();
-		$connection = $Settings->connect();
+		
+				$connection = $Settings->connect();
 		
 			$sql = "
 -- phpMyAdmin SQL Dump
@@ -279,11 +286,6 @@ ALTER TABLE `user_options`
 	$result = mysqli_prepare( $connection, $sql ) or die( $error );
 	$result->bind_param( $bind, ...$bind_variables );
 	$result->execute();
-	
-	if( $connection->error ) {
-		
-		$return = formatJSEND( "error", $connection->error );
-	}
 		
 		if( file_exists( $user_settings_file ) ) {
 			
@@ -467,6 +469,12 @@ ALTER TABLE `user_options`
 			
 			$this->path . "/.travis.yml",
 			$this->path . "/codiad-master/.travis.yml",
+			
+			$this->path . "/.gitignore",
+			$this->path . "/codiad-master/.gitignore",
+			
+			$this->path . "/.gitlab-ci.yml",
+			$this->path . "/codiad-master/.gitlab-ci.yml"
 		);
 		
 		foreach( $file_conflictions as $file ) {
