@@ -140,6 +140,10 @@
                                 case "codiad.editor.overScroll":
                                     codiad.editor.setOverScroll(val);
                                 break;
+                                case "codiad.editor.autocomplete":
+                                	var bool_val = (val == "true");
+									codiad.editor.setLiveAutocomplete(bool_val)
+                                break;
                             }
                         }
                         

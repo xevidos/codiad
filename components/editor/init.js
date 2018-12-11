@@ -11,7 +11,7 @@
     var Editor = ace.require('ace/editor').Editor;
     var EditSession = ace.require('ace/edit_session').EditSession;
     var UndoManager = ace.require("ace/undomanager").UndoManager;
-
+    
     // Editor modes that have been loaded
     var editorModes = {};
 
@@ -386,6 +386,7 @@
 
         // Settings for Editor instances
         settings: {
+        	autocomplete: false,
             theme: 'twilight',
             fontSize: '13px',
             printMargin: false,
@@ -450,8 +451,19 @@
 				'tabSize',
 				'theme',
 			];
+			var bool_options = [
+				'autocomplete',
+				'printMargin',
+				'highlightLine',
+				'indentGuides',
+				'wrapMode',
+				'rightSidebarTrigger',
+				'fileManagerTrigger',
+				'softTabs',
+				'persistentModal',
+			];
 			
-            $.each(options, async function( idx, key ) {
+            $.each( options, async function( idx, key ) {
             	
                 var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
                 if ( localValue !== null ) {
@@ -460,8 +472,7 @@
                 }
             });
 
-            $.each(['printMargin', 'highlightLine', 'indentGuides', 'wrapMode', 'rightSidebarTrigger', 'fileManagerTrigger', 'softTabs', 'persistentModal'],
-                   async function(idx, key) {
+            $.each( bool_options, async function(idx, key) {
                        var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
                        if (localValue === null) {
                            return;
@@ -495,6 +506,11 @@
             this.setTabSize(this.settings.tabSize, i);
             this.setSoftTabs(this.settings.softTabs, i);
             this.setOverScroll(this.settings.overScroll, i);
+        	i.setOptions({
+		        enableBasicAutocompletion: true,
+		        enableSnippets: true,
+		        enableLiveAutocompletion: this.settings.autocomplete
+		    });
         },
 
         //////////////////////////////////////////////////////////////////
@@ -540,12 +556,13 @@
                     pContainer.setChild(idx, sc);
                 }
             }
-
+            
+			ace.require("ace/ext/language_tools");
             var i = ace.edit(el[0]);
             var resizeEditor = function(){
                 i.resize();
             };
-
+			
             if (sc) {
                 i.splitContainer = sc;
                 i.splitIdx = chIdx;
@@ -1563,6 +1580,24 @@
             }
             //Database
             codiad.settings.update_option( 'codiad.editor.overScroll', s );
+        },
+        
+        setLiveAutocomplete: function( s, i ) {
+        	
+            if (i) {
+                i.setOptions({
+					enableLiveAutocompletion: s
+				});
+            } else {
+                this.settings.autocomplete = s;
+                this.forEach(function(i) {
+                   i.setOptions({
+						enableLiveAutocompletion: s
+					});
+                });
+            }
+            //Database
+            codiad.settings.update_option( 'codiad.editor.autocomplete', s );
         },
 
     };

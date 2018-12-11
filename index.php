@@ -417,11 +417,12 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
     <!-- ACE -->
     <script src="components/editor/ace-editor/ace.js"></script>
+    <script src="components/editor/ace-editor/ext-language_tools.js"></script>
 	
 	<!-- Codiad System Variables -->
 	<script>
 		codiad.system = {};
-		codiad.system.site_id = `<?php echo SITE_ID;?>`;
+		codiad.system.site_id = `<?php echo $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];?>`;
 		codiad.system.session_id = `<?php echo SESSION_ID;?>`;
 	</script>
 	

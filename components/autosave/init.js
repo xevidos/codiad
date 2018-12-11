@@ -74,7 +74,10 @@
 				}
 			});
 			
-			console.log( 'Auto save Enabled' );
+			if( codiad.auto_save.verbose ) {
+					
+				console.log( 'Auto save Enabled' );
+			}
 			this.auto_save_trigger = setInterval( this.auto_save, 256 );
 		},
 		
