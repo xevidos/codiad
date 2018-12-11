@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+require_once('../../config.php');
 require_once('../../common.php');
 require_once('./class.update.php');
 
@@ -16,7 +17,7 @@ if ( ! checkAccess() ) {
 	exit();
 }
 
-if ( ( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) || ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
+if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
 	
 	?>
 	<p>
