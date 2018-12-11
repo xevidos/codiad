@@ -282,8 +282,8 @@ ALTER TABLE `user_options`
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 ";
 	$bind = "";
-	$bind_param = array();
-	$result = mysqli_prepare( $connection, $sql ) or die( $error );
+	$bind_variables = array();
+	$result = mysqli_prepare( $connection, $sql ) or die( "Error creating tables" );
 	$result->bind_param( $bind, ...$bind_variables );
 	$result->execute();
 		

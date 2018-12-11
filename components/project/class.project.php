@@ -37,7 +37,6 @@ class Project extends Common {
 	
 	public function __construct() {
 		
-		$this->projects = $this->get_projects();
 	}
 	
 	//////////////////////////////////////////////////////////////////
