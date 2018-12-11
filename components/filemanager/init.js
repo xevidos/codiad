@@ -712,7 +712,46 @@
                 });
             });
         },
-
+		
+		deleteInnerNode: function(path) {
+            var _this = this;
+            codiad.modal.load(400, this.dialog, {
+                action: 'delete',
+                path: path
+            });
+            $('#modal-content form')
+                .live('submit', function(e) {
+                e.preventDefault();
+                $.get(_this.controller + '?action=deleteInner&path=' + encodeURIComponent(path), function(data) {
+                    var deleteResponse = codiad.jsend.parse(data);
+                    if (deleteResponse != 'error') {
+                        var node = $('#file-manager a[data-path="' + path + '"]');
+						while(node.firstChild) {
+							node.removeChild(node.firstChild);
+						}
+						
+                        // Close any active files
+                        $('#active-files a')
+                            .each(function() {
+                                var curPath = $(this)
+                                    .attr('data-path');
+                                if (curPath.indexOf(path) == 0) {
+                                    codiad.active.remove(curPath);
+                                }
+                            });
+                            
+	                    //Rescan Folder
+	                    node.parent()
+	                    .find('a.open')
+	                    .each(function() {
+	                        _this.rescanChildren.push($(this)
+	                            .attr('data-path'));
+	                    });
+                    }
+                    codiad.modal.unload();
+                });
+            });
+        },
         //////////////////////////////////////////////////////////////////
         // Search
         //////////////////////////////////////////////////////////////////
@@ -722,8 +761,8 @@
                 action: 'search',
                 path: path
             });
-            codiad.modal.load_process.done( function() {
-                var lastSearched = JSON.parse(localStorage.getItem("lastSearched"));
+            codiad.modal.load_process.done( async function() {
+                var lastSearched = JSON.parse( await codiad.settings.get_option("lastSearched"));
                 if(lastSearched) {
                     $('#modal-content form input[name="search_string"]').val(lastSearched.searchText);
                     $('#modal-content form input[name="search_file_type"]').val(lastSearched.fileExtension);

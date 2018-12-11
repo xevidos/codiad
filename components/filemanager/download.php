@@ -43,19 +43,19 @@ if (isset($_GET['type']) && ($_GET['type']=='directory' || $_GET['type']=='root'
     //////////////////////////////////////////////////////////////////
     // Check system() command and a non windows OS
     //////////////////////////////////////////////////////////////////
-    if (isAvailable('system') && stripos(PHP_OS, 'win') === false) {
-      # Execute the tar command and save file
-        $filename .= '.tar.gz';
-
-        system("tar -pczf ".escapeshellarg($targetPath.$filename)." -C ".escapeshellarg(WORKSPACE)." ".escapeshellarg($_GET['path']));
-        $download_file = $targetPath.$filename;
-    } elseif (extension_loaded('zip')) { //Check if zip-Extension is availiable
+    if (extension_loaded('zip')) { //Check if zip-Extension is availiable
       //build zipfile
         require_once 'class.dirzip.php';
 
         $filename .= '.zip';
         $download_file = $targetPath.$filename;
         DirZip::zipDir($dir, $targetPath .$filename);
+    } elseif (isAvailable('system') && stripos(PHP_OS, 'win') === false) {
+      # Execute the tar command and save file
+        $filename .= '.tar.gz';
+
+        system("tar -pczf ".escapeshellarg($targetPath.$filename)." -C ".escapeshellarg(WORKSPACE)." ".escapeshellarg($_GET['path']));
+        $download_file = $targetPath.$filename;
     } else {
         exit('<script>parent.codiad.message.error("Could not pack the folder, zip-extension missing")</script>');
     }

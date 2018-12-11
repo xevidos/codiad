@@ -28,12 +28,12 @@ switch($_GET['action']){
     $type = $_GET['type'];
     ?>
     <label><?php i18n("Find:"); ?></label>
-    <input type="text" name="find" autofocus="autofocus" autocomplete="off">
+    <textarea name="find" autofocus="autofocus" autocomplete="off"></textarea>
     
     <?php if($type=='replace'){ ?>
 
     <label><?php i18n("Replace:"); ?></label>
-    <input type="text" name="replace">
+    <textarea name="replace"></textarea>
     
     <?php } ?>
 
@@ -52,7 +52,7 @@ switch($_GET['action']){
 <script>
 $(function(){
     <?php if($_GET['action']=='search'){ ?>
-    $('input[name="find"]').val(codiad.active.getSelectedText());
+    $('textarea[name="find"]').val(codiad.active.getSelectedText());
     <?php } ?>
 });
 

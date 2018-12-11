@@ -39,10 +39,10 @@ class Update {
 	public function __construct() {
 		ini_set("user_agent", "Codiad");
 		
-		$this->archive = "https://gitlab.telaaedifex.com/xevidos/codiad/-/archive/master/codiad-master.zip";
-		$this->commits = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/commits/";
-		$this->tags = "https://gitlab.telaaedifex.com/api/v4/projects/3/repository/tags/";
-		$this->update_file = "https://gitlab.telaaedifex.com/xevidos/codiad/raw/master/components/update/update.php";
+		$this->archive = "https://gitlab.com/xevidos/codiad/-/archive/master/codiad-master.zip";
+		$this->commits = "https://gitlab.com/api/v4/projects/8466613/repository/commits/";
+		$this->tags = "https://gitlab.com/api/v4/projects/8466613/repository/tags/";
+		$this->update_file = "https://gitlab.com/xevidos/codiad/raw/master/components/update/update.php";
 		$this->protocol = $this->CheckProtocol();
 		
 	}
@@ -183,16 +183,15 @@ class Update {
 	
 	public function getLocalVersion(){
 		
-		return getJSON('version.php');;
+		return getJSON( 'version.php' );
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// Get Remote Version
 	//////////////////////////////////////////////////////////////////
 	
-	public function getRemoteVersion($action="check", $localversion = "") {
+	public function getRemoteVersion( $action="check", $localversion = "" ) {
 		
-		//$remoteurl = Common::getConstant('UPDATEURL', $this->remote);
 		if ( $this->protocol === "none" ) {
 			
 			return;
@@ -203,15 +202,15 @@ class Update {
 			case( "curl" ):
 				
 				$curl = curl_init();
-				curl_setopt($curl, CURLOPT_URL, $this->tags);
+				curl_setopt( $curl, CURLOPT_URL, $this->tags );
 				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
-				curl_setopt($curl, CURLOPT_HEADER, 0);
-				curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  
-				curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13');
-				$content = curl_exec($curl);
-				curl_close($curl);
+				curl_setopt( $curl, CURLOPT_HEADER, 0 );
+				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );  
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
+				curl_setopt( $curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13' );
+				$content = curl_exec( $curl );
+				curl_close( $curl );
 				
 				$response = json_decode( $content, true );
 				//Return latest release
@@ -222,7 +221,5 @@ class Update {
 				
 			break;
 		}
-		
-		//return( json_decode( file_get_contents( $remoteurl ), true ) );
 	}
 }

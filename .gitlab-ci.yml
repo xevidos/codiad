@@ -1,0 +1,24 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "Building the app this does nothing."
+
+test:
+  stage: test
+  script:
+    - echo "Testing the app."
+    - /home/xevidos/scripts/sonar-codiad.sh
+  only:
+    - development
+    
+deploy_staging:
+  stage: deploy
+  script:
+    - echo "Deploy to staging server this does nothing."
+  only:
+    - master

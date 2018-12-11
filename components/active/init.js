@@ -49,6 +49,12 @@
         },
 
         open: function(path, content, mtime, inBackground, focus) {
+        	
+        	//if( this. ) {
+        		
+        		
+        	//}
+        	
             if (focus === undefined) {
                 focus = true;
             }

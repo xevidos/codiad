@@ -22,19 +22,21 @@
         // Initilization
         //////////////////////////////////////////////////////////////////
 
-        init: function() {
+        init: async function() {
             var _this = this;
             this.loginForm.on('submit', function(e) {
                 e.preventDefault();
-                // Save Language
-                localStorage.setItem('codiad.language', $("#language").val());
-                // Save Theme
-                localStorage.setItem('codiad.theme', $("#theme").val());
                 _this.authenticate();
             });
             
             // Get Theme
-            var theme = localStorage.getItem('codiad.theme');
+            if( codiad.settings !== undefined ) {
+            	
+            	var theme = await codiad.settings.get_option( 'codiad.theme' );
+            } else {
+            	
+            	var theme = 'default';
+            }
             $("#theme option").each(function()
             {
                 if($(this).val() == theme) {
@@ -43,7 +45,14 @@
             });
             
             // Get Language
-            var language = localStorage.getItem('codiad.language');
+            if( codiad.settings !== undefined ) {
+            	
+            	var language = await codiad.settings.get_option('codiad.language');
+            } else {
+            	
+            	var language = 'en';
+            }
+            
             $("#language option").each(function()
             {
                 if($(this).val() == language) {
@@ -134,6 +143,7 @@
                 if (pass) {
                     $.post(_this.controller + '?action=create', {'username' : username , 'password' : password1 }, function(data) {
                         var createResponse = codiad.jsend.parse(data);
+                        console.log( data );
                         if (createResponse != 'error') {
                             codiad.message.success(i18n('User Account Created'))
                             _this.list();

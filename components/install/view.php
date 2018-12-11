@@ -40,6 +40,13 @@ $autocomplete = array(
   'project_name' => '',
   'project_path' => '',
   'timezone' => '',
+  'site_name' => '',
+  
+  'dbhost' => '',
+  'dbname' => '',
+  'dbuser' => '',
+  'dbpass' => '',
+  'dbtype' => '',
 );
 
 if (!empty($query)) {
@@ -133,7 +140,14 @@ if ($newrelic) {
         <input type="password" name="password_confirm" value="<?php echo($autocomplete['password_confirm']); ?>">
 
     </div>
+	
+	<div style="float:left; width: 48%; margin-right: 4%;">
 
+        <label><?php i18n("Site Name"); ?></label>
+        <input type="text" name="site_name" value="<?php echo($autocomplete['site_name']); ?>">
+
+    </div>
+	
     <div style="clear:both;"></div>
 
     <hr>
@@ -142,6 +156,15 @@ if ($newrelic) {
     <input type="text" name="project_name" value="<?php echo($autocomplete['project_name']); ?>">
     <label><?php i18n("Folder Name or Absolute Path"); ?></label>
     <input type="text" name="project_path" value="<?php echo($autocomplete['project_path']); ?>">
+    
+    <label><?php i18n("Database Host"); ?></label>
+    <input type="text" name="dbhost" value="<?php echo($autocomplete['dbhost']); ?>">
+    <label><?php i18n("Database Name"); ?></label>
+    <input type="text" name="dbname" value="<?php echo($autocomplete['dbname']); ?>">
+    <label><?php i18n("Database User"); ?></label>
+    <input type="text" name="dbuser" value="<?php echo($autocomplete['dbuser']); ?>">
+    <label><?php i18n("Database Pass"); ?></label>
+    <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
     <hr>
         <?php
         $location = array(
@@ -251,7 +274,9 @@ if ($newrelic) {
         echo($timezones);
         ?>
     </select>
-
+	
+	
+	
     <button><?php i18n("Install"); ?></button>
     </form>
     <?php

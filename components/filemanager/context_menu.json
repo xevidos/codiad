@@ -96,6 +96,12 @@
         "onclick": "codiad.filemanager.deleteNode($('#context-menu').attr('data-path'));"
     },
     {
+        "title": "Delete Contents",
+        "icon": "icon-cancel-circled",
+        "applies-to" : "non-root",
+        "onclick": "codiad.filemanager.deleteInnerNode($('#context-menu').attr('data-path'));"
+    },
+    {
         "title": "Break",
         "icon": null,
         "applies-to" : "both no-external",

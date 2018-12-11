@@ -21,13 +21,22 @@ if(isset($_SESSION['theme'])) {
   $theme = $_SESSION['theme'];
 }
 
+// Get Site name if set
+if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
+	
+	$site_name = SITE_NAME;
+} else {
+	
+	$site_name = "Codiad";
+}
+
 ?>
 <!doctype html>
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php i18n("CODIAD"); ?></title>
+    <title><?php echo htmlentities( $site_name ); ?></title>
     <?php
     // Load System CSS Files
     $stylesheets = array("jquery.toastmessage.css","reset.css","fonts.css","screen.css");
@@ -108,7 +117,7 @@ if(isset($_SESSION['theme'])) {
     // NOT LOGGED IN
     //////////////////////////////////////////////////////////////////
 
-    if(!isset($_SESSION['user'])){
+    if( ! isset( $_SESSION['user'] ) ) {
 
         $path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']),"/");
 
@@ -174,8 +183,15 @@ if(isset($_SESSION['theme'])) {
     // AUTHENTICATED
     //////////////////////////////////////////////////////////////////
 
-    }else{
-
+    } else {
+	
+		define( "USER_WORKSPACE", WORKSPACE . "/" . $_SESSION["user"] );
+		
+		if( ! is_dir( USER_WORKSPACE ) ) {
+			
+			mkdir( USER_WORKSPACE, 0755 );
+		}
+	
     ?>
 
     <div id="workspace">
@@ -254,10 +270,10 @@ if(isset($_SESSION['theme'])) {
                     <div class="project-list-title">
                         <h2><?php i18n("Projects"); ?></h2>
                         <a id="projects-collapse" class="icon-down-dir icon" alt="<?php i18n("Collapse"); ?>"></a>
-                        <?php if(checkAccess()) { ?>
+                        <?php //if(checkAccess()) { ?>
                         <a id="projects-manage" class="icon-archive icon"></a>
                         <a id="projects-create" class="icon-plus icon" alt="<?php i18n("Create Project"); ?>"></a>
-                        <?php } ?>
+                        <?php //} ?>
                     </div>
                     
                     <div class="sb-projects-content"></div>
@@ -401,7 +417,15 @@ if(isset($_SESSION['theme'])) {
 
     <!-- ACE -->
     <script src="components/editor/ace-editor/ace.js"></script>
-
+    <script src="components/editor/ace-editor/ext-language_tools.js"></script>
+	
+	<!-- Codiad System Variables -->
+	<script>
+		codiad.system = {};
+		codiad.system.site_id = `<?php echo $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];?>`;
+		codiad.system.session_id = `<?php echo SESSION_ID;?>`;
+	</script>
+	
     <!-- COMPONENTS -->
     <?php
 
@@ -415,7 +439,7 @@ if(isset($_SESSION['theme'])) {
                 echo('<script src="components/'.$component.'/init.js"></script>"');
             }
         }
-        
+    	
         foreach($plugins as $plugin){
             if(file_exists(PLUGINS . "/" . $plugin . "/init.js")){
                 echo('<script src="plugins/'.$plugin.'/init.js"></script>"');
@@ -425,6 +449,5 @@ if(isset($_SESSION['theme'])) {
     }
 
     ?>
-
 </body>
 </html>

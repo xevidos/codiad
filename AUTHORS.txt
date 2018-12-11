@@ -4,7 +4,6 @@ Authors
 Isaac Brown - @xevidos <xevidos@gmail.com>
 
 
-
 --------------------------------------------------
 Origional Authors Ordered By First Contribution
 --------------------------------------------------

@@ -75,10 +75,12 @@
             <button class="btn-right" onclick="save(); return false;"><?php i18n("Save"); ?></button>
             <button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Close"); ?></button>
             <script>
+                
+                var settings = {};
                 $('.settings-view .config-menu li').click(function(){
                     codiad.settings._showTab($(this).attr('data-file'));
                 });
-            
+            	
                 function save() {
                     $('.setting').each(function(){
                         var setting = $(this).data('setting');
@@ -87,7 +89,7 @@
                             codiad.message.alert(i18n("You Must Choose A Value"));
                             return;
                         }else{
-                            switch(setting){
+                            switch(setting) {
                                 case 'codiad.editor.theme':
                                     codiad.editor.setTheme(val);
                                     break;
@@ -135,14 +137,23 @@
                                 case "codiad.editor.tabSize":
                                     codiad.editor.setTabSize(val);
                                 break;
+                                case "codiad.editor.overScroll":
+                                    codiad.editor.setOverScroll(val);
+                                break;
+                                case "codiad.editor.autocomplete":
+                                	var bool_val = (val == "true");
+									codiad.editor.setLiveAutocomplete(bool_val)
+                                break;
                             }
                         }
-                        localStorage.setItem(setting, val);
+                        
+                        //localStorage.setItem(setting, val);
+                        settings[setting] = val
                     });
                     /* Notify listeners */
                     amplify.publish('settings.dialog.save',{});
                     codiad.modal.unload();
-                    codiad.settings.save();
+                    codiad.settings.save( settings );
                 }
             </script>
 <?php

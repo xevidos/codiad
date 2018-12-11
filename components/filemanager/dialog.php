@@ -60,6 +60,19 @@ switch($_GET['action']){
 	<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Cancel"); ?></button>
     <?php
     break;
+    
+    //////////////////////////////////////////////////////////////////
+    // Delete
+    //////////////////////////////////////////////////////////////////
+    case 'deleteInner':
+    ?>
+    <input type="hidden" name="path" value="<?php echo($_GET['path']); ?>">
+    <label><?php i18n("Are you sure you wish to delete the contents of the following path:"); ?></label>
+    <pre><?php if(!FileManager::isAbsPath($_GET['path'])) { echo '/'; }; echo($_GET['path']); ?></pre>
+    <button class="btn-left"><?php i18n("Delete"); ?></button>
+	<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Cancel"); ?></button>
+    <?php
+    break;
 
     //////////////////////////////////////////////////////////////////
     // Preview

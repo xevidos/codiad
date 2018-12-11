@@ -11,7 +11,7 @@
     var Editor = ace.require('ace/editor').Editor;
     var EditSession = ace.require('ace/edit_session').EditSession;
     var UndoManager = ace.require("ace/undomanager").UndoManager;
-
+    
     // Editor modes that have been loaded
     var editorModes = {};
 
@@ -386,6 +386,7 @@
 
         // Settings for Editor instances
         settings: {
+        	autocomplete: false,
             theme: 'twilight',
             fontSize: '13px',
             printMargin: false,
@@ -427,45 +428,58 @@
                     .trigger('h-resize-init')
                     .trigger('v-resize-init');
             });
+            
+            //Load settings when initially starting up that way the first editor 
+            //we open doesn't have the default settings.
+            this.getSettings();
         },
 
         //////////////////////////////////////////////////////////////////
         //
-        // Retrieve editor settings from localStorage
+        // Retrieve editor settings from database
         //
         //////////////////////////////////////////////////////////////////
 
-        getSettings: function() {
+        getSettings: async function() {
+        	
             var boolVal = null;
-            var theme = localStorage.getItem('codiad.editor.theme');
-
             var _this = this;
-
-            $.each(['theme', 'fontSize', 'tabSize'], function(idx, key) {
-                var localValue = localStorage.getItem('codiad.editor.' + key);
-                if (localValue !== null) {
+			var options = [
+				'fontSize',
+				'overScroll',
+				'printMarginColumn',
+				'tabSize',
+				'theme',
+			];
+			var bool_options = [
+				'autocomplete',
+				'printMargin',
+				'highlightLine',
+				'indentGuides',
+				'wrapMode',
+				'rightSidebarTrigger',
+				'fileManagerTrigger',
+				'softTabs',
+				'persistentModal',
+			];
+			
+            $.each( options, async function( idx, key ) {
+            	
+                var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
+                if ( localValue !== null ) {
+                	
                     _this.settings[key] = localValue;
                 }
             });
 
-            $.each(['printMargin', 'highlightLine', 'indentGuides', 'wrapMode', 'rightSidebarTrigger', 'fileManagerTrigger', 'softTabs', 'persistentModal'],
-                   function(idx, key) {
-                       var localValue =
-                           localStorage.getItem('codiad.editor.' + key);
+            $.each( bool_options, async function(idx, key) {
+                       var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
                        if (localValue === null) {
                            return;
                        }
                        _this.settings[key] = (localValue == 'true');
                    });
-            $.each(['printMarginColumn'],
-                function(idx, key) {
-                    var localValue =
-                        localStorage.getItem('codiad.editor.' + key);
-                    if (localValue === null) {
-                        return;
-                    }
-                    _this.settings[key] = localValue;
-                });
+  
         },
 
         /////////////////////////////////////////////////////////////////
@@ -491,6 +505,12 @@
             i.getSession().setUseWrapMode(this.settings.wrapMode);
             this.setTabSize(this.settings.tabSize, i);
             this.setSoftTabs(this.settings.softTabs, i);
+            this.setOverScroll(this.settings.overScroll, i);
+        	i.setOptions({
+		        enableBasicAutocompletion: true,
+		        enableSnippets: true,
+		        enableLiveAutocompletion: this.settings.autocomplete
+		    });
         },
 
         //////////////////////////////////////////////////////////////////
@@ -536,12 +556,13 @@
                     pContainer.setChild(idx, sc);
                 }
             }
-
+            
+			ace.require("ace/ext/language_tools");
             var i = ace.edit(el[0]);
             var resizeEditor = function(){
                 i.resize();
             };
-
+			
             if (sc) {
                 i.splitContainer = sc;
                 i.splitIdx = chIdx;
@@ -951,8 +972,8 @@
                     this.instances[k].setTheme('ace/theme/'+ t);
                 }
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.theme', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.theme', t );
         },
 
         /////////////////////////////////////////////////////////////////
@@ -993,8 +1014,8 @@
                     i.setFontSize(s);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.fontSize', s);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.fontSize', s );
         },
 
 
@@ -1018,8 +1039,8 @@
                     i.setHighlightActiveLine(h);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.highlightLine', h);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.highlightLine', h );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1041,8 +1062,8 @@
                     i.setShowPrintMargin(p);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.printMargin', p);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.printMargin', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1064,8 +1085,8 @@
                     i.setPrintMarginColumn(p);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.printMarginColumn', p);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1087,8 +1108,8 @@
                     i.setDisplayIndentGuides(g);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.indentGuides', g);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.indentGuides', g );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1129,8 +1150,8 @@
                     i.getSession().setUseWrapMode(w);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.wrapMode', w);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.wrapMode', w );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1145,8 +1166,8 @@
 
         setPersistentModal: function(t, i) {
             this.settings.persistentModal = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.persistentModal', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.persistentModal', t );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1161,8 +1182,8 @@
 
         setRightSidebarTrigger: function(t, i) {
             this.settings.rightSidebarTrigger = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.rightSidebarTrigger', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1177,8 +1198,8 @@
 
         setFileManagerTrigger: function(t, i) {
             this.settings.fileManagerTrigger = t;
-            // LocalStorage
-            localStorage.setItem('codiad.editor.fileManagerTrigger', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
             codiad.project.loadSide();
         },
         
@@ -1201,8 +1222,8 @@
                     i.getSession().setTabSize(parseInt(s));
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.tabSize', s);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.tabSize', s );
             
         },
         
@@ -1224,8 +1245,8 @@
                     i.getSession().setUseSoftTabs(t);
                 });
             }
-            // LocalStorage
-            localStorage.setItem('codiad.editor.softTabs', t);
+            //Database
+            codiad.settings.update_option( 'codiad.editor.softTabs', t );
             
         },
         
@@ -1463,9 +1484,9 @@
         search: function(action, i) {
             i = i || this.getActive();
             if (! i) return;
-            var find = $('#modal input[name="find"]')
+            var find = $('#modal textarea[name="find"]')
                 .val();
-            var replace = $('#modal input[name="replace"]')
+            var replace = $('#modal textarea[name="replace"]')
                 .val();
             switch (action) {
             case 'find':
@@ -1506,7 +1527,78 @@
 
                 break;
             }
-        } 
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Enable editor
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        enableEditing: function(i) {
+            i = i || this.getActive();
+            if (! i) return;
+            i.textInput.setReadOnly( false );
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Disable editor
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        disableEditing: function(i) {
+            i = i || this.getActive();
+            if (! i) return;
+            i.textInput.setReadOnly( true );
+        },
+        
+        //////////////////////////////////////////////////////////////////
+        //
+        // Set Overscroll
+        //
+        // Parameters:
+        //   i - {Editor} (Defaults to active editor)
+        //
+        //////////////////////////////////////////////////////////////////
+
+        setOverScroll: function( s, i ) {
+        	
+            if (i) {
+                i.setOption( "scrollPastEnd", s );
+            } else {
+                this.settings.overScroll = s;
+                this.forEach(function(i) {
+                   i.setOption( "scrollPastEnd", s );
+                });
+            }
+            //Database
+            codiad.settings.update_option( 'codiad.editor.overScroll', s );
+        },
+        
+        setLiveAutocomplete: function( s, i ) {
+        	
+            if (i) {
+                i.setOptions({
+					enableLiveAutocompletion: s
+				});
+            } else {
+                this.settings.autocomplete = s;
+                this.forEach(function(i) {
+                   i.setOptions({
+						enableLiveAutocompletion: s
+					});
+                });
+            }
+            //Database
+            codiad.settings.update_option( 'codiad.editor.autocomplete', s );
+        },
 
     };
 

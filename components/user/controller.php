@@ -54,9 +54,8 @@ if ($_GET['action']=='authenticate') {
     //////////////////////////////////////////////////////////////////
 
 if ($_GET['action']=='logout') {
-    session_unset();
-    session_destroy();
-    session_start();
+	
+	logout();
 }
 
     //////////////////////////////////////////////////////////////////
@@ -91,27 +90,6 @@ if ($_GET['action']=='delete') {
 }
 
     //////////////////////////////////////////////////////////////////
-    // Set Project Access
-    //////////////////////////////////////////////////////////////////
-
-if ($_GET['action']=='project_access') {
-    if (checkAccess()) {
-        if (!isset($_GET['username'])) {
-            die(formatJSEND("error", "Missing username"));
-        }
-        $User->username = $_GET['username'];
-            
-        //No project selected
-        if (isset($_POST['projects'])) {
-            $User->projects = $_POST['projects'];
-        } else {
-            $User->projects = array();
-        }
-        $User->Project_Access();
-    }
-}
-
-    //////////////////////////////////////////////////////////////////
     // Change Password
     //////////////////////////////////////////////////////////////////
 
@@ -142,10 +120,25 @@ if ($_GET['action']=='project') {
 }
 
     //////////////////////////////////////////////////////////////////
+    // Search Users
+    //////////////////////////////////////////////////////////////////
+
+if ( $_GET['action'] == 'search_users' ) {
+	
+	if ( ! isset( $_GET['search_term'] ) ) {
+		
+		die( formatJSEND( "error", "Missing search term" ) );
+	}
+	search_users( $_GET['search_term'], "exit", true );
+}
+
+    //////////////////////////////////////////////////////////////////
     // Verify User Account
     //////////////////////////////////////////////////////////////////
 
 if ($_GET['action']=='verify') {
+	
     $User->username = $_SESSION['user'];
-    $User->Verify();
+    //$User->Verify();
+    checkSession();
 }

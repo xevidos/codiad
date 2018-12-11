@@ -11,28 +11,49 @@ Distributed under the MIT-Style License. See LICENSE.txt file for more informati
 Features:
 
 * 132 Native programming languages supported.
-* Auto Complete ( CTRL + Space )
-* Auto Save
-* Collaborative Editing
-* Multi Cursor
-* PHP 7.2 Compatibility
-* Self updating
-* Split editor mode
-* Themes
+* Auto Complete ( CTRL + Space ).
+* Auto Save.
+* Collaborative Editing.
+* Multi Cursor.
+* Overscroll ( Ability to center bottom of code ).
+* PHP 7.2 Compatibility.
+* Self updating.
+* Split editor mode.
+* Themes.
 
 When you see a - in front of a task that means it is a possibility but we aren't sure we will add it yet.
 
+Current Tasks:
+
+* Convert codiad to database save instead of file save.
+	- Projects
+	- Settings
+	- Users
+* Add in new admin interface
+	- Group Management
+	- Permissions Management
+	- Plugin Management
+	- Project Management
+	- System Settings
+	- User Management
+
 Task List:
   
-* Add ability to center bottom of code.
-* Add ability to hide cursors when in collaboration mode.
 * Add ability to login with LDAP.
-* Add ability to rename site.
-* Add ability to save users in database.
-* -Add ability to see what people are highlighting in collaboration mode.
+* Add custom market.
+* Add if file could not be saved 5 times close the open file.
+* Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility.
-
 * Clean up Collaborative compatibility.
 * Clean up update script.
 
-* Fix [WangYihangs execution exploit](https://github.com/WangYihang/Codiad-Remote-Code-Execute-Exploit)
+
+Completed:
+
+* Add Auto Save.
+* Add ability to center bottom of code.
+* Add Self Updating Script.
+* Add Site renaming.
+* Fix Auto Complete.
+* Fix JS errors already showing.
+* Updated for PHP 7.2.

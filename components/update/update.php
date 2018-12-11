@@ -7,10 +7,36 @@ error_reporting(E_ALL);
 require_once('../../common.php');
 require_once('./class.update.php');
 
-checkSession();
+$user_settings_file = DATA . "/settings.php";
+$projects_file = DATA . "/projects.php";
+$users_file = DATA . "/users.php";
+//checkSession();
 if ( ! checkAccess() ) {
 	echo "Error, you do not have access to update Codiad.";
-	exit;
+	exit();
+}
+
+if ( ( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) || ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
+	
+	?>
+	<p>
+		Hello,  this update requires new variables in your Codiad config.php<br />
+		Please place the following code in your config.php with the correct values applying to your databse and then reload this page. <br>
+		<br>
+		Please be aware that at the moment, only mysql databases are supported.  However, more database support is planned.
+	</p>
+	
+	<code>
+<pre>
+define( "DBHOST", "localhost" );
+define( "DBNAME", "database" );
+define( "DBUSER", "username" );
+define( "DBPASS", "password" );
+define( "DBTYPE", "mysql" );
+</pre>
+	</code>
+	<?php
+	exit();
 }
 
 /**
@@ -38,17 +64,18 @@ class updater {
 	public $archive = "";
 	public $path = "";
 	public $protocol = "";
-
+	public $update = null;
 	
 	function __construct() {
 		
-		$update = new Update();
-		$this->archive = $update->archive;
-		$this->path = Common::getConstant('BASE_PATH');
+		$this->update = new Update();
 		$this->protocol = $this->check_protocol();
+		$this->archive = $this->update->archive;
+		$this->path = BASE_PATH;
 		
+		/*
 		//Trigger update
-		$this->update();
+		$this->update();*/
 	}
 	
 	function check_protocol() {
@@ -65,6 +92,78 @@ class updater {
 			
 			//None are enabled exit.
 			return "none";
+		}
+	}
+	
+	function check_update() {
+		
+		$response = $this->update->getRemoteVersion();
+		$local_version = $this->update::VERSION;
+		$remote_version = $response["name"];
+		$return = "false";
+		
+		if( $local_version < $remote_version ) {
+			
+			$return = "true";
+		}
+		
+		return( $return );
+	}
+	
+	function check_version() {
+		
+		$local_version = $this->update::VERSION;
+		$remote_version = $response["name"];
+		$return = "false";
+		
+		if( $local_version <= "v.2.9.2" ) {
+			
+			$return = "convert";
+		}
+		
+		return( $return );
+	}
+	
+	function convert() {
+		
+		require_once('../settings/class.settings.php');
+		require_once('../project/class.project.php');
+		require_once('../user/class.user.php');
+		
+		if( file_exists( $user_settings_file ) ) {
+			
+			$user_settings = getJSON( 'settings.php' );
+			foreach( $user_settings as $user => $settings ) {
+				
+				$Settings->username = $user;
+				foreach( $settings as $setting => $value ) {
+					
+					$Settings->update_option( $setting, $value, true );
+				}
+			}
+			unlink( $user_settings_file );
+		}
+		
+		if( file_exists( $projects_file ) ) {
+			
+			$projects = getJSON( 'projects.php' );
+			foreach( $projects as $project => $data ) {
+				
+				$Project->add_project( $data["name"], $data["path"], true );
+			}
+			unlink( $projects_file );
+		}
+		
+		if( file_exists( $users_file ) ) {
+			
+			$users = getJSON( 'users.php' );
+			foreach( $users as $user ) {
+				
+				$User->username = $user["username"];
+				$User->password = $user["password"];
+				$User->add_user();
+			}
+			unlink( $users_file );
 		}
 	}
 	
@@ -116,22 +215,23 @@ class updater {
 					unlink( $filepath );
 				}
 				$curl = curl_init();
-				curl_setopt($curl, CURLOPT_URL, $this->archive);
+				curl_setopt( $curl, CURLOPT_URL, $this->archive );
 				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
-				curl_setopt($curl, CURLOPT_HEADER, 0);
-				curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  
-				curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13');
-				$raw_file_data = curl_exec($curl);
-				curl_close($curl);
-				
+				curl_setopt( $curl, CURLOPT_HEADER, 0 );
+				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );  
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
+				curl_setopt( $curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13' );
+				$raw_file_data = curl_exec( $curl );
+				curl_close( $curl );
 				file_put_contents( $filepath, $raw_file_data );
-				return ( filesize( $filepath ) > 0 ) ? true : false;
-			break;
-			
-			case( "fopen" ):
-				
+				if( filesize( $filepath ) > 0 ) {
+					
+					return( "true" );
+				} else {
+					
+					return( "false" );
+				}
 			break;
 		}
 	}
@@ -140,8 +240,7 @@ class updater {
 		
 		if ( ! extension_loaded( 'zip' ) ) {
 			
-			echo "<script>document.getElementById('progress').innerHTML = '<p class=\"error_box\">Error, the php zip extension does not seem to be installed.  Can not continue with update.  Please install the <a href=\"http://php.net/manual/en/book.zip.php\" target=\"_blank\">php zip extension</a></p>'> ... </p>';</script>";
-			return false;
+			return "false";
 		}
 		
 		$zip = new ZipArchive;
@@ -150,44 +249,31 @@ class updater {
 			$zip->extractTo( $this->path );
 			$zip->close();
 			
-			return true;
+			return "true";
 		} else {
 			
-			return false;
+			return "false";
 		}
 	}
 	
 	function remove_directory( $path ) {
-	
+		
 		$files = glob($path . '/*');
 		foreach ($files as $file) {
 		
 			is_dir($file) ? $this->remove_directory($file) : unlink($file);
 		}
-		rmdir($path);
+		
+		if( is_dir( $path ) ) {
+			
+			rmdir( $path );
+		}
 		return;
 	}
 		
 	function update() {
 		
 		$sessions = "../../data/sessions";
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Downloading latest version ... </p>';</script>";
-		if ( ! $this->download() ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML += '<br><p class=\"error_box\">Error downloading latest version</p>';</script>";
-			return;
-		}
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Extracting update ... </p>';</script>";
-		if ( ! $this->extract() ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML += '<br><p class=\"error_box\">Error extracting update</p>';</script>";
-			return;
-		}
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Updating ... </p>';</script>";
-		
 		//Add Sessions path if not there.
 		
 		/**
@@ -196,7 +282,7 @@ class updater {
 		
 		if ( ! is_dir( $sessions ) ) {
 			
-			mkdir( $sessions, 755 );
+			mkdir( $sessions, 00755 );
 		}
 		
 		/**
@@ -228,9 +314,12 @@ class updater {
 			$this->path . "/codiad-master/.travis.yml",
 		);
 		
-		foreach( $folder_conflictions as $file ) {
+		foreach( $file_conflictions as $file ) {
 			
-			unlink( $file );
+			if( is_file( $file ) ) {
+				
+				unlink( $file );
+			}
 		}
 		
 		
@@ -239,13 +328,62 @@ class updater {
 		$dest = $this->path . "/";
 		
 		$this->copyr( $src, $dest );
-		
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Removing Update ... </p>';</script>";
 		$this->remove_directory( $src );
+		$this->convert();
+		return( "true" );
+	}
+	
+	function version() {
+		
+		$return = "";
+		
+		if( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) {
+			
+			$return = "true";
+		}
 	}
 }
 
+if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
+	
+	$updater = new updater();
+	$action = $_GET["action"];
+	
+	switch( $action ) {
+		
+		case( "apply" ):
+			
+			echo $updater->update();
+		break;
+		
+		case( "check_update" ):
+			
+			echo $updater->check_update();
+		break;
+		
+		case( "check_version" ):
+			
+			echo $updater->check_version();
+		break;
+		
+		case( "download" ):
+			
+			echo $updater->download();
+		break;
+		
+		case( "extract" ):
+			
+			echo $updater->extract();
+		break;
+		
+		case( "update" ):
+			
+			echo $updater->update();
+		break;
+	}
+	
+	exit();
+}
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -264,6 +402,7 @@ class updater {
 				font: normal 13px 'Ubuntu', sans-serif;
 				height: 100%;
 				overflow: hidden;
+				text-align: center;
 				width: 100%;
 			}
 			
@@ -271,11 +410,14 @@ class updater {
 				
 				color: #666;
 				display: block;
-				//float: left;
-				//font-size: 15px;
 				font-weight: 500;
 				margin: 10px;
 				text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+			}
+			
+			#convert {
+				
+				display: none;
 			}
 			
 			#progress {
@@ -286,231 +428,197 @@ class updater {
 				transform: translate(-50%, -50%);
 			}
 			
-		</style>
-		<script>
 			
+		</style>
+		<script src="../../js/jquery-1.7.2.min.js"></script>
+		<script>
+			const codiad = {};
+			codiad.update = {
+				
+				progress: null,
+				
+				init: function() {
+					
+					this.progress = document.getElementById( "progress" );
+					this.update();
+				},
+				
+				apply: function() {
+					
+					return jQuery.ajax({
+							
+						url: "update.php",
+						type: "GET",
+						dataType: 'html',
+						data: {
+							action: 'apply',
+						},
+						
+						success: function( result ) {
+							
+							return result;
+						},
+						
+						error: function( jqXHR, textStatus, errorThrown ) {
+							
+							console.log( 'jqXHR:' );
+							console.log( jqXHR );
+							console.log( 'textStatus:' );
+							console.log( textStatus);
+							console.log( 'errorThrown:' );
+							console.log( errorThrown );
+							return null;
+						}
+					});
+				},
+				
+				check_update: function() {
+					
+					this.progress.innerText = "Checking for update ... ";
+					return jQuery.ajax({
+						
+						url: "update.php",
+						type: "GET",
+						dataType: 'html',
+						data: {
+							action: 'check_update',
+						},
+						
+						success: function( result ) {
+							
+							return result;
+						},
+						
+						error: function( jqXHR, textStatus, errorThrown ) {
+							
+							console.log( 'jqXHR:' );
+							console.log( jqXHR );
+							console.log( 'textStatus:' );
+							console.log( textStatus);
+							console.log( 'errorThrown:' );
+							console.log( errorThrown );
+							return null;
+						}
+					});
+				},
+				
+				download: function() {
+					
+					return jQuery.ajax({
+							
+						url: "update.php",
+						type: "GET",
+						dataType: 'html',
+						data: {
+							action: 'download',
+						},
+						
+						success: function( result ) {
+							
+							return result;
+						},
+						
+						error: function( jqXHR, textStatus, errorThrown ) {
+							
+							console.log( 'jqXHR:' );
+							console.log( jqXHR );
+							console.log( 'textStatus:' );
+							console.log( textStatus);
+							console.log( 'errorThrown:' );
+							console.log( errorThrown );
+							return null;
+						}
+					});
+				},
+				
+				extract: function() {
+					
+					return jQuery.ajax({
+							
+						url: "update.php",
+						type: "GET",
+						dataType: 'html',
+						data: {
+							action: 'extract',
+						},
+						
+						success: function( result ) {
+							
+							return result;
+						},
+						
+						error: function( jqXHR, textStatus, errorThrown ) {
+							
+							console.log( 'jqXHR:' );
+							console.log( jqXHR );
+							console.log( 'textStatus:' );
+							console.log( textStatus);
+							console.log( 'errorThrown:' );
+							console.log( errorThrown );
+							return null;
+						}
+					});
+				},
+				
+				update: async function() {
+					
+					let result = await this.check_update();
+					
+					console.log( result );
+					if( result === "true" ) {
+						
+						progress.innerText = "An update was found.  Downloading update.";
+						let download = await this.download();
+						
+						if( download !== "true" ) {
+							
+							console.log( download );
+							progress.innerText = "Error downloading update.";
+							return;
+						}
+						
+						progress.innerText = "Extracting update.";
+						let extract = await this.extract();
+						
+						if( extract !== "true" ) {
+							
+							console.log( extract );
+							progress.innerText = "Error extracting update.";
+							return;
+						}
+						
+						progress.innerText = "Applying update.";
+						let apply = await this.apply();
+						
+						if( apply !== "true" ) {
+							
+							console.log( apply );
+							progress.innerText = "Error applying update.";
+							return;
+						}
+						
+						progress.innerText = "Update Finished.";
+					} else if( result === "false" ) {
+						
+						progress.innerText = "No update was found ...";
+					} else {
+						
+						progress.innerText = "Error, checking for updates failed.";
+					}
+				},
+			};
 		</script>
 	</head>
 	<body>
 		<h1 class="title" style="text-align: center;">
-			Telaaedifex Codiad Updater
+			Tela Codiad Updater
 		</h1>
-		<div id="progress">
-			Starting Update ...
+		<div>
+			<p>Do not leave this page until the process has finished.</p>
+			<p id="progress"></p>
 		</div>
-	</body>
-</html>
-<?php
-new updater();
-?><?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-require_once('../../common.php');
-require_once('./class.update.php');
-
-checkSession();
-if ( ! checkAccess() ) {
-	echo "Error, you do not have access to update Codiad.";
-	exit;
-}
-
-/**
- * Initiate the update class so we do not have to redefine their
- * variables.
- */
-
-class updater {
-	
-	/**
-	 * Telaaedifex Codiad updater
-	 * 
-	 * This updater will extract an archive and then update each file
-	 * with file put contents.
-	 */
-	 
-	/**
-	 * Constants
-	 */
-	 
-	/**
-	 * Properties
-	 */
-	 
-	public $archive = "";
-	public $path = "";
-	public $protocol = "";
-
-	
-	function __construct() {
-		
-		$update = new Update();
-		$this->archive = $update->archive;
-		$this->path = Common::getConstant('BASE_PATH');
-		$this->protocol = $this->check_protocol();
-		
-		//Trigger update
-		$this->update();
-		
-		//Delete File
-		unlink( __FILE__ );
-	}
-	
-	function check_protocol() {
-		
-		if( extension_loaded( 'curl' ) ) {
-			
-			//Curl is loaded
-			return "curl";
-		} elseif( ini_get('allow_url_fopen') ) {
-			
-			//Remote get file is enabled
-			return "fopen";
-		} else {
-			
-			//None are enabled exit.
-			return "none";
-		}
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Download latest archive
-	//////////////////////////////////////////////////////////////////
-	
-	function download() {
-		
-		switch( $this->protocol ) {
-			
-			case( "curl" ):
-				
-				$filepath = $this->path . "/update.zip";
-				$curl = curl_init();
-				curl_setopt($curl, CURLOPT_URL, $this->archive);
-				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
-				curl_setopt($curl, CURLOPT_HEADER, 0);
-				curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);  
-				curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13');
-				$raw_file_data = curl_exec($curl);
-				curl_close($curl);
-				
-				file_put_contents( $filepath, $raw_file_data );
-				return ( filesize( $filepath ) > 0 ) ? true : false;
-			break;
-			
-			case( "fopen" ):
-				
-			break;
-		}
-	}
-	
-	function extract() {
-		
-		if ( ! extension_loaded( 'zip' ) ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML = '<p class=\"error_box\">Error, the php zip extension does not seem to be installed.  Can not continue with update.  Please install the <a href=\"http://php.net/manual/en/book.zip.php\" target=\"_blank\">php zip extension</a></p>'> ... </p>';</script>";
-			return false;
-		}
-		
-		$zip = new ZipArchive;
-		if ( $zip->open( $this->path . "/update.zip", ZipArchive::OVERWRITE ) === TRUE ) {
-			
-			$zip->extractTo( $this->path );
-			$zip->close();
-			
-			return true;
-		} else {
-			
-			return false;
-		}
-	}
-	
-	function update() {
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Downloading latest version ... </p>';</script>";
-		if ( ! $this->download() ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML += '<br><p class=\"error_box\">Error downloading latest version</p>';</script>";
-		}
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Extracting update ... </p>';</script>";
-		if ( ! $this->extract() ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML += '<br><p class=\"error_box\">Error extracting update</p>';</script>";
-		}
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Updating ... </p>';</script>";
-		try {
-			
-			exec( "cp -a " );
-		} catch ( exception $e ) {
-			
-			echo "<script>document.getElementById('progress').innerHTML = '<p class=\"error_box\">Update Failed ... </p>';</script>";
-			return;
-		}
-		
-		echo "<script>document.getElementById('progress').innerHTML = '<p class=\"status_box\">Removing Update ... </p>';</script>";
-		exec( "rm -rf " . $this->path . "/update.zip;rm -rf " . $this->path . "/codiad-master" );
-	}
-}
-
-?>
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Codiad Update</title>
-		<style>
-			html {
-				
-			}
-			
-			body{
-				
-				background-color: #1a1a1a;
-				color: #fff;
-				font: normal 13px 'Ubuntu', sans-serif;
-				height: 100%;
-				overflow: hidden;
-				width: 100%;
-			}
-			
-			.title {
-				
-				color: #666;
-				display: block;
-				//float: left;
-				//font-size: 15px;
-				font-weight: 500;
-				margin: 10px;
-				text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-			}
-			
-			#progress {
-				
-				position: fixed;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-			}
-			
-		</style>
 		<script>
-			
+			codiad.update.init();
 		</script>
-	</head>
-	<body>
-		<h1 class="title" style="text-align: center;">
-			Telaaedifex Codiad Updater
-		</h1>
-		<div id="progress">
-			Starting Update ...
-		</div>
 	</body>
 </html>
-<?php
-new updater();
-?>
