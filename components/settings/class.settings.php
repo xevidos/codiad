@@ -10,6 +10,10 @@ class Settings {
 	
 	const DEFAULT_OPTIONS = array(
 		array(
+			"name" => "codiad.editor.autocomplete",
+			"value" => "false",
+		),
+		array(
 			"name" => "codiad.editor.fileManagerTrigger",
 			"value" => "false",
 		),

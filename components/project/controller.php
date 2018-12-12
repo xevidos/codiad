@@ -17,7 +17,7 @@ require_once('./class.project.php');
 checkSession();
 
 $Project = new Project();
-$Project->projects = $this->get_projects();
+$Project->projects = $Project->get_projects();
 
 if( $_GET['action'] == 'add_user' ) {
 	

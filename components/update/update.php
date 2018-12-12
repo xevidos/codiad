@@ -56,6 +56,77 @@ class updater {
 	/**
 	 * Constants
 	 */
+	
+	const DEFAULT_OPTIONS = array(
+		array(
+			"name" => "codiad.editor.autocomplete",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.fileManagerTrigger",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.fontSize",
+			"value" => "14px",
+		),
+		array(
+			"name" => "codiad.editor.highlightLine",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.indentGuides",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.overScroll",
+			"value" => "0.5",
+		),
+		array(
+			"name" => "codiad.editor.persistentModal",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.printMargin",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.editor.printMarginColumn",
+			"value" => "80",
+		),
+		array(
+			"name" => "codiad.editor.rightSidebarTrigger",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.softTabs",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.editor.tabSize",
+			"value" => "4",
+		),
+		array(
+			"name" => "codiad.editor.theme",
+			"value" => "twilight",
+		),
+		array(
+			"name" => "codiad.editor.wrapMode",
+			"value" => "false",
+		),
+		array(
+			"name" => "codiad.settings.autosave",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.settings.plugin.sync",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.settings.plugin.sync",
+			"value" => "true",
+		),
+	);
 	 
 	/**
 	 * Properties
@@ -65,17 +136,69 @@ class updater {
 	public $path = "";
 	public $protocol = "";
 	public $update = null;
+	public $username = "";
 	
 	function __construct() {
+		
 		
 		$this->update = new Update();
 		$this->protocol = $this->check_protocol();
 		$this->archive = $this->update->archive;
 		$this->path = BASE_PATH;
-		
+		$this->username = $_SESSION["user"];
 		/*
 		//Trigger update
 		$this->update();*/
+	}
+	
+	function backup() {
+		
+		$backup = "../../backup/";
+		$source = "../../";
+		//Add Sessions path if not there.
+		
+		/**
+		 * Create sessions path.
+		 */
+		
+		if ( ! is_dir( $backup ) ) {
+			
+			mkdir( $backup, 00755 );
+		}
+		
+		function copy_backup( $source, $dest ) {
+			// Check for symlinks
+			if (is_link($source)) {
+				return symlink(readlink($source), $dest);
+			}
+			
+			// Simple copy for a file
+			if (is_file($source)) {
+				return copy($source, $dest);
+			}
+			
+			// Make destination directory
+			if (!is_dir($dest)) {
+				mkdir($dest);
+			}
+			
+			// Loop through the folder
+			$dir = dir( $source );
+			while (false !== $entry = $dir->read()) {
+			// Skip pointers
+				if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'workspace') {
+					continue;
+				}
+				
+				// Deep copy directories
+				copy_backup("$source/$entry", "$dest/$entry");
+			}
+			
+			// Clean up
+			$dir->close();
+		}
+		
+		copy_backup( $source, $backup );
 	}
 	
 	function check_protocol() {
@@ -128,176 +251,62 @@ class updater {
 		
 		require_once('../../common.php');
 		require_once('../sql/class.sql.php');
-		require_once('../settings/class.settings.php');
-		require_once('../project/class.project.php');
-		require_once('../user/class.user.php');
 		
 		$user_settings_file = DATA . "/settings.php";
 		$projects_file = DATA . "/projects.php";
 		$users_file = DATA . "/users.php";
 		
-		$Settings = new Settings();
-		$Project = new Project();
-		$User = new User();
+		$sql = new sql();
+		$connection = $sql->connect();
 		
-				$connection = $Settings->connect();
-		
-			$sql = "
--- phpMyAdmin SQL Dump
--- version 4.6.6deb5
--- https://www.phpmyadmin.net/
---
--- Host: localhost:3306
--- Generation Time: Dec 11, 2018 at 05:31 PM
--- Server version: 5.7.24-0ubuntu0.18.04.1
--- PHP Version: 7.2.10-0ubuntu0.18.04.1
-
-SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
-SET time_zone = '+00:00';
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `code_test`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `options`
---
-
-CREATE TABLE IF NOT EXISTS `options` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `value` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `projects`
---
-
-CREATE TABLE IF NOT EXISTS `projects` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `path` varchar(255) NOT NULL,
-  `owner` varchar(255) NOT NULL,
-  `access` text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
-
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL,
-  `first_name` varchar(255) DEFAULT NULL,
-  `last_name` varchar(255) DEFAULT NULL,
-  `username` varchar(255) NOT NULL,
-  `password` text NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `project` varchar(255) DEFAULT NULL,
-  `access` varchar(255) NOT NULL,
-  `groups` text,
-  `token` text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `user_options`
---
-
-CREATE TABLE IF NOT EXISTS `user_options` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `value` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `options`
---
-ALTER TABLE `options`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `option_name` (`name`);
-
---
--- Indexes for table `projects`
---
-ALTER TABLE `projects`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `project_path` (`path`,`owner`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
-
---
--- Indexes for table `user_options`
---
-ALTER TABLE `user_options`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `option_name` (`name`,`username`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `options`
---
-ALTER TABLE `options`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `projects`
---
-ALTER TABLE `projects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
---
--- AUTO_INCREMENT for table `user_options`
---
-ALTER TABLE `user_options`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2541;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+		$sql = "
+CREATE TABLE IF NOT EXISTS `options`(
+    `id` INT(11) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `value` TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS `projects`(
+    `id` INT(11) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `path` VARCHAR(255) NOT NULL,
+    `owner` VARCHAR(255) NOT NULL,
+    `access` TEXT
+);
+CREATE TABLE IF NOT EXISTS `users`(
+    `id` INT(11) NOT NULL,
+    `first_name` VARCHAR(255) DEFAULT NULL,
+    `last_name` VARCHAR(255) DEFAULT NULL,
+    `username` VARCHAR(255) NOT NULL,
+    `password` TEXT NOT NULL,
+    `email` VARCHAR(255) DEFAULT NULL,
+    `project` VARCHAR(255) DEFAULT NULL,
+    `access` VARCHAR(255) NOT NULL,
+    `groups` TEXT,
+    `token` TEXT
+);
+CREATE TABLE IF NOT EXISTS `user_options`(
+    `id` INT(11) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL,
+    `value` TEXT NOT NULL
+);
+ALTER TABLE `options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`);
+ALTER TABLE `projects` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `project_path`(`path`, `owner`);
+ALTER TABLE `users` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `username`(`username`);
+ALTER TABLE `user_options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`, `username`);
+ALTER TABLE `options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `projects` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `users` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 ";
-	$bind = "";
-	$bind_variables = array();
-	$result = mysqli_prepare( $connection, $sql ) or die( "Error creating tables" );
-	$result->bind_param( $bind, ...$bind_variables );
-	$result->execute();
+		if ( $connection->multi_query( $sql ) !== TRUE ) {
+			
+			$this->restore();
+			exit( $connection->error );
+		}
 		
 		if( file_exists( $user_settings_file ) ) {
 			
-			$user_settings = getJSON( 'settings.php' );
-			foreach( $user_settings as $user => $settings ) {
-				
-				$Settings->username = $user;
-				foreach( $settings as $setting => $value ) {
-					
-					$Settings->update_option( $setting, $value, true );
-				}
-			}
 			unlink( $user_settings_file );
 		}
 		
@@ -306,7 +315,11 @@ ALTER TABLE `user_options`
 			$projects = getJSON( 'projects.php' );
 			foreach( $projects as $project => $data ) {
 				
-				$Project->add_project( $data["name"], $data["path"], true );
+				$owner = 'nobody';
+				$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
+				$bind = "sss";
+				$bind_variables = array( $data["name"], $data["path"], $owner );
+				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project." ) );
 			}
 			unlink( $projects_file );
 		}
@@ -316,15 +329,34 @@ ALTER TABLE `user_options`
 			$users = getJSON( 'users.php' );
 			foreach( $users as $user ) {
 				
-				$User->username = $user["username"];
-				$User->password = $user["password"];
-				$User->add_user();
+				if( $user["username"] === $_SESSION["user"] ) {
+					
+					$access = "admin";
+				} else {
+					
+					$access = "user";
+				}
+				$sql = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, PASSWORD( ? ), ?, ? );";
+				$bind = "ssss";
+				$bind_variables = array( $user["username"], $user["password"], $access, null );
+				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error that username is already taken." ) );
+				
+				if( sql::check_sql_error( $return ) ) {
+					
+					$this->username = $user["username"];
+					$this->set_default_options();
+					echo formatJSEND( "success", array( "username" => $user["username"] ) );
+				} else {
+					
+					echo formatJSEND( "error", "The Username is Already Taken" );
+				}
 			}
 			unlink( $users_file );
 		}
 	}
 	
 	function copyr( $source, $dest ) {
+		
 		// Check for symlinks
 		if (is_link($source)) {
 			return symlink(readlink($source), $dest);
@@ -344,7 +376,7 @@ ALTER TABLE `user_options`
 		$dir = dir( $source );
 		while (false !== $entry = $dir->read()) {
 		// Skip pointers
-			if ($entry == '.' || $entry == '..') {
+			if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'workspace' || $entry == 'plugins') {
 				continue;
 			}
 			
@@ -427,73 +459,123 @@ ALTER TABLE `user_options`
 		}
 		return;
 	}
+	
+	function restore() {
 		
+		$dest = "../../";
+		$source = "../../backup/";
+		
+		$this->copyr( $source, $dest );
+		$this->remove_directory( $source );
+	}
+	
+	public function set_default_options() {
+		
+		foreach( self::DEFAULT_OPTIONS as $id => $option ) {
+			
+			$this->update_option( $option["name"], $option["value"], true );
+		}
+	}
+	
 	function update() {
 		
-		$sessions = "../../data/sessions";
-		//Add Sessions path if not there.
+		$this->backup();
 		
-		/**
-		 * Create sessions path.
-		 */
-		
-		if ( ! is_dir( $sessions ) ) {
+		try {
 			
-			mkdir( $sessions, 00755 );
-		}
-		
-		/**
-		 * If any directories in the array below are still set delete them.
-		 * 
-		 */
-		$folder_conflictions = array(
+			$sessions = "../../data/sessions";
+			//Add Sessions path if not there.
 			
-			$this->path . "/plugins/auto_save",
-			$this->path . "/plugins/Codiad-Auto-Save",
-			$this->path . "/plugins/Codiad-Auto-Save-master",
-			$this->path . "/plugins/Codiad-CodeSettings",
-			$this->path . "/plugins/Codiad-CodeSettings-master",
-		);
-		
-		foreach( $folder_conflictions as $dir ) {
+			/**
+			 * Create sessions path.
+			 */
 			
-			$this->remove_directory( $dir );
-		}
-		
-		/**
-		 * If any files in the array below are still set delete them.
-		 * 
-		 */
-		 
-		$file_conflictions = array(
-			
-			$this->path . "/.travis.yml",
-			$this->path . "/codiad-master/.travis.yml",
-			
-			$this->path . "/.gitignore",
-			$this->path . "/codiad-master/.gitignore",
-			
-			$this->path . "/.gitlab-ci.yml",
-			$this->path . "/codiad-master/.gitlab-ci.yml"
-		);
-		
-		foreach( $file_conflictions as $file ) {
-			
-			if( is_file( $file ) ) {
+			if ( ! is_dir( $sessions ) ) {
 				
-				unlink( $file );
+				mkdir( $sessions, 00755 );
 			}
+			
+			/**
+			 * If any directories in the array below are still set delete them.
+			 * 
+			 */
+			$folder_conflictions = array(
+				
+				$this->path . "/plugins/auto_save",
+				$this->path . "/plugins/Codiad-Auto-Save",
+				$this->path . "/plugins/Codiad-Auto-Save-master",
+				$this->path . "/plugins/Codiad-CodeSettings",
+				$this->path . "/plugins/Codiad-CodeSettings-master",
+			);
+			
+			foreach( $folder_conflictions as $dir ) {
+				
+				$this->remove_directory( $dir );
+			}
+			
+			/**
+			 * If any files in the array below are still set delete them.
+			 * 
+			 */
+			 
+			$file_conflictions = array(
+				
+				$this->path . "/.travis.yml",
+				$this->path . "/codiad-master/.travis.yml",
+				
+				$this->path . "/.gitignore",
+				$this->path . "/codiad-master/.gitignore",
+				
+				$this->path . "/.gitlab-ci.yml",
+				$this->path . "/codiad-master/.gitlab-ci.yml"
+			);
+			
+			foreach( $file_conflictions as $file ) {
+				
+				if( is_file( $file ) ) {
+					
+					unlink( $file );
+				}
+			}
+			
+			
+			$src = $this->path . "/codiad-master/";
+			$src_folder = $this->path . "/codiad-master";
+			$dest = $this->path . "/";
+			
+			$this->copyr( $src, $dest );
+			$this->remove_directory( $src );
+			$this->convert();
+			return( "true" );
+		} catch( Exception $e ) {
+			
+			$this->restore();
+			return( $e );
 		}
+	}
+	
+	public function update_option( $option, $value, $user_setting = null ) {
 		
+		$query = "INSERT INTO user_options ( `name`, `username`, `value` ) VALUES ( ?, ?, ? );";
+		$bind = "sss";
+		$bind_variables = array(
+			$option,
+			$this->username,
+			$value,
+		);
+		$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not add user's settings." ) );
 		
-		$src = $this->path . "/codiad-master/";
-		$src_folder = $this->path . "/codiad-master";
-		$dest = $this->path . "/";
-		
-		$this->copyr( $src, $dest );
-		$this->remove_directory( $src );
-		$this->convert();
-		return( "true" );
+		if( $result !== true ) {
+			
+			$query = "UPDATE user_options SET `value`=? WHERE `name`=? AND `username`=?;";
+			$bind = "sss";
+			$bind_variables = array(
+				$value,
+				$option,
+				$this->username,
+			);
+			$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not update user's settings." ) );
+		}
 	}
 	
 	function version() {
