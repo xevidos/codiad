@@ -320,6 +320,13 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 				$bind = "sss";
 				$bind_variables = array( $data["name"], $data["path"], $owner );
 				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project." ) );
+				
+				if( sql::check_sql_error( $return ) ) {
+				} else {
+					
+					$this->restore();
+					exit(formatJSEND( "error", "There was an error adding projects to database." ));
+				}
 			}
 			unlink( $projects_file );
 		}
@@ -345,10 +352,11 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 					
 					$this->username = $user["username"];
 					$this->set_default_options();
-					echo formatJSEND( "success", array( "username" => $user["username"] ) );
+					//echo formatJSEND( "success", array( "username" => $user["username"] ) );
 				} else {
 					
-					echo formatJSEND( "error", "The Username is Already Taken" );
+					$this->restore();
+					exit(formatJSEND( "error", "The Username is Already Taken" ));
 				}
 			}
 			unlink( $users_file );

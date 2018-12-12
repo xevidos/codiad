@@ -53,6 +53,7 @@ switch($_GET['action']){
 $(function(){
     <?php if($_GET['action']=='search'){ ?>
     $('textarea[name="find"]').val(codiad.active.getSelectedText());
+    $('textarea[name="find"]').focus();
     <?php } ?>
 });
 

@@ -35,17 +35,16 @@
                 <tr>
                     <th width="150"><?php i18n("Username"); ?></th>
                     <th width="85"><?php i18n("Password"); ?></th>
-                    <th width="75"><?php i18n("Projects"); ?></th>
                     <th width="70"><?php i18n("Delete"); ?></th>
                 </tr>
             </table>
             <div class="user-wrapper">
-            <table width="100%" style="word-wrap: break-word;word-break: break-all;">    
+            <table width="100%" style="word-wrap: break-word;word-break: break-all;">
             <?php
 
             // Get projects JSON data
             $users = $User->list_users();
-            foreach( $users as $user => $data ){
+            foreach( $users as $user => $data ) {
             ?>
             <tr>
                 <td width="150"><?php echo($data['username']); ?></td>
