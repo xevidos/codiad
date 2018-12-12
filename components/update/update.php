@@ -501,6 +501,7 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 			 */
 			$folder_conflictions = array(
 				
+				$this->path . "/components/autocomplete",
 				$this->path . "/plugins/auto_save",
 				$this->path . "/plugins/Codiad-Auto-Save",
 				$this->path . "/plugins/Codiad-Auto-Save-master",
