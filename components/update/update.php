@@ -1,8 +1,8 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
 
 require_once('../../common.php');
 require_once('./class.update.php');
@@ -118,14 +118,6 @@ class updater {
 			"name" => "codiad.settings.autosave",
 			"value" => "true",
 		),
-		array(
-			"name" => "codiad.settings.plugin.sync",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.settings.plugin.sync",
-			"value" => "true",
-		),
 	);
 	 
 	/**
@@ -182,11 +174,21 @@ class updater {
 				mkdir($dest);
 			}
 			
+			$invalid_files = array(
+				'.',
+				'..',
+				'backup',
+				'codiad-master',
+				'update.zip',
+				'workspace',
+			);
+			
 			// Loop through the folder
 			$dir = dir( $source );
 			while (false !== $entry = $dir->read()) {
 			// Skip pointers
-				if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'workspace') {
+				if( in_array( $entry, $invalid_files ) ) {
+					
 					continue;
 				}
 				

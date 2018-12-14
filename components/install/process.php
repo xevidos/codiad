@@ -235,10 +235,7 @@ ALTER TABLE `user_options`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 ";
-	$result = mysqli_prepare( $connection, $sql ) or die( $error );
-	
-	$result->bind_param( $bind, ...$bind_variables );
-	$result->execute();
+	$result = mysqli_multi_query( $connection, $sql ) or die( $error );
 	
 	if( $connection->error ) {
 		
@@ -285,7 +282,7 @@ ALTER TABLE `user_options`
 	$bind = "sss";
 	$sql = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?)";
 	$result = mysqli_prepare( $connection, $sql ) or die( $error );
-	$result->bind_param( $bind, ...$bind_variables );
+	$result->bind_param( $bind, ...$bind_vars );
 	$result->execute();
 	
 	if( $connection->error ) {
@@ -307,7 +304,7 @@ ALTER TABLE `user_options`
 	$bind = "sssssssss";
 	$sql = "INSERT INTO `users`(`first_name`, `last_name`, `username`, `password`, `email`, `project`, `access`, `groups`, `token`) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
 	$result = mysqli_prepare( $connection, $sql ) or die( $error );
-	$result->bind_param( $bind, ...$bind_variables );
+	$result->bind_param( $bind, ...$bind_vars );
 	$result->execute();
 	
 	if( $connection->error ) {
@@ -369,7 +366,7 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 //define("AUTH_PATH", "/path/to/customauth.php");
 
 // Site Name
-define("SITE_NAME", "' . $_POST['sitename'] . '");
+define("SITE_NAME", "' . $_POST['site_name'] . '");
 
 // Database Information
 define( "DBHOST", "' . $_POST['dbhost'] . '" );
