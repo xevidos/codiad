@@ -11,8 +11,8 @@ Features:
 * 100+ Native programming languages supported.
 * Auto Complete ( Trigger by CTRL + Space or Turn on Live Autocomplete ).
 * Auto Save.
-* Built in updter.
-* Collaborative Editing ( [via plugin](https://gitlab.com/xevidos/codiad-collaborative) ).
+* Built in updater.
+* Collaborative Editing ( [Via plugin](https://gitlab.com/xevidos/codiad-collaborative) ).
 * Multi Cursor.
 * Overscroll ( Ability to center bottom of code ).
 * PHP 7.2 Compatibility.
@@ -37,7 +37,6 @@ Task List:
 * Add if file could not be saved 5 times close the open file.
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility.
-* Clean up Collaborative compatibility.
 * Clean up update script.
 
 
