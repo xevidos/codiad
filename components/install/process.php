@@ -70,7 +70,7 @@ function cleanPath( $path ) {
 // Verify no overwrites
 //////////////////////////////////////////////////////////////////////
 
-if ( ( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) || ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
+if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
 	
 	//////////////////////////////////////////////////////////////////
 	// Get POST responses
@@ -88,12 +88,12 @@ if ( ( file_exists( $user_settings_file ) || file_exists( $projects_file ) || fi
 	}
 	$timezone = $_POST['timezone'];
 	
-	$dbhost = $_POST['DBHOST'];
-	$dbname = $_POST['DBNAME'];
-	$dbuser = $_POST['DBUSER'];
-	$dbpass = $_POST['DBPASS'];
+	$dbhost = $_POST['dbhost'];
+	$dbname = $_POST['dbname'];
+	$dbuser = $_POST['dbuser'];
+	$dbpass = $_POST['dbpass'];
 	
-	$connection = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname ) or die ( formatJSEND( "error", 'Error connecting to mysql database.  Please contact the website administrator.' ) );
+	$connection = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname ) or die ( 'Error connecting to mysql database.  Please contact the website administrator.' );
 	$bind_vars = array();
 	$bind = "";
 	$sql = "
@@ -235,12 +235,9 @@ ALTER TABLE `user_options`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 ";
-	$result = mysqli_multi_query( $connection, $sql ) or die( $error );
+	$result = mysqli_multi_query( $connection, $sql ) or die( "Error creating tables." );
 	
-	if( $connection->error ) {
-		
-		$return = formatJSEND( "error", $connection->error );
-	}
+	
 	
 	//////////////////////////////////////////////////////////////////
 	// Create Projects files
@@ -251,7 +248,10 @@ ALTER TABLE `user_options`
 	if ( ! isAbsPath( $project_path ) ) {
 	
 		$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
-		mkdir( $workspace . "/" . $project_path );
+		if( ! is_dir( $workspace . "/" . $project_path ) ) {
+			
+			mkdir( $workspace . "/" . $project_path );
+		}
 	} else {
 		
 		$project_path = cleanPath( $project_path );
@@ -274,21 +274,17 @@ ALTER TABLE `user_options`
 		}
 	}
 	
+	$connection = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname ) or die ( 'Error connecting to mysql database.  Please contact the website administrator.' );
 	$bind_vars = array(
 		$project_name,
 		$project_path,
 		$username
 	);
 	$bind = "sss";
-	$sql = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?)";
-	$result = mysqli_prepare( $connection, $sql ) or die( $error );
+	$sql = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?);";
+	$result = mysqli_prepare( $connection, $sql ) or die( "Error inserting into projects." );
 	$result->bind_param( $bind, ...$bind_vars );
 	$result->execute();
-	
-	if( $connection->error ) {
-		
-		$return = formatJSEND( "error", $connection->error );
-	}
 	
 	$bind_vars = array(
 		"",
@@ -303,14 +299,11 @@ ALTER TABLE `user_options`
 	);
 	$bind = "sssssssss";
 	$sql = "INSERT INTO `users`(`first_name`, `last_name`, `username`, `password`, `email`, `project`, `access`, `groups`, `token`) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
-	$result = mysqli_prepare( $connection, $sql ) or die( $error );
+	$result = mysqli_prepare( $connection, $sql ) or die( "Error inserting into users." );
 	$result->bind_param( $bind, ...$bind_vars );
 	$result->execute();
 	
-	if( $connection->error ) {
-		
-		$return = formatJSEND( "error", $connection->error );
-	}
+	
 	
 	/**
 	* Create sessions path.
