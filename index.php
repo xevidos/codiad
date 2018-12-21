@@ -101,6 +101,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     <script src="js/jquery.css3.min.js"></script>
     <script src="js/jquery.easing.js"></script>
     <script src="js/jquery.toastmessage.js"></script>
+    <script src="js/jquery.ui.touch-punch.min.js"></script>
     <script src="js/amplify.min.js"></script>
     <script src="js/localstorage.js"></script>
     <script src="js/jquery.hoverIntent.min.js"></script>

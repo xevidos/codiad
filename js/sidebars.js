@@ -15,15 +15,15 @@
         isLeftSidebarOpen: true,
         isRightSidebarOpen: false,
 
-        init: function() {
+        init: async function() {
 
             var _this = this;
 
             amplify.subscribe('settings.loaded', async function( settings ) {
-                var sbWidth = codiad.settings.get_option( 'codiad.sidebars.sb-left-width' );
-                var lock_left = codiad.settings.get_option( 'codiad.sidebars.lock-left-sidebar' );
-                var lock_right = codiad.settings.get_option( 'codiad.sidebars.lock-right-sidebar' );
-
+                var sbWidth = await codiad.settings.get_option( 'codiad.sidebars.sb-left-width' );
+                var lock_left = await codiad.settings.get_option( 'codiad.sidebars.lock-left-sidebar' );
+                var lock_right = await codiad.settings.get_option( 'codiad.sidebars.lock-right-sidebar' );
+				console.log( "Sidebar width", sbWidth );
                 if (sbWidth !== null) {
                     $('#sb-left').width(sbWidth);
                     $(window).resize();
@@ -111,20 +111,31 @@
                 });
 
             $("#sb-left .sidebar-handle")
-                .draggable({
-                    axis: 'x',
-                    drag: function(event, ui) {
-                        newWidth = ui.position.left;
-                        $("#sb-left")
-                            .width(newWidth + 10);
-                    },
-                    stop: function() {
-                        $(window).resize();
-                        $('#editor-region')
-                            .trigger('h-resize-init');
-                        codiad.settings.update_option( 'codiad.sidebars.sb-left-width', $('#sb-left').width() );
-                    }
-                });
+            .draggable({
+                axis: 'x',
+                drag: function(event, ui) {
+                    newWidth = ui.position.left;
+                    $("#sb-left")
+                        .width(newWidth + 10);
+                },
+                stop: function() {
+                    $(window).resize();
+                    $('#editor-region')
+                        .trigger('h-resize-init');
+                    codiad.settings.update_option( 'codiad.sidebars.sb-left-width', $('#sb-left').width() );
+                }
+            });
+            
+            $("#sb-left .sidebar-handle")
+			.dblclick(function() {
+				
+				let default_width = 300;
+				$("#sb-left").width( default_width );
+				$(window).resize();
+				$('#editor-region').trigger('h-resize-init');
+				$("#sb-left .sidebar-handle").css( "left",  288 );
+				codiad.settings.update_option( 'codiad.sidebars.sb-left-width', default_width );
+			});
         },
 
         closeLeftSidebar: function() {

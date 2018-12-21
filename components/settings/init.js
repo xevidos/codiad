@@ -29,7 +29,7 @@
 			$( 'body' ).append( '<iframe src="components/settings/dialog.php?action=iframe"></iframe>' );
 			
 			//Load Settings
-			//this.load();
+			this.load();
 		},
 		
 		get_option: async function( option ) {
@@ -80,7 +80,7 @@
 		
 		load: function() {
 			
-			amplify.publish( 'settings.loaded', null );
+			amplify.publish( 'settings.loaded', {} );
 			codiad.editor.getSettings();
 		},
 		

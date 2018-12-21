@@ -20,7 +20,7 @@
 
     switch($_GET['action']) {
         case "settings":
-?>
+			?>
             <div class="settings-view">
                 <div class="config-menu">
                     <label><?php i18n("Settings"); ?></label>
@@ -74,6 +74,7 @@
             </div>
             <button class="btn-right" onclick="save(); return false;"><?php i18n("Save"); ?></button>
             <button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Close"); ?></button>
+            <div class="loading"></div>
             <script>
                 
                 var settings = {};
@@ -82,6 +83,7 @@
                 });
             	
                 function save() {
+                	codiad.modal.show_loading();
                     $('.setting').each(function(){
                         var setting = $(this).data('setting');
                         var val     = $(this).val();
@@ -152,14 +154,14 @@
                     });
                     /* Notify listeners */
                     amplify.publish('settings.dialog.save',{});
-                    codiad.modal.unload();
                     codiad.settings.save( settings );
+                    codiad.modal.unload();
                 }
             </script>
-<?php
+			<?php
             break;
         case "iframe":
-?>
+			?>
             <script>
                 /*
                  *  Storage Event:
@@ -174,7 +176,7 @@
                     }
                 }, false);
             </script>
-<?php
+			<?php
             break;
         default:
             break;
