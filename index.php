@@ -419,6 +419,8 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     <!-- ACE -->
     <script src="components/editor/ace-editor/ace.js"></script>
     <script src="components/editor/ace-editor/ext-language_tools.js"></script>
+    <script src="components/editor/ace-editor/ext-modelist.js"></script>
+    <script src="components/editor/ace-editor/ext-themelist.js"></script>
 	
 	<!-- Codiad System Variables -->
 	<script>

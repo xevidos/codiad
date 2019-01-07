@@ -25,8 +25,8 @@ Current Tasks:
 
 Task List:
   
-* Add ability to login with LDAP.
-* Add custom market.
+* Add ability to login with LDAP
+* Add custom market
 * Add in new admin interface
 	- Group Management
 	- Permissions Management
@@ -34,18 +34,19 @@ Task List:
 	- Project Management
 	- System Settings
 	- User Management
-* Add if file could not be saved 5 times close the open file.
+* Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
-* Add mobile compatibility.
-* Clean up update script.
+* Add mobile compatibility
+* Clean up update script
+* Re Add the language recognition system after recode
 
 
 Completed:
 
 * Add Auto Save.
-* Add ability to center bottom of code.
-* Add updating script.
-* Add site renaming.
-* Fix JS errors already showing.
-* Remove Codiad autocomplete in favor of Ace's.
-* Updated for PHP 7.2.
+* Add ability to center bottom of code
+* Add updating script
+* Add site renaming
+* Fix JS errors already showing
+* Remove Codiad autocomplete in favor of Ace's
+* Updated for PHP 7.2

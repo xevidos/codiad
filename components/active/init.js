@@ -66,8 +66,8 @@
                 return;
             }
             var ext = codiad.filemanager.getExtension(path);
-            var mode = codiad.editor.selectMode(ext);
-
+            var mode = codiad.editor.selectMode( path );
+			
             var fn = function() {
                 //var Mode = require('ace/mode/' + mode)
                 //    .Mode;
@@ -82,7 +82,7 @@
 
                 //var session = new EditSession(content, new Mode());
                 var session = new EditSession(content);
-                session.setMode("ace/mode/" + mode);
+                session.setMode(mode.mode);
                 session.setUndoManager(new UndoManager());
 
                 session.path = path;
@@ -98,7 +98,7 @@
             };
 
             // Assuming the mode file has no dependencies
-            $.loadScript('components/editor/ace-editor/mode-' + mode + '.js',
+            $.loadScript('components/editor/ace-editor/mode-' + mode.name + '.js',
             fn);
         },
 
@@ -674,7 +674,7 @@
                 }
 
                 newSession.on("changeMode", fn);
-                newSession.setMode("ace/mode/" + mode);
+                newSession.setMode( mode.mode );
             } else {
                 // A folder was renamed
                 var newKey;

@@ -10,6 +10,7 @@
     var VirtualRenderer = ace.require('ace/virtual_renderer').VirtualRenderer;
     var Editor = ace.require('ace/editor').Editor;
     var EditSession = ace.require('ace/edit_session').EditSession;
+    var ModeList = ace.require("ace/ext/modelist");
     var UndoManager = ace.require("ace/undomanager").UndoManager;
     
     // Editor modes that have been loaded
@@ -23,142 +24,6 @@
     $(function(){
         codiad.editor.init();
     });
-
-    // modes available for selecting
-    var availableTextModes = new Array(
-        'abap',
-		'abc',
-        'actionscript',
-        'ada',
-        'apache_conf',
-        'applescript',
-        'asciidoc',
-        'assembly_x86',
-        'autohotkey',
-        'batchfile',
-        'c9search',
-        'c_cpp',
-        'cirru',
-        'clojure',
-        'cobol',
-        'coffee',
-        'coldfusion',
-        'csharp',
-        'css',
-        'curly',
-        'd',
-        'dart',
-        'diff',
-        'django',
-        'dockerfile',
-        'dot',
-		'eiffel',
-        'ejs',
-		'elixir',
-		'elm',
-        'erlang',
-        'forth',
-        'ftl',
-		'gcode',
-        'gherkin',
-        'gitignore',
-        'glsl',
-		'gobstones',
-        'golang',
-        'groovy',
-        'haml',
-        'handlebars',
-        'haskell',
-        'haxe',
-        'html',
-		'html_elixir',
-        'html_ruby',
-        'ini',
-		'io',
-        'jack',
-        'jade',
-        'java',
-        'javascript',
-        'json',
-        'jsoniq',
-        'jsp',
-        'jsx',
-        'julia',
-        'latex',
-		'lean',
-        'less',
-        'liquid',
-        'lisp',
-        'livescript',
-        'logiql',
-        'lsl',
-        'lua',
-        'luapage',
-        'lucene',
-        'makefile',
-        'markdown',
-		'mask',
-		'matlab',
-		'maze',
-        'mel',
-		'mips_assembler',
-        'mushcode',
-        'mysql',
-        'nix',
-		'nsis',
-        'objectivec',
-        'ocaml',
-        'pascal',
-        'perl',
-        'pgsql',
-        'php',
-        'plain_text',
-        'powershell',
-		'praat',
-        'prolog',
-        'protobuf',
-        'python',
-        'r',
-		'razor',
-        'rdoc',
-        'rhtml',
-		'rst',
-        'ruby',
-        'rust',
-        'sass',
-        'scad',
-        'scala',
-        'scheme',
-        'scss',
-        'sh',
-        'sjs',
-        'smarty',
-        'snippets',
-        'soy_template',
-        'space',
-        'sql',
-		'sqlserver',
-        'stylus',
-        'svg',
-		'swift',
-		'swig',
-        'tcl',
-        'tex',
-        'text',
-        'textile',
-        'toml',
-        'twig',
-		'typescript',
-        'vala',
-        'vbscript',
-        'velocity',
-        'verilog',
-        'vhdl',
-		'wollok',
-        'xml',
-        'xquery',
-        'yaml'
-    );
 
     function SplitContainer(root, children, splitType) {
         var _this = this;
@@ -400,7 +265,9 @@
             fileManagerTrigger: false,
             tabSize: 4
         },
-   
+		
+		multi_line: false,
+		
         rootContainer: null,
 
         fileExtensionTextMode: {},
@@ -636,10 +503,11 @@
             var firstOption = 0;
 
             this.initMenuHandler($('#current-mode'),_thisMenu);
-
-            availableTextModes.sort();
-            $.each(availableTextModes, function(i){
-                modeOptions.push('<li><a>'+availableTextModes[i]+'</a></li>');     
+            
+            var modes = Object.keys( ModeList.modesByName ).sort();
+            
+            $.each(modes, function(i){
+                modeOptions.push('<li><a>'+modes[i]+'</a></li>');     
             });
                        
             var html = '<table><tr>';
@@ -872,12 +740,7 @@
                 return 'text';
             }
             e = e.toLowerCase();
-            
-            if(e in this.fileExtensionTextMode){
-                return this.fileExtensionTextMode[e];
-            }else{
-                return 'text';
-            }
+            return( ModeList.getModeForPath( e ) );
         },
 
         /////////////////////////////////////////////////////////////////
@@ -1484,10 +1347,19 @@
         search: function(action, i) {
             i = i || this.getActive();
             if (! i) return;
-            var find = $('#modal textarea[name="find"]')
+            if( this.multi_line ) {
+            	
+            	var find = $('#modal textarea[name="find"]')
                 .val();
-            var replace = $('#modal textarea[name="replace"]')
+            	var replace = $('#modal textarea[name="replace"]')
                 .val();
+            } else {
+            	
+            	var find = $('#modal input[name="find"]')
+                .val();
+            	var replace = $('#modal input[name="replace"]')
+                .val();
+            }
             switch (action) {
             case 'find':
 
@@ -1599,7 +1471,33 @@
             //Database
             codiad.settings.update_option( 'codiad.editor.autocomplete', s );
         },
-
+		
+		toggleMultiLine: function( e ) {
+			
+			if( e.innerText === "Multi Line" ) {
+				
+				this.multi_line = true;
+				e.innerText = "Single Line";
+				$('input[name="find"]').hide();
+				$('textarea[name="find"]').show();
+				$('textarea[name="find"]').val( $('input[name="find"]').val() );
+				
+				$('input[name="replace"]').hide();
+				$('textarea[name="replace"]').show();
+				$('textarea[name="replace"]').val( $('input[name="replace"]').val() );
+			} else {
+				
+				this.multi_line = false;
+				e.innerText = "Multi Line";
+				$('input[name="find"]').show();
+				$('textarea[name="find"]').hide();
+				$('input[name="find"]').val( $('textarea[name="find"]').val() );
+				
+				$('input[name="replace"]').show();
+				$('textarea[name="replace"]').hide();
+				$('input[name="replace"]').val( $('textarea[name="replace"]').val() );
+			}
+		}
     };
 
 })(this, jQuery);

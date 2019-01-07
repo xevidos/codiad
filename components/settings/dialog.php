@@ -32,15 +32,6 @@
                             <li name="system-settings" data-file="components/settings/settings.system.php" data-name="system">
                                 <a><span class="icon-doc-text bigger-icon"></span><?php i18n("System"); ?></a>
                             </li>
-                            <?php
-                                if (COMMON::checkAccess()) {
-                                    ?>
-                                    <li name="extension-settings" data-file="components/fileext_textmode/dialog.php?action=fileextension_textmode_form" data-name="fileext_textmode">
-                                        <a><span class="icon-pencil bigger-icon"></span><?php i18n("Extensions"); ?></a>
-                                    </li>
-                                    <?php
-                                }
-                            ?>
                         </ul>
                     </div>
                     <hr>

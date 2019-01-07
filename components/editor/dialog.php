@@ -28,16 +28,18 @@ switch($_GET['action']){
     $type = $_GET['type'];
     ?>
     <label><?php i18n("Find:"); ?></label>
-    <textarea name="find" autofocus="autofocus" autocomplete="off"></textarea>
+    <input name="find" autofocus="autofocus" autocomplete="off">
+    <textarea style="display: none;" name="find" autofocus="autofocus" autocomplete="off"></textarea>
     
     <?php if($type=='replace'){ ?>
 
     <label><?php i18n("Replace:"); ?></label>
-    <textarea name="replace"></textarea>
+    <input name="replace">
+    <textarea style="display: none;" name="replace"></textarea>
     
     <?php } ?>
-
     <button class="btn-left" onclick="codiad.editor.search('find');return false;"><?php i18n("Find"); ?></button>
+    <button class="btn-mid" onclick="codiad.editor.toggleMultiLine( this );return false;"><?php i18n("Multi Line"); ?></button>
     <?php if($type=='replace'){ ?>
         <button class="btn-mid" onclick="codiad.editor.search('replace');return false;"><?php i18n("Replace"); ?></button>
         <button class="btn-mid" onclick="codiad.editor.search('replaceAll');return false;"><?php i18n("Replace ALL"); ?></button>
@@ -52,8 +54,15 @@ switch($_GET['action']){
 <script>
 $(function(){
     <?php if($_GET['action']=='search'){ ?>
-    $('textarea[name="find"]').val(codiad.active.getSelectedText());
-    $('textarea[name="find"]').focus();
+    if( codiad.editor.multi_line ) {
+    	
+	    $('textarea[name="find"]').val(codiad.active.getSelectedText());
+	    $('textarea[name="find"]').focus();
+    } else {
+    	
+    	$('input[name="find"]').val(codiad.active.getSelectedText());
+	    $('input[name="find"]').focus();
+    }
     <?php } ?>
 });
 
