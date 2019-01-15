@@ -187,7 +187,7 @@
 				let key = await $( item ).attr( 'data-setting' );
 				let value = await codiad.settings.get_option( key );
 				
-				console.log( key, value, i, $( item ).attr( 'data-setting' ) );
+				//console.log( key, value, i, $( item ).attr( 'data-setting' ) );
 				
 				if ( value != null && value != undefined ) {
 					
