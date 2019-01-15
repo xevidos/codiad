@@ -334,17 +334,18 @@
             $.each( options, async function( idx, key ) {
             	
                 let localValue = await codiad.settings.get_option( 'codiad.' + key );
-                if ( localValue !== null ) {
+                if ( localValue != null ) {
             		
-                    _this.settings[key] = localValue;
+                    _this.settings[key.split('.').pop()] = localValue;
                 }
             });
 
             $.each( bool_options, async function(idx, key) {
+            	
                let localValue = await codiad.settings.get_option( 'codiad.' + key );
-               if ( localValue !== null ) {
+               if ( localValue != null ) {
                	
-        			_this.settings[key] = (localValue == 'true').toString();
+        			_this.settings[key.split('.').pop()] = (localValue == 'true');
                }
            });
         },
