@@ -307,46 +307,46 @@
         //
         //////////////////////////////////////////////////////////////////
 
-        getSettings: async function() {
+        getSettings: function() {
         	
             var boolVal = null;
             var _this = this;
 			var options = [
-				'fontSize',
-				'overScroll',
-				'printMarginColumn',
-				'tabSize',
-				'theme',
+				'editor.fontSize',
+				'editor.overScroll',
+				'editor.printMarginColumn',
+				'editor.tabSize',
+				'editor.theme',
 			];
 			var bool_options = [
-				'autocomplete',
-				'printMargin',
-				'highlightLine',
-				'indentGuides',
-				'wrapMode',
-				'rightSidebarTrigger',
-				'fileManagerTrigger',
-				'softTabs',
-				'persistentModal',
+				'editor.autocomplete',
+				'settings.autosave',
+				'editor.printMargin',
+				'editor.highlightLine',
+				'editor.indentGuides',
+				'editor.wrapMode',
+				'editor.rightSidebarTrigger',
+				'editor.fileManagerTrigger',
+				'editor.softTabs',
+				'editor.persistentModal',
 			];
 			
             $.each( options, async function( idx, key ) {
             	
-                var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
+                let localValue = await codiad.settings.get_option( 'codiad.' + key );
                 if ( localValue !== null ) {
-                	
+            		
                     _this.settings[key] = localValue;
                 }
             });
 
             $.each( bool_options, async function(idx, key) {
-                       var localValue = await codiad.settings.get_option( 'codiad.editor.' + key );
-                       if (localValue === null) {
-                           return;
-                       }
-                       _this.settings[key] = (localValue == 'true');
-                   });
-  
+               let localValue = await codiad.settings.get_option( 'codiad.' + key );
+               if ( localValue !== null ) {
+               	
+        			_this.settings[key] = (localValue == 'true').toString();
+               }
+           });
         },
 
         /////////////////////////////////////////////////////////////////

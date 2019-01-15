@@ -65,13 +65,13 @@
 			var systemRegex = /^codiad/;
 			var pluginRegex = /^codiad.plugin/;
 			
-			/* Notify listeners */
-			amplify.publish( 'settings.save', {} );
-			console.log( settings );
 			$.post( this.controller + '?action=save', {settings: JSON.stringify( settings )}, function( data ) {
 				
 				parsed = codiad.jsend.parse( data );
 			});
+			
+			/* Notify listeners */
+			amplify.publish( 'settings.save', {} );
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -80,8 +80,8 @@
 		
 		load: function() {
 			
-			amplify.publish( 'settings.loaded', {} );
 			codiad.editor.getSettings();
+			amplify.publish( 'settings.loaded', null );
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -114,6 +114,11 @@
 		},
 		
 		update_option: function( option, value ) {
+			
+			if( option == undefined || value == undefined ) {
+				
+				return false;
+			}
 			
 			jQuery.ajax({
 					
@@ -177,12 +182,14 @@
 		_loadTabValues: function( data_file ) {
 			
 			//Load settings
-			var key, value;
 			$( '.settings-view .panel[data-file="' + data_file + '"] .setting').each( async function( i, item ) {
 				
-				key   = $( item ).attr( 'data-setting' );
-				value = await codiad.settings.get_option( key );
-				if ( value !== null ) {
+				let key = await $( item ).attr( 'data-setting' );
+				let value = await codiad.settings.get_option( key );
+				
+				console.log( key, value, i, $( item ).attr( 'data-setting' ) );
+				
+				if ( value != null && value != undefined ) {
 					
 					$( item ).val( value );
 				}
