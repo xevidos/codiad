@@ -305,6 +305,7 @@ ALTER TABLE `user_options`
 	
 	
 	
+	
 	/**
 	* Create sessions path.
 	*/
@@ -318,7 +319,7 @@ ALTER TABLE `user_options`
 	// Create Active file
 	//////////////////////////////////////////////////////////////////
 	
-	saveJSON($active, array(''));
+	saveJSON( $active, array( '' ) );
 	
 	//////////////////////////////////////////////////////////////////
 	// Create Config

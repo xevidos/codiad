@@ -318,9 +318,10 @@ class User {
 		
 		if( sql::check_sql_error( $return ) ) {
 			
+			echo formatJSEND( "success", null );
 		} else {
 			
-			echo formatJSEND( "success", null );
+			echo( $return );
 		}
 	}
 	

@@ -809,3 +809,12 @@ table [class^="icon-"], [class*=" icon-"] {
 #download {
     display: none;
 }
+
+.loading {
+	
+	background: url(loading.gif) no-repeat center;
+	display: none;
+	height: 25px;
+	vertical-align: middle;
+	width: 25px;
+}
