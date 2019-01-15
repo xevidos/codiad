@@ -78,10 +78,10 @@
                     $('.setting').each(function(){
                         var setting = $(this).data('setting');
                         var val     = $(this).val();
-                        if(val===null){
+                        if( val===null ){
                             codiad.message.alert(i18n("You Must Choose A Value"));
                             return;
-                        }else{
+                        } else {
                             switch(setting) {
                                 case 'codiad.editor.theme':
                                     codiad.editor.setTheme(val);
@@ -137,14 +137,29 @@
                                 	var bool_val = (val == "true");
 									codiad.editor.setLiveAutocomplete(bool_val)
                                 break;
+                                case "codiad.settings.autosave":
+                                    var bool_val = (val == "true");
+                                break;
                             }
                         }
                         
+                        if( bool_val != undefined && bool_val != null ) {
+                        	
+                        	if( bool_val ) {
+                        		
+                        		val = "true";
+                        	} else {
+                        		
+                        		val = "false";
+                        	}
+                        }
+                        
                         //localStorage.setItem(setting, val);
-                        settings[setting] = val
+                        settings[setting] = val;
+                        bool_val = null;
                     });
                     /* Notify listeners */
-                    amplify.publish('settings.dialog.save',{});
+                    amplify.publish( 'settings.dialog.save', null );
                     codiad.settings.save( settings );
                     codiad.modal.unload();
                 }

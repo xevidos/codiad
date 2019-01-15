@@ -14,6 +14,10 @@ class Settings {
 			"value" => "false",
 		),
 		array(
+			"name" => "codiad.editor.autosave",
+			"value" => "true",
+		),
+		array(
 			"name" => "codiad.editor.fileManagerTrigger",
 			"value" => "false",
 		),

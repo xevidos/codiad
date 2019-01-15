@@ -15,10 +15,15 @@
 	// Instantiates plugin
 	$( function() {
 		
-		amplify.subscribe( 'settings.changed', function() {
-			
-			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
-			codiad.auto_save.reload_interval();
+		amplify.subscribe( 'settings.save', async function() {
+            
+            let option = await codiad.settings.get_option( 'codiad.settings.autosave' );
+            
+            if( option != codiad.auto_save.settings.autosave ) {
+                
+                //codiad.auto_save.reload_interval();
+                window.location.reload();
+            }
 		});
 		
 		codiad.auto_save.init();
@@ -37,13 +42,13 @@
 		},
 		verbose: false,
 		
-		init: function() {
+		init: async function() {
 			
-			codiad.auto_save.settings.autosave = codiad.settings.get_option( 'codiad.settings.autosave' );
+			codiad.auto_save.settings.autosave = await codiad.settings.get_option( 'codiad.settings.autosave' );
 			
 			// Check if the auto save setting is true or false
 			// Also check to see if the editor is any of the invalid states
-			if( this.settings.autosave === false || this.settings.autosave === "false" ) {
+			if( this.settings.autosave == false || this.settings.autosave == "false" ) {
 				
 				window.clearInterval( this.auto_save_trigger );
 				
@@ -90,14 +95,14 @@
 		
 		auto_save: function() {
 			
-			if( this.settings.toggle === false  || this.settings.autosave === false || codiad.auto_save.invalid_states.includes( codiad.editor.getContent() ) ) {
+			if( this.settings.toggle == false  || this.settings.autosave == false || codiad.auto_save.invalid_states.includes( codiad.editor.getContent() ) ) {
 				
 				return;
 			}
 			
 			this.saving = true;
 			
-			if ( codiad.active.getPath() === null ) {
+			if ( codiad.active.getPath() == null ) {
 				
 				this.saving = false;
 				return;
@@ -127,15 +132,16 @@
 			this.saving = false;
 		},
 		
-		reload_interval: function() {
+		reload_interval: async function() {
 			
+			codiad.auto_save.settings.autosave = await codiad.settings.get_option( 'codiad.settings.autosave' );
 			try {
 				
 				window.clearInterval( codiad.autosave.auto_save_trigger );
 				window.clearInterval( this.auto_save_trigger );
 			} catch( error ) {}
 			
-			if( codiad.auto_save.settings.autosave === true || codiad.auto_save.settings.autosave === "true" ) {
+			if( codiad.auto_save.settings.autosave == true || codiad.auto_save.settings.autosave == "true" ) {
 				
 				codiad.auto_save.auto_save_trigger = setInterval( codiad.auto_save.auto_save, 256 );
 			}
