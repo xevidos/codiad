@@ -173,9 +173,15 @@
                 $('#context-menu .non-root, #context-menu .file-only')
                     .hide();
                 break;
+            case 'editor':
+            	$('#context-menu a, #context-menu hr').hide();
+            	$('#context-menu .editor-only').show();
+            	break;
             }
             if(codiad.project.isAbsPath($('#file-manager a[data-type="root"]').attr('data-path'))) {
                 $('#context-menu .no-external').hide();
+            } else if( type == "editor" ) {
+            	$('#context-menu .no-external').hide();
             } else {
                 $('#context-menu .no-external').show();
             }

@@ -288,8 +288,17 @@
                     .height($(this).height())
                     .trigger('v-resize');
             });
-
-
+			
+			$("#root-editor-wrapper").live("contextmenu", function( e ) {
+					
+				// Context Menu
+                e.preventDefault();
+                let path = codiad.active.getPath();
+                $(e.target).attr('data-path', path);
+                codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor');
+                $(this).addClass('context-menu-active');
+            });
+			
             $(window).resize(function(){
                 $('#editor-region')
                     .trigger('h-resize-init')
@@ -1498,6 +1507,31 @@
 				$('textarea[name="replace"]').hide();
 				$('input[name="replace"]').val( $('textarea[name="replace"]').val() );
 			}
+		},
+		
+		paste: function() {
+			//this works only in chrome
+			console.log( "this works only in chrome." );
+			navigator.clipboard.readText().then(text => {codiad.editor.getActive().insert( text )});
+		},
+		
+		openSort: function() {
+			
+			if ( this.getActive() ) {
+				
+                codiad.modal.load(400,
+                           'components/editor/dialog.php?action=search&type=' +
+                           type);
+                codiad.modal.hideOverlay();
+            } else {
+            	
+                codiad.message.error('No Open Files');
+            }
+		},
+		
+		sort: function() {
+			
+			
 		}
     };
 

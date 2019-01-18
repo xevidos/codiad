@@ -130,5 +130,47 @@
         "icon": "icon-arrows-ccw",
         "applies-to" : "directory-only",
         "onclick": "codiad.filemanager.rescan($('#context-menu').attr('data-path'));"
+    },
+    {
+        "title": "Copy",
+        "icon": "icon-doc",
+        "applies-to" : "editor-only",
+        "onclick": "document.execCommand( 'copy' );"
+    },
+    {
+        "title": "Paste",
+        "icon": "icon-docs",
+        "applies-to" : "editor-only",
+        "onclick": "codiad.editor.paste();"
+    },
+    {
+        "title": "Break",
+        "icon": null,
+        "applies-to" : "editor-only",
+        "onclick": null
+    },
+    {
+        "title": "Find",
+        "icon": "icon-docs",
+        "applies-to" : "editor-only",
+        "onclick": "codiad.editor.openSearch('find');"
+    },
+    {
+        "title": "Replace",
+        "icon": "icon-docs",
+        "applies-to" : "editor-only",
+        "onclick": "codiad.editor.openSearch('replace');"
+    },
+    {
+        "title": "Break",
+        "icon": null,
+        "applies-to" : "editor-only",
+        "onclick": null
+    },
+    {
+        "title": "Sort",
+        "icon": "icon-docs",
+        "applies-to" : "editor-only",
+        "onclick": "codiad.editor.openSort();"
     }
 ]
