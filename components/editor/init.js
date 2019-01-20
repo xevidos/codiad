@@ -293,10 +293,15 @@
 					
 				// Context Menu
                 e.preventDefault();
-                let path = codiad.active.getPath();
-                $(e.target).attr('data-path', path);
-                codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor');
-                $(this).addClass('context-menu-active');
+                _this = codiad.editor
+                
+                if( _this.getActive() ) {
+                	
+	                let path = codiad.active.getPath();
+	                $(e.target).attr('data-path', path);
+	                codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor');
+	                $(this).addClass('context-menu-active');
+                }
             });
 			
             $(window).resize(function(){
