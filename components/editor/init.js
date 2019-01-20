@@ -1517,21 +1517,49 @@
 		
 		openSort: function() {
 			
-			if ( this.getActive() ) {
+			if ( this.getActive() && codiad.active.getSelectedText() != "" ) {
 				
-                codiad.modal.load(400,
-                           'components/editor/dialog.php?action=search&type=' +
-                           type);
+                codiad.modal.load( 400, 'components/editor/dialog.php?action=sort' );
                 codiad.modal.hideOverlay();
             } else {
-            	
-                codiad.message.error('No Open Files');
+        	 	
+                codiad.message.error('No text selected');
             }
 		},
 		
-		sort: function() {
+		sort: function( eol ) {
 			
+			let text = $('#modal textarea[name="sort"]').val();
+			let array = text.split( eol );
+			array = array.sort( codiad.editor.sort_a );
+			let sorted = array.join( eol );
 			
+			console.log( text, eol, array, sorted );
+			codiad.modal.unload();
+			codiad.editor.getActive().insert( sorted );
+			codiad.editor.getActive().focus();
+		},
+		
+		sort_a: function( a, b ) {
+			
+			let pos = 0;
+			let case_sensitive = $( '#modal input[name="case_sensitive"]' ).prop( 'checked' )
+			
+			if( ! case_sensitive ) {
+				
+				a = a.toLowerCase();
+				b = b.toLowerCase();
+			}
+			
+			if( a < b ) {
+				
+				pos = -1;
+			} else if( a > b ) {
+				
+				pos = 1;
+			}
+			
+			return pos;
 		}
     };
 
