@@ -288,8 +288,22 @@
                     .height($(this).height())
                     .trigger('v-resize');
             });
-
-
+			
+			$("#root-editor-wrapper").live("contextmenu", function( e ) {
+					
+				// Context Menu
+                e.preventDefault();
+                _this = codiad.editor
+                
+                if( _this.getActive() ) {
+                	
+	                let path = codiad.active.getPath();
+	                $(e.target).attr('data-path', path);
+	                codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor');
+	                $(this).addClass('context-menu-active');
+                }
+            });
+			
             $(window).resize(function(){
                 $('#editor-region')
                     .trigger('h-resize-init')
@@ -1498,6 +1512,59 @@
 				$('textarea[name="replace"]').hide();
 				$('input[name="replace"]').val( $('textarea[name="replace"]').val() );
 			}
+		},
+		
+		paste: function() {
+			//this works only in chrome
+			console.log( "this works only in chrome." );
+			navigator.clipboard.readText().then(text => {codiad.editor.getActive().insert( text )});
+		},
+		
+		openSort: function() {
+			
+			if ( this.getActive() && codiad.active.getSelectedText() != "" ) {
+				
+                codiad.modal.load( 400, 'components/editor/dialog.php?action=sort' );
+                codiad.modal.hideOverlay();
+            } else {
+        	 	
+                codiad.message.error('No text selected');
+            }
+		},
+		
+		sort: function( eol ) {
+			
+			let text = $('#modal textarea[name="sort"]').val();
+			let array = text.split( eol );
+			array = array.sort( codiad.editor.sort_a );
+			let sorted = array.join( eol );
+			
+			console.log( text, eol, array, sorted );
+			codiad.modal.unload();
+			codiad.editor.getActive().insert( sorted );
+			codiad.editor.getActive().focus();
+		},
+		
+		sort_a: function( a, b ) {
+			
+			let pos = 0;
+			let case_sensitive = $( '#modal input[name="case_sensitive"]' ).prop( 'checked' )
+			
+			if( ! case_sensitive ) {
+				
+				a = a.toLowerCase();
+				b = b.toLowerCase();
+			}
+			
+			if( a < b ) {
+				
+				pos = -1;
+			} else if( a > b ) {
+				
+				pos = 1;
+			}
+			
+			return pos;
 		}
     };
 
