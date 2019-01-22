@@ -205,15 +205,12 @@
                     .removeClass('disabled');
             }
             // Hide menu
-            $('#file-manager, #editor-region')
-                .on('mouseover', function() {
-                	
-                	/**
-                	 * make sure that the user has moved their mouse far enough
-                	 * away from the context menu to warrant a close.
-                	 */
-                	$('#file-manager, #editor-region').on( 'mousemove', codiad.filemanager.contextCheckMouse );
-                });
+            /**
+        	 * make sure that the user has moved their mouse far enough
+        	 * away from the context menu to warrant a close.
+        	 */
+        	$('#file-manager, #editor-region').on( 'mousemove', codiad.filemanager.contextCheckMouse );
+        	
             /* Notify listeners. */
             amplify.publish('context-menu.onShow', {e: e, path: path, type: type});
             // Hide on click
@@ -226,11 +223,11 @@
 		contextCheckMouse: function( e ) {
                 		
     		let offset = $('#context-menu').offset();
-        	let bottom = offset.top + $('#context-menu').outerHeight( true ) + 10;
-        	let left = offset.left - 10;
-        	let right =  offset.left + $('#context-menu').outerWidth( true ) + 10;
-        	let top = offset.top - 10;
-        	console.log( e );
+        	let bottom = offset.top + $('#context-menu').outerHeight( true ) + 20;
+        	let left = offset.left - 20;
+        	let right =  offset.left + $('#context-menu').outerWidth( true ) + 20;
+        	let top = offset.top - 20;
+        	
         	if( ( e.clientX > right || e.clientX < left ) || ( e.clientY > bottom || e.clientY < top ) ) {
         		
         		$('#file-manager, #editor-region').off( 'mousemove', codiad.filemanager.contextCheckMouse );
