@@ -110,7 +110,7 @@
     {
         "title": "Break",
         "icon": null,
-        "applies-to" : "both no-external",
+        "applies-to" : "directory-only",
         "onclick": null
     },
     {

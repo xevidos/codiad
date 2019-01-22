@@ -12,7 +12,7 @@ class Update {
 	// CONSTANTS
 	//////////////////////////////////////////////////////////////////
 	
-	CONST VERSION = "v.2.9.3.3";
+	CONST VERSION = "v.2.9.3.4";
 	
 	//////////////////////////////////////////////////////////////////
 	// PROPERTIES
@@ -148,7 +148,7 @@ class Update {
 		
 		//echo var_dump( $response );
 		//return "[".formatJSEND("success", array("currentversion"=>$local[0]['version'],"remoteversion"=>$latest,"message"=>$message,"archive"=>$archive,"nightly"=>$nightly,"name"=>$local[0]['name']))."]";
-		return "[".formatJSEND("success", array("currentversion"=>$current_version,"remoteversion"=>$response["name"],"message"=>$response["release"]["description"],"archive"=>$archive,"nightly"=>$nightly,"name"=>$response["commit"]["author_name"]))."]";
+		return "[".formatJSEND("success", array("currentversion"=>$current_version,"remoteversion"=>$response["name"],"message"=>$response["message"],"archive"=>$archive,"nightly"=>$nightly,"name"=>$response["commit"]["author_name"]))."]";
 	}
 	
 	function CheckProtocol() {

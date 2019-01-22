@@ -152,29 +152,20 @@
 
         contextMenuShow: function(e, path, type, name) {
             var _this = this;
-
+			
+			$('#context-menu a, #context-menu hr').hide();
             // Selective options
             switch (type) {
             case 'directory':
-                $('#context-menu .directory-only, #context-menu .non-root')
-                    .show();
-                $('#context-menu .file-only, #context-menu .root-only')
-                    .hide();
+                $('#context-menu .directory-only, #context-menu .non-root, #context-menu .both').show();
                 break;
             case 'file':
-                $('#context-menu .directory-only, #context-menu .root-only')
-                    .hide();
-                $('#context-menu .file-only,#context-menu .non-root')
-                    .show();
+                $('#context-menu .file-only, #context-menu .non-root, #context-menu .both').show();
                 break;
             case 'root':
-                $('#context-menu .directory-only, #context-menu .root-only')
-                    .show();
-                $('#context-menu .non-root, #context-menu .file-only')
-                    .hide();
+                $('#context-menu .directory-only, #context-menu .root-only').show();
                 break;
             case 'editor':
-            	$('#context-menu a, #context-menu hr').hide();
             	$('#context-menu .editor-only').show();
             	break;
             }
@@ -216,7 +207,12 @@
             // Hide menu
             $('#file-manager, #editor-region')
                 .on('mouseover', function() {
-                    _this.contextMenuHide();
+                	
+                	/**
+                	 * make sure that the user has moved their mouse far enough
+                	 * away from the context menu to warrant a close.
+                	 */
+                	$('#file-manager, #editor-region').on( 'mousemove', codiad.filemanager.contextCheckMouse );
                 });
             /* Notify listeners. */
             amplify.publish('context-menu.onShow', {e: e, path: path, type: type});
@@ -226,7 +222,22 @@
                     _this.contextMenuHide();
                 });
         },
-
+		
+		contextCheckMouse: function( e ) {
+                		
+    		let offset = $('#context-menu').offset();
+        	let bottom = offset.top + $('#context-menu').outerHeight( true ) + 10;
+        	let left = offset.left - 10;
+        	let right =  offset.left + $('#context-menu').outerWidth( true ) + 10;
+        	let top = offset.top - 10;
+        	console.log( e );
+        	if( ( e.clientX > right || e.clientX < left ) || ( e.clientY > bottom || e.clientY < top ) ) {
+        		
+        		$('#file-manager, #editor-region').off( 'mousemove', codiad.filemanager.contextCheckMouse );
+        		codiad.filemanager.contextMenuHide();
+        	}
+    	},
+		
         contextMenuHide: function() {
             $('#context-menu')
                 .fadeOut(200);
