@@ -262,44 +262,44 @@ class updater {
 		$connection = $sql->connect();
 		
 		$query = "
-CREATE TABLE IF NOT EXISTS `options`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `value` TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS options(
+    id INT(11) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    value TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS `projects`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `path` VARCHAR(255) NOT NULL,
-    `owner` VARCHAR(255) NOT NULL,
-    `access` TEXT
+CREATE TABLE IF NOT EXISTS projects(
+    id INT(11) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    owner VARCHAR(255) NOT NULL,
+    access TEXT
 );
-CREATE TABLE IF NOT EXISTS `users`(
-    `id` INT(11) NOT NULL,
-    `first_name` VARCHAR(255) DEFAULT NULL,
-    `last_name` VARCHAR(255) DEFAULT NULL,
-    `username` VARCHAR(255) NOT NULL,
-    `password` TEXT NOT NULL,
-    `email` VARCHAR(255) DEFAULT NULL,
-    `project` VARCHAR(255) DEFAULT NULL,
-    `access` VARCHAR(255) NOT NULL,
-    `groups` TEXT,
-    `token` TEXT
+CREATE TABLE IF NOT EXISTS users(
+    id INT(11) NOT NULL,
+    first_name VARCHAR(255) DEFAULT NULL,
+    last_name VARCHAR(255) DEFAULT NULL,
+    username VARCHAR(255) NOT NULL,
+    password TEXT NOT NULL,
+    email VARCHAR(255) DEFAULT NULL,
+    project VARCHAR(255) DEFAULT NULL,
+    access VARCHAR(255) NOT NULL,
+    groups TEXT,
+    token TEXT
 );
-CREATE TABLE IF NOT EXISTS `user_options`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `username` VARCHAR(255) NOT NULL,
-    `value` TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS user_options(
+    id INT(11) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    value TEXT NOT NULL
 );
-ALTER TABLE `options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`);
-ALTER TABLE `projects` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `project_path`(`path`, `owner`);
-ALTER TABLE `users` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `username`(`username`);
-ALTER TABLE `user_options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`, `username`);
-ALTER TABLE `options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `projects` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `users` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE options ADD PRIMARY KEY(id), ADD UNIQUE KEY option_name(name);
+ALTER TABLE projects ADD PRIMARY KEY(id), ADD UNIQUE KEY project_path(path, owner);
+ALTER TABLE users ADD PRIMARY KEY(id), ADD UNIQUE KEY username(username);
+ALTER TABLE user_options ADD PRIMARY KEY(id), ADD UNIQUE KEY option_name(name, username);
+ALTER TABLE options MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE projects MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE users MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE user_options MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
 
 DELETE FROM options;
 DELETE FROM projects;
@@ -350,7 +350,7 @@ DELETE FROM user_options;
 					
 					$access = "user";
 				}
-				$query = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, ?, ?, ? );";
+				$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
 				$bind_variables = array( $user["username"], $user["password"], $access, null );
 				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
@@ -571,7 +571,7 @@ DELETE FROM user_options;
 	
 	public function update_option( $option, $value, $user_setting = null ) {
 		
-		$query = "INSERT INTO user_options ( `name`, `username`, `value` ) VALUES ( ?, ?, ? );";
+		$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
 		$bind = "sss";
 		$bind_variables = array(
 			$option,
@@ -582,7 +582,7 @@ DELETE FROM user_options;
 		
 		if( $result !== true ) {
 			
-			$query = "UPDATE user_options SET `value`=? WHERE `name`=? AND `username`=?;";
+			$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
 			$bind = "sss";
 			$bind_variables = array(
 				$value,

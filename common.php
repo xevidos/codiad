@@ -124,7 +124,7 @@ class Common {
 	public static function check_project_access( $project_path, $action ) {
 		
 		global $sql;
-		$query = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
+		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
 		$bind_variables = array( $project_name, $project_path, $_SESSION["user"] );
 		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
 		
@@ -156,13 +156,13 @@ class Common {
 	public static function get_users( $return = "return", $exclude_current = false ) {
 		
 		global $sql;
-		$query = "SELECT `username` FROM `users`";
+		$query = "SELECT username FROM users";
 		$bind = "";
 		$bind_variables = array();
 		
 		if( $exclude_current ) {
 			
-			$query .= " WHERE `username`!=?";
+			$query .= " WHERE username!=?";
 			$bind .= "s";
 			array_push( $bind_variables, $_SESSION["user"] );
 		}
@@ -199,7 +199,7 @@ class Common {
 	public static function is_admin() {
 		
 		global $sql;
-		$query = "SELECT COUNT( * ) FROM `users` WHERE `username`=? AND `access`=?;";
+		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
 		$bind_variables = array( $_SESSION["user"], "admin" );
 		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking user acess." ), 'fetchColumn' );
 		
@@ -217,7 +217,7 @@ class Common {
 		if( isset( $_SESSION["user"] ) ) {
 			
 			global $sql;
-			$query = "UPDATE `users` SET `token`=? WHERE `username`=?;";
+			$query = "UPDATE users SET token=? WHERE username=?;";
 			$bind_variables = array( null, $_SESSION["user"] );
 			$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error updating user information." ), 'fetchColumn' );
 			
@@ -468,8 +468,8 @@ class Common {
 		if( isset( $_SESSION["token"] ) && isset( $_SESSION["user"] ) ) {
 			
 			global $sql;
-			$query = "SELECT COUNT( * ) FROM `users` WHERE `username`=? AND `token`=SHA1( ? );";
-			$bind_variables = array( $_SESSION["user"], $_SESSION["token"] );
+			$query = "SELECT COUNT( * ) FROM users WHERE username=? AND token=?;";
+			$bind_variables = array( $_SESSION["user"], sha1( $_SESSION["token"] ) );
 			$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking access." ), "fetchColumn" );
 			
 			if( $return > 0 ) {

@@ -117,63 +117,63 @@ SET time_zone = '+00:00';
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `code_test`
+-- Database: code_test
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `options`
+-- Table structure for table options
 --
 
-CREATE TABLE IF NOT EXISTS `options` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `value` text NOT NULL
+CREATE TABLE IF NOT EXISTS options (
+  id int(11) NOT NULL,
+  name varchar(255) NOT NULL,
+  value text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `projects`
+-- Table structure for table projects
 --
 
-CREATE TABLE IF NOT EXISTS `projects` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `path` varchar(255) NOT NULL,
-  `owner` varchar(255) NOT NULL,
-  `access` text
+CREATE TABLE IF NOT EXISTS projects (
+  id int(11) NOT NULL,
+  name varchar(255) NOT NULL,
+  path varchar(255) NOT NULL,
+  owner varchar(255) NOT NULL,
+  access text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Table structure for table users
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL,
-  `first_name` varchar(255) DEFAULT NULL,
-  `last_name` varchar(255) DEFAULT NULL,
-  `username` varchar(255) NOT NULL,
-  `password` text NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
-  `project` varchar(255) DEFAULT NULL,
-  `access` varchar(255) NOT NULL,
-  `groups` text,
-  `token` text
+CREATE TABLE IF NOT EXISTS users (
+  id int(11) NOT NULL,
+  first_name varchar(255) DEFAULT NULL,
+  last_name varchar(255) DEFAULT NULL,
+  username varchar(255) NOT NULL,
+  password text NOT NULL,
+  email varchar(255) DEFAULT NULL,
+  project varchar(255) DEFAULT NULL,
+  access varchar(255) NOT NULL,
+  groups text,
+  token text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Table structure for table `user_options`
+-- Table structure for table user_options
 --
 
-CREATE TABLE IF NOT EXISTS `user_options` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `value` text NOT NULL
+CREATE TABLE IF NOT EXISTS user_options (
+  id int(11) NOT NULL,
+  name varchar(255) NOT NULL,
+  username varchar(255) NOT NULL,
+  value text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -181,57 +181,57 @@ CREATE TABLE IF NOT EXISTS `user_options` (
 --
 
 --
--- Indexes for table `options`
+-- Indexes for table options
 --
-ALTER TABLE `options`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `option_name` (`name`);
+ALTER TABLE options
+  ADD PRIMARY KEY (id),
+  ADD UNIQUE KEY option_name (name);
 
 --
--- Indexes for table `projects`
+-- Indexes for table projects
 --
-ALTER TABLE `projects`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `project_path` (`path`,`owner`);
+ALTER TABLE projects
+  ADD PRIMARY KEY (id),
+  ADD UNIQUE KEY project_path (path,owner);
 
 --
--- Indexes for table `users`
+-- Indexes for table users
 --
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
+ALTER TABLE users
+  ADD PRIMARY KEY (id),
+  ADD UNIQUE KEY username (username);
 
 --
--- Indexes for table `user_options`
+-- Indexes for table user_options
 --
-ALTER TABLE `user_options`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `option_name` (`name`,`username`);
+ALTER TABLE user_options
+  ADD PRIMARY KEY (id),
+  ADD UNIQUE KEY option_name (name,username);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `options`
+-- AUTO_INCREMENT for table options
 --
-ALTER TABLE `options`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE options
+  MODIFY id int(11) NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `projects`
+-- AUTO_INCREMENT for table projects
 --
-ALTER TABLE `projects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+ALTER TABLE projects
+  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT for table users
 --
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+ALTER TABLE users
+  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 --
--- AUTO_INCREMENT for table `user_options`
+-- AUTO_INCREMENT for table user_options
 --
-ALTER TABLE `user_options`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2541;
+ALTER TABLE user_options
+  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2541;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
@@ -286,7 +286,7 @@ ALTER TABLE `user_options`
 		$project_path,
 		$username
 	);
-	$query = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?);";
+	$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,?);";
 	$statement = $connection->prepare( $query );
 	$statement->execute( $bind_variables );
 	
@@ -301,7 +301,7 @@ ALTER TABLE `user_options`
 		"",
 		""
 	);
-	$query = "INSERT INTO `users`(`first_name`, `last_name`, `username`, `password`, `email`, `project`, `access`, `groups`, `token`) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
+	$query = "INSERT INTO users(first_name, last_name, username, password, email, project, access, groups, token) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
 	$statement = $connection->prepare( $query );
 	$statement->execute( $bind_variables );
 	
