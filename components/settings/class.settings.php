@@ -104,60 +104,58 @@ class Settings {
 	public function __construct() {
 	}
 	
-	public function delete_option( $option, $username = null ) {
+	public function delete_option( $option, $username ) {
 		
+		global $sql;
 		if( $username == null ) {
 			
-			$query = "DELETE FROM options WHERE `name`=?";
-			$bind = "s";
+			$query = "DELETE FROM options WHERE name=?";
 			$bind_variables = array(
 				$option,
 			);
 			
-			sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Could not delete setting: $option" ) );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		} else {
 			
-			$query = "DELETE FROM options WHERE `name`=? AND `username`=?";
-			$bind = "ss";
+			$query = "DELETE FROM options WHERE name=? AND username=?";
 			$bind_variables = array(
 				$option,
 				$this->username,
 			);
 			
-			sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Could not delete setting: $option" ) );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		}
+		
+		if( $result > 0 ) {
+			
+			echo formatJSEND( "success", null );
+		} else {
+			
+			echo formatJSEND( "error", "Could not delete option: $option" );
 		}
 	}
 	
-	public function get_option( $option, $user_setting = null, $action = "return" ) {
+	public function get_option( $option, $user_setting, $action = "return" ) {
 		
+		global $sql;
 		if( $user_setting == null ) {
 			
-			$sql = "SELECT `value` FROM `options` WHERE `name`=?;";
-			$bind = "s";
+			$query = "SELECT value FROM options WHERE name=?;";
 			$bind_variables = array( $option );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching option: $option" ) );
-			
-			if( mysqli_num_rows( $return ) > 0 ) {
-				
-				$return = mysqli_fetch_assoc( $return )["value"];
-			} else {
-				
-				$return = null;
-			}
+			$return = $sql->query( $query, $bind_variables, array() )[0];
 		} else {
 			
-			$sql = "SELECT `value` FROM `user_options` WHERE `name`=? AND `username`=?;";
-			$bind = "ss";
+			$query = "SELECT value FROM user_options WHERE name=? AND username=?;";
 			$bind_variables = array( $option, $this->username );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching option: $option" ) );
+			$return = $sql->query( $query, $bind_variables, array() )[0];
+		}
+		
+		if( ! empty( $return ) ) {
+				
+			$return = $return["value"];
+		} else {
 			
-			if( mysqli_num_rows( $return ) > 0 ) {
-				
-				$return = mysqli_fetch_assoc( $return )["value"];
-			} else {
-				
-				$return = null;
-			}
+			$return = null;
 		}
 		
 		switch( $action ) {
@@ -180,11 +178,11 @@ class Settings {
 	
 	public function Save() {
 		
+		global $sql;
 		foreach( $this->settings as $option => $value ) {
 			
 			$this->update_option( $option, $value, $this->username );
 		}
-		echo formatJSEND( "success", null );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -193,37 +191,51 @@ class Settings {
 	
 	public function Load() {
 		
-		$query = "SELECT DISTINCT * FROM user_options WHERE `username`=?;";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT DISTINCT * FROM user_options WHERE username=?;";
 		$bind_variables = array(
 			$this->username
 		);
 		
-		$options = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not load user's settings." ) );
-		echo formatJSEND( "success", $options );
+		$options = $sql->query( $query, $bind_variables, array() );
+		
+		if( ! empty( $options ) ) {
+			
+			echo formatJSEND( "success", $options );
+		} else {
+			
+			echo formatJSEND( "error", "Error, Could not load user's settings." );
+		}
 	}
 	
 	public function update_option( $option, $value, $user_setting = null ) {
 		
-		$query = "INSERT INTO user_options ( `name`, `username`, `value` ) VALUES ( ?, ?, ? );";
-		$bind = "sss";
+		global $sql;
+		$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
 		$bind_variables = array(
 			$option,
 			$this->username,
 			$value,
 		);
-		$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not load user's settings." ) );
+		$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $result !== true ) {
+		if( $result == 0 ) {
 			
-			$query = "UPDATE user_options SET `value`=? WHERE `name`=? AND `username`=?;";
-			$bind = "sss";
+			$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
 			$bind_variables = array(
 				$value,
 				$option,
 				$this->username,
 			);
-			$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not load user's settings." ) );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		}
+		
+		if( $result > 0 ) {
+			
+			echo formatJSEND( "success", null );
+		} else {
+			
+			echo formatJSEND( "error", "Error, Could not update option $option" );
 		}
 	}
 }

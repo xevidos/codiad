@@ -1514,9 +1514,8 @@
 			}
 		},
 		
-		paste: function() {
-			//this works only in chrome
-			console.log( "this works only in chrome." );
+		paste: function(  ) {
+			
 			navigator.clipboard.readText().then(text => {codiad.editor.getActive().insert( text )});
 		},
 		

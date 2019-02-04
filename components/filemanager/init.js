@@ -210,6 +210,7 @@
         	 * away from the context menu to warrant a close.
         	 */
         	$('#file-manager, #editor-region').on( 'mousemove', codiad.filemanager.contextCheckMouse );
+        	$('#context-menu, #editor-region').on( 'paste', codiad.editor.paste );
         	
             /* Notify listeners. */
             amplify.publish('context-menu.onShow', {e: e, path: path, type: type});
@@ -231,6 +232,7 @@
         	if( ( e.clientX > right || e.clientX < left ) || ( e.clientY > bottom || e.clientY < top ) ) {
         		
         		$('#file-manager, #editor-region').off( 'mousemove', codiad.filemanager.contextCheckMouse );
+        		$('#context-menu, #editor-region').off( 'paste', codiad.editor.paste );
         		codiad.filemanager.contextMenuHide();
         	}
     	},
@@ -523,9 +525,9 @@
             this.saveModifications(path, {content: content}, callbacks, save);
         },
 
-        savePatch: function(path, patch, mtime, callbacks) {
+        savePatch: function(path, patch, mtime, callbacks, alerts) {
             if (patch.length > 0)
-                this.saveModifications(path, {patch: patch, mtime: mtime}, callbacks);
+                this.saveModifications(path, {patch: patch, mtime: mtime}, callbacks, alerts);
             else if (typeof callbacks.success === 'function'){
                 var context = callbacks.context || this;
                 callbacks.success.call(context, mtime);
@@ -616,12 +618,10 @@
             var _this = this;
             var shortName = this.getShortName(this.clipboard);
             var type = this.getType(this.clipboard);
-            if(duplicate){
-                shortName = "copy_of_"+shortName;
-            }
+            
             $.get(this.controller + '?action=duplicate&path=' +
                 encodeURIComponent(this.clipboard) + '&destination=' +
-                encodeURIComponent(path + '/' + shortName), function(data) {
+                encodeURIComponent(path + '/' + shortName) + '&duplicate=' + encodeURIComponent( duplicate ), function(data) {
                     var pasteResponse = codiad.jsend.parse(data);
                     if (pasteResponse != 'error') {
                         _this.createObject(path, path + '/' + shortName, type);

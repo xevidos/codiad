@@ -1,6 +1,6 @@
 <?php
 
-require_once('common.php');
+require_once( 'common.php' );
 
 // Context Menu
 $context_menu = file_get_contents(COMPONENTS . "/filemanager/context_menu.json");

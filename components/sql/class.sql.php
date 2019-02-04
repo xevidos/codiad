@@ -1,51 +1,105 @@
 <?php
 
+
 class sql {
 	
 	public $connection = null;
+	public $identifier_character = null;
+	protected static $instance = null;
 	
 	public function __construct() {
 		
+		
 	}
 	
-	public static function check_sql_error( $sql ) {
+	public function close() {
+		
+		$this->connection = null;
+	}
+	
+	public function connect() {
+		
+		if( $this->connection == null ) {
+			
+			$host = DBHOST;
+			$dbname = DBNAME;
+			$dbtype = DBTYPE;
+			$username = DBUSER;
+			$password = DBPASS;
+			
+			$this->connection = new PDO( "{$dbtype}:host={$host};dbname={$dbname}", $username, $password );
+		}
+		
+		return( $this->connection );
+	}
+	
+	public static function escape_identifier( $i ) {
+		
+		$i = preg_replace('/[^A-Za-z0-9_]+/', '', $i );
+		$i = $i;
+	}
+	
+	public static function is_not_error( $i ) {
 		
 		$return = false;
-		$result = json_decode( $sql );
+		$result = json_decode( $i );
 		
-		if ( json_last_error() !== JSON_ERROR_NONE || $sql == NULL ) {
+		if ( json_last_error() !== JSON_ERROR_NONE || ( ! $i == NULL && ! $i["status"] == "error" ) ) {
 			
 			$return = true;
 		}
 		return( $return );
 	}
 	
-	public static function connect() {
+	public static function get_instance() {
 		
-		$host = DBHOST;
-		$dbname = DBNAME;
-		$username = DBUSER;
-		$password = DBPASS;
-		$connection = mysqli_connect( $host, $username, $password, $dbname ) or die ( formatJSEND( "error", 'Error connecting to mysql database.  Please contact the website administrator.' ) );
-		
-		return( $connection );
-	}
-	
-	public static function sql( $sql, $bind, $bind_variables, $error ) {
-		
-		$connection = self::connect();
-		$result = mysqli_prepare( $connection, $sql ) or die( $error );
-		
-		$result->bind_param( $bind, ...$bind_variables );
-		$result->execute();
-		$return = $result->get_result();
-		
-		if( $connection->error ) {
+		// If the single instance hasn't been set, set it now.
+		if ( null == self::$instance ) {
 			
-			$return = formatJSEND( "error", $connection->error );
+			self::$instance = new self;
 		}
 		
-		$connection->close();
+		return self::$instance;
+	}
+	
+	public function query( $query, $bind_variables, $default, $action='fetchAll' ) {
+		
+		$connection = $this->connect();
+		$statement = $connection->prepare( $query );
+		$statement->execute( $bind_variables );
+		 
+		switch( $action ) {
+			
+			case( 'rowCount' ):
+				
+				$return = $statement->rowCount();
+			break;
+			
+			case( 'fetchAll' ):
+				
+				$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+			break;
+			
+			case( 'fetchColumn' ):
+				
+				$return = $statement->fetchColumn();
+			break;
+			
+			default:
+				
+				$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+			break;
+		}
+		
+		$error = $statement->errorInfo();
+		
+		if( ! $error[0] == "00000" ) {
+			
+			echo var_export( $return, $error );
+			$return = $default;
+		}
+		
+		$this->close();
 		return( $return );
 	}
 }

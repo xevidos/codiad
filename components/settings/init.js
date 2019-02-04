@@ -67,7 +67,13 @@
 			
 			$.post( this.controller + '?action=save', {settings: JSON.stringify( settings )}, function( data ) {
 				
-				parsed = codiad.jsend.parse( data );
+				data = data.replace(/},/gi, ",").split(",");
+				length = data.length;
+				
+				for( i = 0;i < length; i++ ) {
+					
+					parsed = codiad.jsend.parse( data );
+				}
 			});
 			
 			/* Notify listeners */

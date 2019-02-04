@@ -108,6 +108,7 @@
 				return;
 			}
 			
+			/*
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
 			let content = codiad.editor.getContent();
@@ -128,7 +129,10 @@
 					
 					session.tabThumb.removeClass('changed');
 				}
-			}
+			}*/
+			
+			let path = codiad.active.getPath();
+			codiad.active.save( path, false );
 			this.saving = false;
 		},
 		

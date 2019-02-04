@@ -168,6 +168,16 @@ class Update {
 		}
 	}
 	
+	public function check_for_update() {
+		
+		$vars = json_decode( $this->Check(), true );
+		
+		if( $vars[0]['data']['currentversion'] < $vars[0]['data']['remoteversion'] ) {
+			
+			echo formatJSEND( "notice", "An update for Codiad is available" );
+		}
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// Get Local Version
 	//////////////////////////////////////////////////////////////////

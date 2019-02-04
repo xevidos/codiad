@@ -41,12 +41,12 @@ class User {
 	
 	public function add_user() {
 		
-		$sql = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, PASSWORD( ? ), ?, ? );";
-		$bind = "ssss";
+		global $sql;
+		$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
 		$bind_variables = array( $this->username, $this->password, $this->access, null );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error that username is already taken." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( $return > 0 ) {
 			
 			$this->set_default_options();
 			echo formatJSEND( "success", array( "username" => $this->username ) );
@@ -58,55 +58,60 @@ class User {
 	
 	public function delete_user() {
 		
-		$sql = "DELETE FROM `user_options` WHERE `username`=?;";
-		$bind = "s";
+		global $sql;
+		$query = "DELETE FROM user_options WHERE username=?;";
 		$bind_variables = array( $this->username );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting user information." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( $return > 0 ) {
 			
-			$sql = "DELETE FROM `users` WHERE `username`=?;";
-			$bind = "s";
+			$query = "DELETE FROM users WHERE username=?;";
 			$bind_variables = array( $this->username );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting user information." ) );
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
-			if( sql::check_sql_error( $return ) ) {
+			if( $return > 0 ) {
 				
 				echo formatJSEND( "success", null );
 			} else {
 				
-				echo $return;
+				echo formatJSEND( "error", "Error deleting user information." );
 			}
 		} else {
 			
-			echo $return;
+			echo formatJSEND( "error", "Error deleting user information." );
 		}
 	}
 	
 	public function get_user( $username ) {
 		
-		$sql = "SELECT * FROM `users` WHERE `username`=?";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT * FROM users WHERE username=?";
 		$bind_variables = array( $username );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error can not select user." ) );
+		$return = $sql->query( $query, $bind_variables, array() );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( ! empty( $return ) ) {
 			
 			echo formatJSEND( "success", $return );
 		} else {
 			
-			echo $return;
+			echo formatJSEND( "error", "Could not select user." );
 		}
 	}
 	
 	public function list_users() {
 		
-		$sql = "SELECT * FROM `users`";
-		$bind = "";
-		$bind_variables = array( $this->username, $this->password, $this->access, null );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error can not select users." ) );
+		global $sql;
+		$query = "SELECT * FROM users";
+		$return = $sql->query( $query, array(), array() );
 		
-		return( $return );
+		if( ! empty( $return ) ) {
+			
+			return $return;
+		} else {
+			
+			echo formatJSEND( "error", "Error can not select users." );
+			return array();
+		}
 	}
 	
 	public function set_default_options() {
@@ -163,14 +168,32 @@ class User {
 			}
 		}
 		
+		global $sql;
 		$pass = false;
 		$this->EncryptPassword();
-		$sql = "SELECT * FROM `users` WHERE `username`=? AND `password`=PASSWORD( ? );";
-		$bind = "ss";
+		$query = "SELECT * FROM users WHERE username=? AND password=?;";
 		$bind_variables = array( $this->username, $this->password );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching user information." ) );
+		$return = $sql->query( $query, $bind_variables, array() );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		/**
+		 * Check and make sure the user is not using the old encryption.
+		 */
+		
+		if( ( strtolower( DBTYPE ) == "mysql" ) && empty( $return ) ) {
+			
+			$query = "SELECT * FROM users WHERE username=? AND password=PASSWORD( ? );";
+			$bind_variables = array( $this->username, $this->password );
+			$return = $sql->query( $query, $bind_variables, array() );
+			
+			if( ! empty( $return ) ) {
+				
+				$query = "UPDATE users SET password=? WHERE username=?;";
+				$bind_variables = array( $this->password, $this->username );
+				$return = $sql->query( $query, $bind_variables, array() );
+			}
+		}
+		
+		if( ! empty( $return ) ) {
 			
 			$pass = true;
 			$token = mb_strtoupper( strval( bin2hex( openssl_random_pseudo_bytes( 16 ) ) ) );
@@ -180,14 +203,13 @@ class User {
 			$_SESSION['lang'] = $this->lang;
 			$_SESSION['theme'] = $this->theme;
 			$_SESSION["login_session"] = true;
-			$user = mysqli_fetch_assoc( $return );
+			$user = $return;
 			
-			$sql = "UPDATE `users` SET `token`=PASSWORD( ? ) WHERE `username`=?;";
-			$bind = "ss";
-			$bind_variables = array( $token, $this->username );
-			sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error updating user information." ) );
+			$query = "UPDATE users SET token=? WHERE username=?;";
+			$bind_variables = array( sha1( $token ), $this->username );
+			$sql->query( $query, $bind_variables, 0, 'rowCount' );
 			
-			if( $user['project'] != '' ) {
+			if( isset( $user['project'] ) && $user['project'] != '' ) {
 				
 				$_SESSION['project'] = $user['project'];
 			}
@@ -310,18 +332,18 @@ class User {
 	
 	public function Password() {
 		
+		global $sql;
 		$this->EncryptPassword();
-		$sql = "UPDATE `users` SET `password`=PASSWORD( ? ) WHERE `username`=?;";
-		$bind = "ss";
+		$query = "UPDATE users SET password=? WHERE username=?;";
 		$bind_variables = array( $this->password, $this->username );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error updating user information." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( $return > 0 ) {
 			
-			echo formatJSEND( "success", null );
+			echo formatJSEND( "success", "Password changed" );
 		} else {
 			
-			echo( $return );
+			echo formatJSEND( "error", "Error changing password" );
 		}
 	}
 	
@@ -331,17 +353,17 @@ class User {
 	
 	public function Project() {
 		
-		$sql = "UPDATE `users` SET `project`=? WHERE `username`=?;";
-		$bind = "ss";
+		global $sql;
+		$query = "UPDATE users SET project=? WHERE username=?;";
 		$bind_variables = array( $this->project, $this->username );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error updating user information." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( $return > 0 ) {
 			
 			echo formatJSEND( "success", null );
 		} else {
 			
-			echo( $return );
+			echo formatJSEND( "error", "Error updating project" );
 		}
 	}
 	

@@ -107,10 +107,32 @@ class Filemanager extends Common {
 			$get['destination'] = Filemanager::cleanPath( $get['destination'] );
 			if ( $this->isAbsPath( $get['path'] ) ) {
 				
+				$i = 1;
 				$this->destination = $get['destination'];
+				
+				do {
+					
+					if( ( is_file( $this->destination ) || is_dir( $this->destination ) ) ) {
+						
+						$this->destination = $get['destination'] . " $i";
+					}
+					$i++;
+					
+					echo var_dump( $this->destination );
+				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
 			} else {
 				
-				$this->destination = $this->root . $get['destination'];
+				$i = 1;
+				$this->destination = $get['destination'];
+				do {
+					
+					if( ( is_file( $this->destination ) || is_dir( $this->destination ) ) ) {
+						
+						$this->destination = $this->root . $get['destination'] . " $i";
+					}
+					$i++;
+					echo var_dump( $this->destination );
+				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
 			}
 		}
 	}

@@ -129,7 +129,7 @@
             <input type="password" name="password1" autofocus="autofocus">
             <label><?php i18n("Confirm Password"); ?></label>
             <input type="password" name="password2">
-          <button class="btn-left"><?php i18n("Change %{username}%&apos;s Password", array("username" => ucfirst($username))) ?></button>
+        	<button class="btn-left"><?php i18n("Change %{username}%&apos;s Password", array("username" => ucfirst($username))) ?></button>
 			<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Cancel"); ?></button>
             <?php
             break;

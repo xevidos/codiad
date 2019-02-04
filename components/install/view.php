@@ -46,7 +46,7 @@ $autocomplete = array(
   'dbname' => '',
   'dbuser' => '',
   'dbpass' => '',
-  'dbtype' => '',
+  'dbtype' => 'mysql',
 );
 
 if (!empty($query)) {
@@ -165,6 +165,8 @@ if ($newrelic) {
     <input type="text" name="dbuser" value="<?php echo($autocomplete['dbuser']); ?>">
     <label><?php i18n("Database Pass"); ?></label>
     <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
+    <label><?php i18n("Database Type"); ?></label>
+    <input type="text" name="dbtype" value="<?php echo($autocomplete['dbtype']); ?>">
     <hr>
         <?php
         $location = array(
@@ -274,9 +276,6 @@ if ($newrelic) {
         echo($timezones);
         ?>
     </select>
-	
-	
-	
     <button><?php i18n("Install"); ?></button>
     </form>
     <?php

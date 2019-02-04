@@ -261,7 +261,7 @@ class updater {
 		$sql = new sql();
 		$connection = $sql->connect();
 		
-		$sql = "
+		$query = "
 CREATE TABLE IF NOT EXISTS `options`(
     `id` INT(11) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
@@ -300,11 +300,17 @@ ALTER TABLE `options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `projects` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `users` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
+
+DELETE FROM options;
+DELETE FROM projects;
+DELETE FROM users;
+DELETE FROM user_options;
+
 ";
-		if ( $connection->multi_query( $sql ) !== TRUE ) {
+		if ( $connection->exec( $query ) === false ) {
 			
 			$this->restore();
-			exit( $connection->error );
+			exit( $connection->errorInfo() );
 		}
 		
 		if( file_exists( $user_settings_file ) ) {
@@ -318,12 +324,11 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 			foreach( $projects as $project => $data ) {
 				
 				$owner = 'nobody';
-				$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
-				$bind = "sss";
+				$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
 				$bind_variables = array( $data["name"], $data["path"], $owner );
-				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project." ) );
+				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
-				if( sql::check_sql_error( $return ) ) {
+				if( $return > 0 ) {
 				} else {
 					
 					$this->restore();
@@ -345,12 +350,11 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 					
 					$access = "user";
 				}
-				$sql = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, PASSWORD( ? ), ?, ? );";
-				$bind = "ssss";
+				$query = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, ?, ?, ? );";
 				$bind_variables = array( $user["username"], $user["password"], $access, null );
-				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error that username is already taken." ) );
+				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
-				if( sql::check_sql_error( $return ) ) {
+				if( $return > 0 ) {
 					
 					$this->username = $user["username"];
 					$this->set_default_options();

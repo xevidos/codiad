@@ -422,6 +422,7 @@
 				async: false,
 				success: function( data ) {
 					
+					console.log( data );
 					current_response = codiad.jsend.parse( data );
 				} 
 			});
@@ -433,7 +434,7 @@
 				for( let i = current_response.length; i--; ) {
 				
 					let optionElement = document.createElement( 'option' );
-					optionElement.innerText = current_response[i];
+					optionElement.innerText = current_response[i].username;
 					select_list.appendChild( optionElement );
 				}
 			}

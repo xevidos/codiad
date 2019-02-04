@@ -1,8 +1,8 @@
 <?php
 
 /*
-*  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
-*  as-is and without warranty under the MIT License. See
+*  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown
+*  distributed as-is and without warranty under the MIT License. See
 *  [root]/license.txt for more. This information must remain intact.
 */
 
@@ -45,6 +45,7 @@ class Project extends Common {
 	
 	public function add_project( $project_name, $project_path, $owner = null ) {
 		
+		global $sql;
 		if( $this->public_project ) {
 			
 			$owner = 'nobody';
@@ -53,24 +54,29 @@ class Project extends Common {
 			$owner = $_SESSION["user"];
 		}
 		
-		$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
-		$bind = "sss";
+		$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
 		$bind_variables = array( $project_name, $project_path, $owner );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project_name." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		return( $return );
+		if( $return > 0 ) {
+			
+			formatJSEND( "success", "Created project $project_name" );
+		} else {
+			
+			formatJSEND( "error", "Error creating project $project_name" );
+		}
 	}
 	
 	public function add_user() {
 		
-		$sql = "SELECT `access` FROM `projects` WHERE `path`=? AND `owner`=?";
-		$bind = "ss";
+		global $sql;
+		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$result = $sql->query( $query, $bind_variables, array() )[0];
 
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
-			$access = json_decode( mysqli_fetch_assoc( $result )["access"] );
+			$access = json_decode( $result["access"] );
 			
 			if( is_array( $access ) ) {
 				
@@ -86,17 +92,20 @@ class Project extends Common {
 			}
 			
 			$access = json_encode( $access );
-			$sql = "UPDATE `projects` SET `access`=? WHERE `path`=? AND `owner`=?;";
-			$bind = "sss";
+			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
 			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error setting access for project." ) );
-			if( sql::check_sql_error( $return ) ) {
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result > 0 ) {
 			
 				echo( formatJSEND( "success", "Successfully added {$this->user}." ) );
 			} else {
 				
-				echo $return;
+				echo formatJSEND( "error", "Error setting access for project." );
 			}
+		} else {
+			
+			echo formatJSEND( "error", "Error fetching projects." );
 		}
 	}
 	
@@ -106,15 +115,15 @@ class Project extends Common {
 			
 			$path = $this->path;
 		}
-		$sql = "SELECT `owner` FROM `projects` WHERE `path`=?";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$result = $sql->query( $query, $bind_variables, array() )[0];
 		$return = false;
 		
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
-			$owner = mysqli_fetch_assoc( $result )["owner"];
+			$owner = $result["owner"];
 			if( $exclude_public ) {
 				
 				if( $owner == $_SESSION["user"] ) {
@@ -138,14 +147,14 @@ class Project extends Common {
 			
 			$path = $this->path;
 		}
-		$sql = "SELECT `access` FROM `projects` WHERE `path`=?";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT access FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching project information." ) );
+		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
-			$return = mysqli_fetch_assoc( $return )["access"];
+			$return = $return["access"];
 		} else {
 			
 			$return = formatJSEND( "error", "Error fetching project info." );
@@ -160,14 +169,14 @@ class Project extends Common {
 			
 			$path = $this->path;
 		}
-		$sql = "SELECT `owner` FROM `projects` WHERE `path`=?";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
-			$return = mysqli_fetch_assoc( $return )["owner"];
+			$return = $return["owner"];
 		} else {
 			
 			$return = formatJSEND( "error", "Error fetching project info." );
@@ -182,15 +191,13 @@ class Project extends Common {
 			
 			$project = $this->path;
 		}
-		
-		$sql = "SELECT * FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' ) ORDER BY `name`;";
-		$bind = "ss";
+		global $sql;
+		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
 		$bind_variables = array( $project, $_SESSION["user"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
-			$return = mysqli_fetch_all( $return, MYSQLI_ASSOC )[0];
 		} else {
 			
 			$return = formatJSEND( "error", "Error fetching projects." );
@@ -201,15 +208,12 @@ class Project extends Common {
 	
 	public function get_projects() {
 		
-		$sql = "SELECT * FROM `projects` WHERE `owner`=? OR `owner`='nobody' OR `access` LIKE ? ORDER BY `name`;";
-		$bind = "ss";
+		global $sql;
+		$query = "SELECT * FROM projects WHERE owner=? OR owner='nobody' OR access LIKE ? ORDER BY name;";
 		$bind_variables = array( $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = $sql->query( $query, $bind_variables, array() );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
-			
-			$return = mysqli_fetch_all( $return, MYSQLI_ASSOC );
-		} else {
+		if( empty( $return ) ) {
 			
 			$return = formatJSEND( "error", "Error fetching projects." );
 		}
@@ -219,14 +223,14 @@ class Project extends Common {
 	
 	public function remove_user() {
 		
-		$sql = "SELECT `access` FROM `projects` WHERE `path`=? AND `owner`=?";
-		$bind = "ss";
+		global $sql;
+		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$result = $sql->query( $query, $bind_variables, array() )[0];
 
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
-			$access = json_decode( mysqli_fetch_assoc( $result )["access"] );
+			$access = json_decode( $result["access"] );
 			
 			if( is_array( $access ) ) {
 				
@@ -242,36 +246,46 @@ class Project extends Common {
 			}
 			
 			$access = json_encode( $access );
-			$sql = "UPDATE `projects` SET `access`=? WHERE `path`=? AND `owner`=?;";
-			$bind = "sss";
+			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
 			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error setting access for project." ) );
-			if( sql::check_sql_error( $return ) ) {
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $return > 0 ) {
 			
 				echo( formatJSEND( "success", "Successfully removed {$this->user}." ) );
 			} else {
 				
-				echo $return;
+				echo formatJSEND( "error", "Error setting access for project." );
 			}
+		} else {
+			
+			echo formatJSEND( "error", "Error fetching projects." );
 		}
 	}
 	
 	public function rename_project( $old_name, $new_name, $path ) {
 		
-		$sql = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
-		$bind = "sss";
+		global $sql;
+		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
 		$bind_variables = array( $old_name, $path, $_SESSION["user"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = $sql->query( $query, $bind_variables, array() );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
-			$sql = "UPDATE `projects` SET `name`=? WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
-			$bind = "ssss";
+			$query = "UPDATE projects SET name=? WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
 			$bind_variables = array( $new_name, $old_name, $path, $_SESSION["user"] );
-			$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error renaming project." ) );
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount");
+			
+			if( $return > 0 ) {
+				
+				echo( formatJSEND( "success", "Renamed  " . htmlentities( $old_name ) . " to " . htmlentities( $new_name ) ) );
+			} else {
+				
+				echo( formatJSEND( "error", "Error renaming project." ) );
+			}
 		} else {
 			
-			exit( formatJSEND( "error", "Error renaming project, could not find specified project." ) );
+			echo( formatJSEND( "error", "Error renaming project, could not find specified project." ) );
 		}
 	}
 	
@@ -321,20 +335,19 @@ class Project extends Common {
 	
 	public function Open() {
 		
-		$sql = "SELECT * FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' OR `access` LIKE ? );";
-		$bind = "sss";
+		global $sql;
+		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' OR access LIKE ? );";
 		$bind_variables = array( $this->path, $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
-			$return = mysqli_fetch_assoc( $return );
-			$sql = "UPDATE `users` SET `project`=? WHERE `username`=?;";
-			$bind = "ss";
+			$query = "UPDATE users SET project=? WHERE username=?;";
 			$bind_variables = array( $this->path, $_SESSION["user"] );
-			sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching projects." ) );
+			$sql->query( $query, $bind_variables, 0, "rowCount" );
 			$this->name = $return['name'];
 			$_SESSION['project'] = $return['path'];
+			
 			echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
 		} else {
 			
@@ -358,7 +371,7 @@ class Project extends Common {
 			}
 			if ( $this->path != '' ) {
 				
-				if( ! $this->public_project ) {
+				if( ! $this->public_project && ! $this->isAbsPath( $this->path ) ) {
 					
 					$this->path =  $_SESSION["user"] . '/' . $this->path;
 				}
@@ -471,17 +484,17 @@ class Project extends Common {
 	
 	public function Delete() {
 		
-		$sql = "DELETE FROM `projects` WHERE `path`=? AND ( `owner`=? OR `owner`='nobody' );";
-		$bind = "ss";
+		global $sql;
+		$query = "DELETE FROM projects WHERE path=? AND ( owner=? OR owner='nobody' );";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error deleting project $project_name." ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( sql::check_sql_error( $return ) ) {
+		if( $return > 0 ) {
 			
-			echo( formatJSEND( "success", "Successfully deleted $project_name." ) );
+			echo( formatJSEND( "success", "Successfully deleted $project_name" ) );
 		} else {
 			
-			echo $return;
+			echo formatJSEND( "error", "Error deleting project $project_name" );
 		}
 	}
 	

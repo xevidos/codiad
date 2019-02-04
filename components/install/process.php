@@ -88,12 +88,13 @@ if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && de
 	}
 	$timezone = $_POST['timezone'];
 	
+	$dbtype = $_POST['dbtype'];
 	$dbhost = $_POST['dbhost'];
 	$dbname = $_POST['dbname'];
 	$dbuser = $_POST['dbuser'];
 	$dbpass = $_POST['dbpass'];
 	
-	$connection = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname ) or die ( 'Error connecting to mysql database.  Please contact the website administrator.' );
+	$connection = new PDO( "{$dbtype}:host={$dbhost};dbname={$dbname}", $dbuser, $dbpass );
 	$bind_vars = array();
 	$bind = "";
 	$sql = "
@@ -235,9 +236,15 @@ ALTER TABLE `user_options`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 ";
-	$result = mysqli_multi_query( $connection, $sql ) or die( "Error creating tables." );
-	
-	
+
+	try {
+		
+		$result = $connection->exec($sql);
+	} catch( PDOException $e ) {
+		
+		echo $e->getMessage();
+		die();
+	}
 	
 	//////////////////////////////////////////////////////////////////
 	// Create Projects files
@@ -246,7 +253,7 @@ ALTER TABLE `user_options`
 	$project_path = cleanPath( $project_path );
 	
 	if ( ! isAbsPath( $project_path ) ) {
-	
+		
 		$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
 		if( ! is_dir( $workspace . "/" . $project_path ) ) {
 			
@@ -274,17 +281,14 @@ ALTER TABLE `user_options`
 		}
 	}
 	
-	$connection = mysqli_connect( $dbhost, $dbuser, $dbpass, $dbname ) or die ( 'Error connecting to mysql database.  Please contact the website administrator.' );
 	$bind_vars = array(
 		$project_name,
 		$project_path,
 		$username
 	);
-	$bind = "sss";
-	$sql = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?);";
-	$result = mysqli_prepare( $connection, $sql ) or die( "Error inserting into projects." );
-	$result->bind_param( $bind, ...$bind_vars );
-	$result->execute();
+	$query = "INSERT INTO `projects`(`name`, `path`, `owner`) VALUES (?,?,?);";
+	$statement = $connection->prepare( $query );
+	$statement->execute( $bind_variables );
 	
 	$bind_vars = array(
 		"",
@@ -297,11 +301,9 @@ ALTER TABLE `user_options`
 		"",
 		""
 	);
-	$bind = "sssssssss";
-	$sql = "INSERT INTO `users`(`first_name`, `last_name`, `username`, `password`, `email`, `project`, `access`, `groups`, `token`) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
-	$result = mysqli_prepare( $connection, $sql ) or die( "Error inserting into users." );
-	$result->bind_param( $bind, ...$bind_vars );
-	$result->execute();
+	$query = "INSERT INTO `users`(`first_name`, `last_name`, `username`, `password`, `email`, `project`, `access`, `groups`, `token`) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
+	$statement = $connection->prepare( $query );
+	$statement->execute( $bind_variables );
 	
 	
 	
@@ -367,7 +369,7 @@ define( "DBHOST", "' . $_POST['dbhost'] . '" );
 define( "DBNAME", "' . $_POST['dbname'] . '" );
 define( "DBUSER", "' . $_POST['dbuser'] . '" );
 define( "DBPASS", "' . $_POST['dbpass'] . '" );
-define( "DBTYPE", "mysql" );
+define( "DBTYPE", "' . $_POST['dbtype'] . '" );
 
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **

@@ -447,7 +447,7 @@
         // Save active editor
         //////////////////////////////////////////////////////////////////
 
-        save: function(path) {
+        save: function(path, alerts=true) {
             /* Notify listeners. */
             amplify.publish('active.onSave', path);
 
@@ -487,17 +487,17 @@
                     if (success) {
                         codiad.filemanager.savePatch(path, patch, session.serverMTime, {
                             success: handleSuccess
-                        });
+                        }, alerts);
                     } else {
                         codiad.filemanager.saveFile(path, newContent, {
                             success: handleSuccess
-                        });
+                        }, alerts);
                     }
                 }, this);
             } else {
                 codiad.filemanager.saveFile(path, newContent, {
                     success: handleSuccess
-                });
+                }, alert);
             }
         },
         
