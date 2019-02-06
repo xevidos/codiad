@@ -108,10 +108,20 @@
 				return;
 			}
 			
-			/*
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
 			let content = codiad.editor.getContent();
+			
+			/*
+			
+			this code caused issues even though it is the proper way to save something.
+			Whenever in collaboration, the server constantly gave a wrong file version error.
+			
+			let path = codiad.active.getPath();
+			codiad.active.save( path, false );
+			this.saving = false;
+			
+			*/
 			
 			codiad.active.save;
 			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
@@ -129,10 +139,7 @@
 					
 					session.tabThumb.removeClass('changed');
 				}
-			}*/
-			
-			let path = codiad.active.getPath();
-			codiad.active.save( path, false );
+			}
 			this.saving = false;
 		},
 		

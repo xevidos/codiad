@@ -112,26 +112,48 @@ class Filemanager extends Common {
 				
 				do {
 					
-					if( ( is_file( $this->destination ) || is_dir( $this->destination ) ) ) {
+					if( is_dir( $this->destination ) ) {
 						
 						$this->destination = $get['destination'] . " $i";
+					} elseif( is_file( $this->destination ) ) {
+						
+						$path_parts = pathinfo( $this->destination );
+						
+						if( isset( $path_parts["extension"] ) ) {
+							
+							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $get['destination'] );
+						} else {
+							
+							$this->destination = $get['destination'] . " $i";
+						}
 					}
-					$i++;
 					
-					echo var_dump( $this->destination );
+					$i++;
 				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
+				
 			} else {
 				
 				$i = 1;
-				$this->destination = $get['destination'];
+				$this->destination = $this->root . $get['destination'];
 				do {
 					
-					if( ( is_file( $this->destination ) || is_dir( $this->destination ) ) ) {
+					if( is_dir( $this->destination ) ) {
 						
 						$this->destination = $this->root . $get['destination'] . " $i";
+					} elseif( is_file( $this->destination ) ) {
+						
+						$path_parts = pathinfo( $this->destination );
+						
+						if( isset( $path_parts["extension"] ) ) {
+							
+							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $this->root . $get['destination'] );
+						} else {
+							
+							$this->destination = $this->root . $get['destination'] . " $i";
+						}
 					}
+					
 					$i++;
-					echo var_dump( $this->destination );
 				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
 			}
 		}

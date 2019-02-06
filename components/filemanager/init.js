@@ -395,14 +395,11 @@
             if (this.rescanCounter === 0) {
                 // Create array of open directories
                 node = $('#file-manager a[data-path="' + path + '"]');
-                node.parent()
-                    .find('a.open')
-                    .each(function() {
-                        _this.rescanChildren.push($(this)
-                            .attr('data-path'));
-                    });
+                node.parent().find('a.open').each(function() {
+                    _this.rescanChildren.push($(this).attr('data-path'));
+                });
             }
-
+            
             this.index(path, true);
         },
 
@@ -520,11 +517,11 @@
         //////////////////////////////////////////////////////////////////
         // Save file
         //////////////////////////////////////////////////////////////////
-
+		
         saveFile: function(path, content, callbacks, save=true) {
             this.saveModifications(path, {content: content}, callbacks, save);
         },
-
+		
         savePatch: function(path, patch, mtime, callbacks, alerts) {
             if (patch.length > 0)
                 this.saveModifications(path, {patch: patch, mtime: mtime}, callbacks, alerts);
@@ -533,11 +530,11 @@
                 callbacks.success.call(context, mtime);
             }
         },
-
+		
         //////////////////////////////////////////////////////////////////
         // Create Object
         //////////////////////////////////////////////////////////////////
-
+		
         createNode: function(path, type) {
             codiad.modal.load(250, this.dialog, {
                 action: 'create',
@@ -613,7 +610,7 @@
                 }
             }
         },
-
+		
         processPasteNode: function(path,duplicate) {
             var _this = this;
             var shortName = this.getShortName(this.clipboard);
@@ -631,11 +628,11 @@
                     }
                 });
         },
-
+		
         //////////////////////////////////////////////////////////////////
         // Rename
         //////////////////////////////////////////////////////////////////
-
+		
         renameNode: function(path) {
             var shortName = this.getShortName(path);
             var type = this.getType(path);
@@ -659,6 +656,7 @@
                             codiad.message.success(type.charAt(0)
                                 .toUpperCase() + type.slice(1) + ' Renamed');
                             var node = $('#file-manager a[data-path="' + path + '"]');
+                            let parentPath = node.parent().parent().prev().attr('data-path');
                             // Change pathing and name for node
                             node.attr('data-path', newPath)
                                 .html(newName);
@@ -674,6 +672,9 @@
                             // Change any active files
                             codiad.active.rename(path, newPath);
                             codiad.modal.unload();
+                            
+                            /* Notify listeners. */
+                        	amplify.publish('filemanager.onRename', {path: path, newPath: newPath, parentPath: parentPath });
                         }
                     });
                 });
@@ -710,8 +711,8 @@
                     var deleteResponse = codiad.jsend.parse(data);
                     if (deleteResponse != 'error') {
                         var node = $('#file-manager a[data-path="' + path + '"]');
-                        node.parent('li')
-                            .remove();
+                        let parent_path = node.parent().parent().prev().attr('data-path');
+                        node.parent('li').remove();
                         // Close any active files
                         $('#active-files a')
                             .each(function() {
@@ -721,6 +722,8 @@
                                     codiad.active.remove(curPath);
                                 }
                             });
+                        /* Notify listeners. */
+                    	amplify.publish('filemanager.onDelete', {deletePath: path, path: parent_path });
                     }
                     codiad.modal.unload();
                 });
@@ -739,10 +742,7 @@
                 $.get(_this.controller + '?action=deleteInner&path=' + encodeURIComponent(path), function(data) {
                     var deleteResponse = codiad.jsend.parse(data);
                     if (deleteResponse != 'error') {
-                        var node = $('#file-manager a[data-path="' + path + '"]');
-						while(node.firstChild) {
-							node.removeChild(node.firstChild);
-						}
+                        var node = $('#file-manager a[data-path="' + path + '"]').parent('ul').remove();
 						
                         // Close any active files
                         $('#active-files a')
@@ -761,6 +761,9 @@
 	                        _this.rescanChildren.push($(this)
 	                            .attr('data-path'));
 	                    });
+	                    
+	                    /* Notify listeners. */
+                    	amplify.publish('filemanager.onDelete', {deletePath: path + "/*", path: path });
                     }
                     codiad.modal.unload();
                 });
