@@ -63,7 +63,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-right" onclick="save(); return false;"><?php i18n("Save"); ?></button>
+            <button class="btn-left" onclick="save(); return false;"><?php i18n("Save"); ?></button>
             <button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Close"); ?></button>
             <div class="loading"></div>
             <script>

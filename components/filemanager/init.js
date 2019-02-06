@@ -562,6 +562,9 @@
                             if(type == 'file') {
                                 codiad.filemanager.openFile(createPath, true);
                             }
+                            
+                            codiad.filemanager.rescan( path );
+                            
                             /* Notify listeners. */
                             amplify.publish('filemanager.onCreate', {createPath: createPath, path: path, shortName: shortName, type: type});
                         }
@@ -608,6 +611,8 @@
                 } else { // No conflicts; proceed...
                     _this.processPasteNode(path,false);
                 }
+                
+                codiad.filemanager.rescan( path );
             }
         },
 		
@@ -672,7 +677,7 @@
                             // Change any active files
                             codiad.active.rename(path, newPath);
                             codiad.modal.unload();
-                            
+                            codiad.filemanager.rescan( parentPath );
                             /* Notify listeners. */
                         	amplify.publish('filemanager.onRename', {path: path, newPath: newPath, parentPath: parentPath });
                         }

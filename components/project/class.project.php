@@ -269,6 +269,7 @@ class Project extends Common {
 		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
 		$bind_variables = array( $old_name, $path, $_SESSION["user"] );
 		$return = $sql->query( $query, $bind_variables, array() );
+		$pass = false;
 		
 		if( ! empty( $return ) ) {
 			
@@ -279,14 +280,17 @@ class Project extends Common {
 			if( $return > 0 ) {
 				
 				echo( formatJSEND( "success", "Renamed  " . htmlentities( $old_name ) . " to " . htmlentities( $new_name ) ) );
+				$pass = true;
 			} else {
 				
-				echo( formatJSEND( "error", "Error renaming project." ) );
+				exit( formatJSEND( "error", "Error renaming project." ) );
 			}
 		} else {
 			
 			echo( formatJSEND( "error", "Error renaming project, could not find specified project." ) );
 		}
+		
+		return $pass;
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -469,13 +473,11 @@ class Project extends Common {
 				$revised_array[] = array( "name" => $data['name'], "path" => $data['path'] );
 			} else {
 				
-				$this->rename_project( $data['name'], $_GET['project_name'], $data['path'] );
+				$rename = $this->rename_project( $data['name'], $_GET['project_name'], $data['path'] );
 			}
 		}
 		
 		$revised_array[] = $this->projects[] = array( "name" => $_GET['project_name'], "path" => $this->path );
-		// Response
-		echo formatJSEND("success", null);
 	}
 	
 	//////////////////////////////////////////////////////////////////

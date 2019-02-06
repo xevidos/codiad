@@ -23,7 +23,6 @@
                 var sbWidth = await codiad.settings.get_option( 'codiad.sidebars.sb-left-width' );
                 var lock_left = await codiad.settings.get_option( 'codiad.sidebars.lock-left-sidebar' );
                 var lock_right = await codiad.settings.get_option( 'codiad.sidebars.lock-right-sidebar' );
-				console.log( "Sidebar width", sbWidth );
                 if (sbWidth !== null) {
                     $('#sb-left').width(sbWidth);
                     $(window).resize();

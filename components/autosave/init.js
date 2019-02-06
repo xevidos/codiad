@@ -33,6 +33,8 @@
 		
 		// Allows relative `this.path` linkage
 		auto_save_trigger: null,
+		content: null,
+		editor: null,
 		invalid_states: [ "", " ", null, undefined ],
 		path: curpath,
 		saving: false,
@@ -44,7 +46,8 @@
 		
 		init: async function() {
 			
-			codiad.auto_save.settings.autosave = await codiad.settings.get_option( 'codiad.settings.autosave' );
+			let _this = codiad.auto_save;
+			_this.settings.autosave = await codiad.settings.get_option( 'codiad.settings.autosave' );
 			
 			// Check if the auto save setting is true or false
 			// Also check to see if the editor is any of the invalid states
@@ -83,7 +86,35 @@
 					
 				console.log( 'Auto save Enabled' );
 			}
-			this.auto_save_trigger = setInterval( this.auto_save, 256 );
+			
+			let content = codiad.editor.getContent();
+			
+			if( ! codiad.active.getPath() == null && ! codiad.auto_save.invalid_states.includes( content ) ) {
+				
+				this.content = content;
+			}
+			
+			/* Subscribe to know when a file is being closed. */
+			amplify.subscribe( 'active.onClose', function( path ) {
+				
+				let _this = codiad.auto_save;
+				_this.editor.removeEventListener( "change", _this.change );
+			});
+			
+			/* Subscribe to know when a file become active. */
+			amplify.subscribe( 'active.onFocus', function( path ) {
+				
+				let _this = codiad.auto_save;
+				
+				if( ! _this.editor == null && path == _this.editor.getSession().path ) {
+					
+					return;
+				}
+				
+				_this.editor = codiad.editor.getActive();
+				_this.content = codiad.editor.getContent();
+				_this.editor.addEventListener( "change", _this.auto_save );
+			});
 		},
 		
 		/**
@@ -95,34 +126,61 @@
 		
 		auto_save: function() {
 			
-			if( this.settings.toggle == false  || this.settings.autosave == false || codiad.auto_save.invalid_states.includes( codiad.editor.getContent() ) ) {
-				
-				return;
-			}
-			
-			this.saving = true;
-			
-			if ( codiad.active.getPath() == null ) {
-				
-				this.saving = false;
-				return;
-			}
-			
+			let _this = codiad.auto_save;
+			_this.saving = true;
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
 			let content = codiad.editor.getContent();
 			
+			if( _this.settings.toggle == false  || _this.settings.autosave == false || codiad.auto_save.invalid_states.includes( content ) ) {
+				
+				_this.saving = false;
+				return;
+			}
+			
+			if( path == null ) {
+				
+				_this.saving = false;
+				return;
+			}
+			
+			if( _this.verbose ) {
+				
+				console.log( content, _this.content );
+			}
+			
+			if( content == _this.content ) {
+				
+				var session = codiad.active.sessions[path];
+				if( typeof session != 'undefined' ) {
+					
+					session.untainted = content;
+					session.serverMTime = session.serverMTime;
+					if ( session.listThumb ) {
+						
+						session.listThumb.removeClass('changed');
+					}
+					
+					if ( session.tabThumb ) {
+						
+						session.tabThumb.removeClass('changed');
+					}
+				}
+				return;
+			}
+			
 			/*
 			
-			this code caused issues even though it is the proper way to save something.
+			_this code caused issues even though it is the proper way to save something.
 			Whenever in collaboration, the server constantly gave a wrong file version error.
 			
 			let path = codiad.active.getPath();
 			codiad.active.save( path, false );
-			this.saving = false;
+			_this.saving = false;
 			
 			*/
 			
+			_this.content = content;
 			codiad.active.save;
 			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
 			var session = codiad.active.sessions[path];
@@ -140,7 +198,7 @@
 					session.tabThumb.removeClass('changed');
 				}
 			}
-			this.saving = false;
+			_this.saving = false;
 		},
 		
 		reload_interval: async function() {
