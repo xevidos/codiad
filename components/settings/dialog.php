@@ -134,10 +134,13 @@
                                     codiad.editor.setOverScroll(val);
                                 break;
                                 case "codiad.editor.autocomplete":
-                                	var bool_val = (val == "true");
+								var bool_val = (val == "true");
 									codiad.editor.setLiveAutocomplete(bool_val)
                                 break;
                                 case "codiad.settings.autosave":
+                                    var bool_val = (val == "true");
+                                break;
+                        		case "codiad.filemanager.auto_reload_preview":
                                     var bool_val = (val == "true");
                                 break;
                             }
@@ -161,7 +164,6 @@
                     /* Notify listeners */
                     amplify.publish( 'settings.dialog.save', null );
                     codiad.settings.save( settings );
-                    codiad.modal.unload();
                 }
             </script>
 			<?php

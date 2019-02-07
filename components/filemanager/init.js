@@ -15,14 +15,15 @@
 	
 
     codiad.filemanager = {
-
+		
+		auto_reload: false,
         clipboard: '',
-        
         controller: 'components/filemanager/controller.php',
         dialog: 'components/filemanager/dialog.php',
         dialogUpload: 'components/filemanager/dialog_upload.php',
-
-        init: function() {
+		preview: null,
+		
+        init: async function() {
         	
         	this.noAudio = [
 				//Audio
@@ -58,6 +59,33 @@
 	        
             // Initialize node listener
             this.nodeListener();
+            this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.auto_reload_preview" ) == "true" );
+            
+            console.log( this.auto_reload );
+            
+            amplify.subscribe( 'settings.save', async function() {
+            
+	            let option = ( await codiad.settings.get_option( "codiad.filemanager.auto_reload_preview" ) == "true" );
+	            if( option != codiad.filemanager.auto_reload ) {
+	                
+	                //codiad.auto_save.reload_interval();
+	                window.location.reload();
+	            }
+			});
+            
+            /* Subscribe to know when a file become active. */
+			amplify.subscribe( 'active.onFocus', async function( path ) {
+				
+				let _this = codiad.filemanager;
+				let editor = codiad.editor.getActive();
+
+				if( _this.auto_reload && editor !== null ) {
+                   	
+                   _this.preview.addEventListener( "beforeunload", _this.closePreview );
+                   codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
+               }
+			});
+            
             // Load uploader
             $.loadScript("components/filemanager/upload_scripts/jquery.ui.widget.js", true);
             $.loadScript("components/filemanager/upload_scripts/jquery.iframe-transport.js", true);
@@ -440,17 +468,50 @@
         //////////////////////////////////////////////////////////////////
 
         openInBrowser: function(path) {
+        	
+        	let _this = this;
+
             $.ajax({
                 url: this.controller + '?action=open_in_browser&path=' + encodeURIComponent(path),
                 success: function(data) {
                     var openIBResponse = codiad.jsend.parse(data);
                     if (openIBResponse != 'error') {
-                        window.open(openIBResponse.url, '_newtab');
+                    	
+                       _this.preview = window.open( openIBResponse.url, '_newtab' );
+                       
+                       let editor = codiad.editor.getActive();
+                       
+                       if( _this.auto_reload && editor !== null ) {
+	                       	
+	                       _this.preview.addEventListener( "beforeunload", _this.closePreview );
+	                       codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
+                       }
+                       
+                       
                     }
                 },
                 async: false
             });
         },
+        
+        closePreview: function( event ) {
+        	
+        	_this = codiad.filemanager;
+        	_this.preview = null;
+        },
+        
+        refreshPreview: function( event ) {
+        	
+        	_this = codiad.filemanager;
+        	
+        	if( _this.preview == null ) {
+        		
+        		return;
+        	}
+        	
+        	_this.preview.location.reload();
+        },
+        
         openInModal: function(path) {
         	
         	let type = "";

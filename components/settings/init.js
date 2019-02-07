@@ -65,15 +65,20 @@
 			var systemRegex = /^codiad/;
 			var pluginRegex = /^codiad.plugin/;
 			
-			$.post( this.controller + '?action=save', {settings: JSON.stringify( settings )}, function( data ) {
-				
-				data = data.replace(/},/gi, ",").split(",");
-				length = data.length;
-				
-				for( i = 0;i < length; i++ ) {
+			$.ajax({
+				type: 'POST',
+				url: this.controller + '?action=save',
+				data: {settings: JSON.stringify( settings )},
+				success: function( data ) {
+					data = data.replace(/},/gi, ",").split(",");
+					length = data.length;
 					
-					parsed = codiad.jsend.parse( data );
-				}
+					for( i = 0;i < length; i++ ) {
+						
+						parsed = codiad.jsend.parse( data );
+					}
+					codiad.modal.unload();
+				},
 			});
 			
 			/* Notify listeners */
