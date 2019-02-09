@@ -1,0 +1,204 @@
+div.sidebar {
+	
+	border-right: groove;
+	display: block;
+	float: left;
+	height: 100%;
+	left: 0px;
+	margin: 0px 0px 0px 0px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	position: fixed;
+	top: 0px;
+	width: 250px;
+}
+
+div.sidebar::-webkit-scrollbar {
+	
+	display: none;
+}
+
+.mobile_menu_close {
+	
+	display: none;
+}
+
+.mobile_menu_trigger {
+	
+	display: block;
+	float: right;
+	margin: 10px 10px 0 0;
+}
+
+div.sidebar_menu {
+	
+	padding-top: 20px;
+	display: block;
+	width: auto;
+}
+
+.sidebar_icon {
+	
+	display: inline-block;
+	height: 30px;
+	margin-right: 5px;
+	width: auto;
+	vertical-align: middle;
+}
+
+.sidebar_option_text {
+	
+	display: inline-block;
+	margin: 0px;
+	vertical-align: middle;
+}
+
+div.sidebar_option {
+	border: none;
+	float: none;
+	outline: none;
+	padding: 0px;
+	text-align: left;
+	white-space: normal;
+	width: 100%;
+
+}
+
+div.sidebar_option:hover {
+	
+	background: #555;
+	-webkit-transition: background .5s; /* Safari */
+    transition: background .5s;
+}
+
+a.sidebar_option {
+	
+	color: #FFFFFF;
+	display: block;
+	margin: 5px 20px 5px 20px;
+	padding: 10px 0px 10px 0px;
+	text-decoration: none;
+	width: 100%;
+}
+
+.option_selected {
+	
+	background: #555;
+}
+
+li.menu_option:hover {
+	
+	background: #555;
+	-webkit-transition: background 1s; /* Safari */
+    transition: background 1s;
+}
+
+section.container {
+	
+	display: block;
+    padding: 25px 0px 0px 22%;
+}
+
+@media only screen and (max-width: 1080px) {
+	
+	div.dashboard_card {
+		
+		width: 90%;
+	}
+}
+
+@media only screen and (max-width: 750px) {
+	
+	header {
+		
+		min-height: 50px;
+		right: 0px;
+		max-width: 100%;
+	}
+	
+	nav.fixed_header {
+		
+		width: 1000%;
+		height: 60px;
+		background: #292f36;
+		position: fixed;
+	}
+	
+	section.container {
+		
+		display: block;
+		padding: 25px 0px 0px 5%;
+	}
+	
+	.mobile_menu_trigger {
+		
+		display: block;
+	}
+	
+	.mobile_menu_close {
+		
+		border: none;
+		display: flex !important;
+		float: none;
+		outline: none;
+		padding: 0px;
+		text-align: left;
+		white-space: normal;
+		width: 100%;
+	}
+	
+	div.sidebar {
+		
+		background: #333333;
+		height: 100%;
+		left: 0;
+		overflow-x: hidden;
+		padding-top: 0px;
+		position: fixed;
+		top: 0;
+		transition: 0.5s;
+		width: 0px;
+		z-index: 1;
+	}
+	
+	div.sidebar::-webkit-scrollbar {
+		
+		display: none;
+	}
+	
+	div.sidebar_menu {
+		
+		padding-top: 0px;
+		display: block;
+		width: auto;
+	}
+		
+	a.sidebar_option {
+		
+		display: block;
+		margin: 0px 0px 10px 0px;
+		padding: 8px 8px 8px 32px;
+		text-decoration: none;
+		transition: 0.3s;
+		width: 80%;
+	}
+	
+	section.footer {
+		background-color: #292f36;
+		bottom: 0px;
+		display: block;
+		margin-left: 10px;
+		margin-top: 10px;
+		position: fixed;
+		right: 0px;
+		width: 100%;
+	}
+	
+}
+
+@media only screen and (max-width: 500px) {
+	
+	td {
+		display: block;
+	}
+}
