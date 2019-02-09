@@ -1,4 +1,4 @@
-Codaid
+Codiad
 
 This is the Telaaedifex team's custom version of Codiad.  Codiad is a web-based IDE framework with a small footprint and minimal requirements.
 
