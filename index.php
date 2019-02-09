@@ -121,18 +121,17 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     if( ! isset( $_SESSION['user'] ) ) {
 
         $path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']),"/");
-
-        $users = file_exists($path . "/data/users.php");
-        $projects = file_exists($path . "/data/projects.php");
+        $config = file_exists($path . "/config.php");
         $active = file_exists($path . "/data/active.php");
-
-        if(!$users && !$projects && !$active){
+		
+        if( !$config ) {
+        	
             // Installer
             require_once('components/install/view.php');
-        }else{
+        } else {
             // Login form
             ?>
-
+			
             <form id="login" method="post" style="position: fixed; width: 350px; top: 30%; left: 50%; margin-left: -175px; padding: 35px;">
 
                 <label><span class="icon-user login-icon"></span> <?php i18n("Username"); ?></label>
@@ -186,7 +185,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
     } else {
 	
-		define( "USER_WORKSPACE", WORKSPACE . "/" . $_SESSION["user"] );
+		define( "USER_WORKSPACE", WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) ) );
 		
 		if( ! is_dir( USER_WORKSPACE ) ) {
 			
