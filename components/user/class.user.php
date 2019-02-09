@@ -61,24 +61,40 @@ class User {
 		global $sql;
 		$query = "DELETE FROM user_options WHERE username=?;";
 		$bind_variables = array( $this->username );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-		
-		if( $return > 0 ) {
+		$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
+		if( $return > -1 ) {
 			
-			$query = "DELETE FROM users WHERE username=?;";
-			$bind_variables = array( $this->username );
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			$query = "DELETE FROM projects WHERE owner=? AND access IN ( ?,?,?,?,? );";
+			$bind_variables = array(
+				$this->username,
+				"null",
+				null,
+				"[]",
+				"",
+				json_encode( array( $this->username ) )
+			);
+			$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
 			
-			if( $return > 0 ) {
+			if( $return > -1 ) {
 				
-				echo formatJSEND( "success", null );
+				$query = "DELETE FROM users WHERE username=?;";
+				$bind_variables = array( $this->username );
+				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+				
+				if( $return > 0 ) {
+					
+					echo formatJSEND( "success", null );
+				} else {
+					
+					echo formatJSEND( "error", "Error deleting user information." );
+				}
 			} else {
 				
-				echo formatJSEND( "error", "Error deleting user information." );
+				echo formatJSEND( "error", "Error deleting user project information." );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Error deleting user information." );
+			echo formatJSEND( "error", "Error deleting user option information." );
 		}
 	}
 	
@@ -116,11 +132,27 @@ class User {
 	
 	public function set_default_options() {
 		
-		$Settings = new Settings();
-		$Settings->username = $this->username;
 		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
-			$Settings->update_option( $option["name"], $option["value"], true );
+			global $sql;
+			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$bind_variables = array(
+				$option["name"],
+				$this->username,
+				$option["value"],
+			);
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result == 0 ) {
+				
+				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$bind_variables = array(
+					$option["value"],
+					$option["name"],
+					$this->username,
+				);
+				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			}
 		}
 	}
 
@@ -129,6 +161,12 @@ class User {
 	//////////////////////////////////////////////////////////////////
 	
 	public function Authenticate() {
+		
+		if( $this->username == "" || $this->password == "" ) {
+			
+			echo( formatJSEND( "error", "Username or password can not be blank." ) );
+			return;
+		}
 		
 		if( ! is_dir( SESSIONS_PATH ) ) {
 			

@@ -143,7 +143,6 @@
                 if (pass) {
                     $.post(_this.controller + '?action=create', {'username' : username , 'password' : password1 }, function(data) {
                         var createResponse = codiad.jsend.parse(data);
-                        console.log( data );
                         if (createResponse != 'error') {
                             codiad.message.success(i18n('User Account Created'))
                             _this.list();
@@ -165,6 +164,7 @@
                 e.preventDefault();
                 var username = $('#modal-content form input[name="username"]')
                     .val();
+                codiad.modal.show_loading();
                 $.get(_this.controller + '?action=delete&username=' + username, function(data) {
                     var deleteResponse = codiad.jsend.parse(data);
                     if (deleteResponse != 'error') {

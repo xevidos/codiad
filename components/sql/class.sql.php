@@ -92,10 +92,10 @@ class sql {
 		}
 		
 		$error = $statement->errorInfo();
-		
 		if( ! $error[0] == "00000" ) {
 			
-			echo var_export( $return, $error );
+			echo var_export( $error );
+			echo var_export( $return );
 			$return = $default;
 		}
 		

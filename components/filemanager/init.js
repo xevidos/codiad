@@ -59,13 +59,13 @@
 	        
             // Initialize node listener
             this.nodeListener();
-            this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.auto_reload_preview" ) == "true" );
+            this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
             
             console.log( this.auto_reload );
             
             amplify.subscribe( 'settings.save', async function() {
             
-	            let option = ( await codiad.settings.get_option( "codiad.filemanager.auto_reload_preview" ) == "true" );
+	            let option = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
 	            if( option != codiad.filemanager.auto_reload ) {
 	                
 	                //codiad.auto_save.reload_interval();
@@ -81,7 +81,6 @@
 
 				if( _this.auto_reload && editor !== null ) {
                    	
-                   _this.preview.addEventListener( "beforeunload", _this.closePreview );
                    codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
                }
 			});
@@ -483,7 +482,6 @@
                        
                        if( _this.auto_reload && editor !== null ) {
 	                       	
-	                       _this.preview.addEventListener( "beforeunload", _this.closePreview );
 	                       codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
                        }
                        
@@ -492,12 +490,6 @@
                 },
                 async: false
             });
-        },
-        
-        closePreview: function( event ) {
-        	
-        	_this = codiad.filemanager;
-        	_this.preview = null;
         },
         
         refreshPreview: function( event ) {
@@ -509,7 +501,22 @@
         		return;
         	}
         	
-        	_this.preview.location.reload();
+        	try {
+        		
+        		if( ( typeof _this.preview.location.reload ) == "undefined" ) {
+        		
+	        		_this.preview = null;
+	        		codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+	        		return;
+	        	}
+        		_this.preview.location.reload();
+        	} catch( e ) {
+        		
+        		console.log( e );
+        		codiad.message.error( 'Please close your previously opened preview window.' );
+        		_this.preview = null;
+        		codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+        	}
         },
         
         openInModal: function(path) {

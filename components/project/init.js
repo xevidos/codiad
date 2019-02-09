@@ -275,7 +275,7 @@
 		//////////////////////////////////////////////////////////////////
 		loadSide: async function() {
 			
-			this._sideExpanded = ( await codiad.settings.get_option( "codiad.projects.SideExpaned" ) == "true" );
+			this._sideExpanded = ( await codiad.settings.get_option( "codiad.projects.sideExpanded" ) == "true" );
 			$( '.sb-projects-content' ).load( this.dialog + '?action=sidelist&trigger='+ await codiad.settings.get_option( 'codiad.editor.fileManagerTrigger' ) );
 			
 			if ( ! this._sideExpanded ) {
@@ -323,7 +323,7 @@
 		projectsExpand: function() {
 			
 			this._sideExpanded = true;
-			codiad.settings.update_option( 'codiad.projects.SideExpaned', this._sideExpanded );
+			codiad.settings.update_option( 'codiad.projects.sideExpanded', this._sideExpanded );
 			$( '#side-projects' ).css( 'height', 276 + 'px' );
 			$( '.project-list-title' ).css( 'right', 0 );
 			$( '.sb-left-content' ).css( 'bottom', 276 + 'px' );
@@ -335,7 +335,7 @@
 		projectsCollapse: function() {
 			
 			this._sideExpanded = false;
-			codiad.settings.update_option( 'codiad.projects.SideExpaned', this._sideExpanded );
+			codiad.settings.update_option( 'codiad.projects.sideExpanded', this._sideExpanded );
 			$( '#side-projects' ).css( 'height', 33 + 'px' );
 			$( '.project-list-title' ).css( 'right', 0 );
 			$( '.sb-left-content' ).css( 'bottom', 33 + 'px' );

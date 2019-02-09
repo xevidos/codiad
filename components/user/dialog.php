@@ -107,6 +107,7 @@
             <pre><?php i18n("Account:"); ?> <?php echo($_GET['username']); ?></pre>
             <button class="btn-left"><?php i18n("Confirm"); ?></button>
 			<button class="btn-right" onclick="codiad.user.list();return false;"><?php i18n("Cancel"); ?></button>
+			<div class="loading"></div>
             <?php
             break;
 

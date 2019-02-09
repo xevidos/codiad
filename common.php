@@ -44,9 +44,9 @@ class Common {
 			}
 		}
 		
-		if( file_exists( $path . 'config.php' ) ) {
+		if( file_exists( __DIR__ . '/config.php' ) ) {
 			
-			require_once( $path . 'config.php' );
+			require_once( __DIR__ . '/config.php' );
 		}
 		
 		if( ! defined( 'BASE_PATH' ) ) {

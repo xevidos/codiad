@@ -18,7 +18,7 @@ class Project extends Common {
 	public $path         = '';
 	public $gitrepo      = false;
 	public $gitbranch    = '';
-	public $projects     = '';
+	public $projects     = array();
 	public $no_return    = false;
 	public $assigned     = false;
 	public $command_exec = '';
@@ -58,12 +58,9 @@ class Project extends Common {
 		$bind_variables = array( $project_name, $project_path, $owner );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $return > 0 ) {
+		if( ! ( $return > 0 ) ) {
 			
-			formatJSEND( "success", "Created project $project_name" );
-		} else {
-			
-			formatJSEND( "error", "Error creating project $project_name" );
+			exit( formatJSEND( "error", "Error creating project $project_name" ) );
 		}
 	}
 	
@@ -376,6 +373,13 @@ class Project extends Common {
 			if ( $this->path != '' ) {
 				
 				if( ! $this->public_project && ! $this->isAbsPath( $this->path ) ) {
+					
+					$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+					
+					if( ! is_dir( $user_path ) ) {
+						
+						mkdir( $user_path, 0755, true );
+					}
 					
 					$this->path =  $_SESSION["user"] . '/' . $this->path;
 				}

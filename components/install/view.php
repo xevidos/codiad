@@ -345,7 +345,7 @@ if ($newrelic) {
                     if(data=='success'){
                         window.location.reload();
                     }else{
-                        alert("An Error Occoured<br><br>"+data);
+                        alert("An Error Occoured\n"+data);
                     }
                 });
             }

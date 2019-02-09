@@ -11,10 +11,6 @@ class Settings {
 	const DEFAULT_OPTIONS = array(
 		array(
 			"name" => "codiad.editor.autocomplete",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.autosave",
 			"value" => "true",
 		),
 		array(
@@ -67,14 +63,18 @@ class Settings {
 		),
 		array(
 			"name" => "codiad.editor.wrapMode",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.settings.autosave",
 			"value" => "true",
 		),
 		array(
-			"name" => "codiad.settings.plugin.sync",
+			"name" => "codiad.filemanager.autoReloadPreview",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.projects.sideExpanded",
+			"value" => "true",
+		),
+		array(
+			"name" => "codiad.settings.autosave",
 			"value" => "true",
 		),
 		array(

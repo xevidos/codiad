@@ -140,7 +140,7 @@
                                 case "codiad.settings.autosave":
                                     var bool_val = (val == "true");
                                 break;
-                        		case "codiad.filemanager.auto_reload_preview":
+                        		case "codiad.filemanager.autoReloadPreview":
                                     var bool_val = (val == "true");
                                 break;
                             }

@@ -94,43 +94,28 @@ if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && de
 	$dbuser = $_POST['dbuser'];
 	$dbpass = $_POST['dbpass'];
 	
-	$connection = new PDO( "{$dbtype}:host={$dbhost};dbname={$dbname}", $dbuser, $dbpass );
+	try {
+		
+		$connection = new PDO( "{$dbtype}:host={$dbhost};dbname={$dbname}", $dbuser, $dbpass );
+	} catch( exception $e ) {
+		
+		die( "Could not connect to database." );
+		die();
+	}
 	$bind_vars = array();
 	$bind = "";
 	$sql = "
--- phpMyAdmin SQL Dump
--- version 4.6.6deb5
--- https://www.phpmyadmin.net/
---
--- Host: localhost:3306
--- Generation Time: Dec 11, 2018 at 05:31 PM
--- Server version: 5.7.24-0ubuntu0.18.04.1
--- PHP Version: 7.2.10-0ubuntu0.18.04.1
-
-SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
-SET time_zone = '+00:00';
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: code_test
---
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table options
 --
 
 CREATE TABLE IF NOT EXISTS options (
-  id int(11) NOT NULL,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(255) NOT NULL,
-  value text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  value text NOT NULL,
+  CONSTRAINT option_name UNIQUE (name)
+);
 
 -- --------------------------------------------------------
 
@@ -139,12 +124,13 @@ CREATE TABLE IF NOT EXISTS options (
 --
 
 CREATE TABLE IF NOT EXISTS projects (
-  id int(11) NOT NULL,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(255) NOT NULL,
   path varchar(255) NOT NULL,
   owner varchar(255) NOT NULL,
-  access text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  access text,
+  CONSTRAINT project UNIQUE (path, owner)
+);
 
 -- --------------------------------------------------------
 
@@ -153,7 +139,7 @@ CREATE TABLE IF NOT EXISTS projects (
 --
 
 CREATE TABLE IF NOT EXISTS users (
-  id int(11) NOT NULL,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   first_name varchar(255) DEFAULT NULL,
   last_name varchar(255) DEFAULT NULL,
   username varchar(255) NOT NULL,
@@ -162,79 +148,22 @@ CREATE TABLE IF NOT EXISTS users (
   project varchar(255) DEFAULT NULL,
   access varchar(255) NOT NULL,
   groups text,
-  token text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  token text,
+  CONSTRAINT username UNIQUE (username)
+);
 
 --
 -- Table structure for table user_options
 --
 
 CREATE TABLE IF NOT EXISTS user_options (
-  id int(11) NOT NULL,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(255) NOT NULL,
   username varchar(255) NOT NULL,
-  value text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  value text NOT NULL,
+  CONSTRAINT option_name UNIQUE (name,username)
+);
 
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table options
---
-ALTER TABLE options
-  ADD PRIMARY KEY (id),
-  ADD UNIQUE KEY option_name (name);
-
---
--- Indexes for table projects
---
-ALTER TABLE projects
-  ADD PRIMARY KEY (id),
-  ADD UNIQUE KEY project_path (path,owner);
-
---
--- Indexes for table users
---
-ALTER TABLE users
-  ADD PRIMARY KEY (id),
-  ADD UNIQUE KEY username (username);
-
---
--- Indexes for table user_options
---
-ALTER TABLE user_options
-  ADD PRIMARY KEY (id),
-  ADD UNIQUE KEY option_name (name,username);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table options
---
-ALTER TABLE options
-  MODIFY id int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table projects
---
-ALTER TABLE projects
-  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
---
--- AUTO_INCREMENT for table users
---
-ALTER TABLE users
-  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
---
--- AUTO_INCREMENT for table user_options
---
-ALTER TABLE user_options
-  MODIFY id int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2541;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 ";
 
 	try {
@@ -242,8 +171,13 @@ ALTER TABLE user_options
 		$result = $connection->exec($sql);
 	} catch( PDOException $e ) {
 		
-		echo $e->getMessage();
-		die();
+		die($e->getMessage());
+	}
+	
+	$error = $connection->errorInfo();
+	if( ! $error[0] == "00000" ) {
+		
+		die( $error[2] );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -281,7 +215,7 @@ ALTER TABLE user_options
 		}
 	}
 	
-	$bind_vars = array(
+	$bind_variables = array(
 		$project_name,
 		$project_path,
 		$username
@@ -289,8 +223,14 @@ ALTER TABLE user_options
 	$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,?);";
 	$statement = $connection->prepare( $query );
 	$statement->execute( $bind_variables );
+	$error = $statement->errorInfo();
 	
-	$bind_vars = array(
+	if( ! $error[0] == "00000" ) {
+		
+		die( $error[2] );
+	}
+	
+	$bind_variables = array(
 		"",
 		"",
 		$username,
@@ -301,19 +241,23 @@ ALTER TABLE user_options
 		"",
 		""
 	);
-	$query = "INSERT INTO users(first_name, last_name, username, password, email, project, access, groups, token) VALUES (?,?,?,PASSWORD(?),?,?,?,?,?)";
+	$query = "INSERT INTO users(first_name, last_name, username, password, email, project, access, groups, token) VALUES (?,?,?,?,?,?,?,?,?)";
 	$statement = $connection->prepare( $query );
 	$statement->execute( $bind_variables );
+	$error = $statement->errorInfo();
 	
+	if( ! $error[0] == "00000" ) {
+		
+		die( $error[2] );
+	}
 	
-	
-	
+
 	/**
 	* Create sessions path.
 	*/
 	
 	if ( ! is_dir( $sessions ) ) {
-	
+		
 		mkdir( $sessions, 00755 );
 	}
 	

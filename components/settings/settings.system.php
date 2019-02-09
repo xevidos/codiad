@@ -17,7 +17,7 @@
 	<tr>
 		<td><?php i18n("Auto Reload Preview"); ?></td>
 		<td>
-			<select class="setting" data-setting="codiad.filemanager.auto_reload_preview">
+			<select class="setting" data-setting="codiad.filemanager.autoReloadPreview">
 				<option value="false" default><?php i18n("False") ?></option>
 				<option value="true"><?php i18n("True") ?></option>
 			</select>
