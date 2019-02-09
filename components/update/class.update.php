@@ -24,7 +24,7 @@ class Update {
 	public $archive = "";
 	public $version = "";
 	public $protocol = "";
-	public $update_fiile = "";
+	public $update_file = "";
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
