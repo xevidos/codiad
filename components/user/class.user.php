@@ -410,6 +410,22 @@ class User {
 		}
 	}
 	
+	public function update_access() {
+		
+		global $sql;
+		$query = "UPDATE users SET access=? WHERE username=?;";
+		$bind_variables = array( $this->access, $this->username );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		
+		if( $return > 0 ) {
+			
+			echo formatJSEND( "success", "Updated access for {$this->username}" );
+		} else {
+			
+			echo formatJSEND( "error", "Error updating project" );
+		}
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// Verify Account Exists
 	//////////////////////////////////////////////////////////////////

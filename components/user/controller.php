@@ -147,5 +147,18 @@ if ($_GET['action']=='verify') {
 if ( $_GET['action'] == 'update_access' ) {
 
 	checkSession();
-	echo json_encode( array( $_GET["username"], $_GET["access"] ) );
+	
+	if ( ! isset( $_GET['access'] ) || ! isset( $_GET['username'] ) ) {
+		
+		die( formatJSEND( "error", "Could not update access." ) );
+	}
+	
+	if( ! is_admin() ) {
+		
+		die( formatJSEND( "error", "You do not have permission to update access." ) );
+	}
+	
+	$User->username = $_GET["username"];
+    $User->access  = $_GET["access"];
+	$User->update_access();
 }
