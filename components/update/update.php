@@ -56,69 +56,6 @@ class updater {
 	/**
 	 * Constants
 	 */
-	
-	const DEFAULT_OPTIONS = array(
-		array(
-			"name" => "codiad.editor.autocomplete",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.fileManagerTrigger",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.fontSize",
-			"value" => "14px",
-		),
-		array(
-			"name" => "codiad.editor.highlightLine",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.indentGuides",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.overScroll",
-			"value" => "0.5",
-		),
-		array(
-			"name" => "codiad.editor.persistentModal",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.printMargin",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.printMarginColumn",
-			"value" => "80",
-		),
-		array(
-			"name" => "codiad.editor.rightSidebarTrigger",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.softTabs",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.tabSize",
-			"value" => "4",
-		),
-		array(
-			"name" => "codiad.editor.theme",
-			"value" => "twilight",
-		),
-		array(
-			"name" => "codiad.editor.wrapMode",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.settings.autosave",
-			"value" => "true",
-		),
-	);
 	 
 	/**
 	 * Properties
@@ -253,12 +190,12 @@ class updater {
 		
 		require_once('../../common.php');
 		require_once('../sql/class.sql.php');
+		require_once('../settings/class.settings.php');
 		
 		$user_settings_file = DATA . "/settings.php";
 		$projects_file = DATA . "/projects.php";
 		$users_file = DATA . "/users.php";
-		
-		$sql = new sql();
+		global $sql;
 		$connection = $sql->connect();
 		
 		$query = "
@@ -485,7 +422,7 @@ DELETE FROM user_options;
 	
 	public function set_default_options() {
 		
-		foreach( self::DEFAULT_OPTIONS as $id => $option ) {
+		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
 			$this->update_option( $option["name"], $option["value"], true );
 		}
@@ -571,25 +508,32 @@ DELETE FROM user_options;
 	
 	public function update_option( $option, $value, $user_setting = null ) {
 		
+		$sql = new sql();
 		$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
-		$bind = "sss";
 		$bind_variables = array(
 			$option,
 			$this->username,
 			$value,
 		);
-		$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not add user's settings." ) );
+		$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $result !== true ) {
+		if( $result == 0 ) {
 			
 			$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
-			$bind = "sss";
 			$bind_variables = array(
 				$value,
 				$option,
 				$this->username,
 			);
-			$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not update user's settings." ) );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		}
+		
+		if( $result > 0 ) {
+			
+			echo formatJSEND( "success", null );
+		} else {
+			
+			echo formatJSEND( "error", "Error, Could not update option $option" );
 		}
 	}
 	
@@ -606,8 +550,10 @@ DELETE FROM user_options;
 
 if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 	
+	global $sql;
 	$updater = new updater();
 	$action = $_GET["action"];
+	$sql = new sql();
 	
 	switch( $action ) {
 		

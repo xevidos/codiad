@@ -27,7 +27,7 @@ Task List:
   
 * Add ability to login with LDAP
 * Add custom market
-* Add in new admin interface
+* Add in new admin interface ( Check admin-portal branch for progress )
 	- Group Management
 	- Permissions Management
 	- Plugin Management
@@ -37,6 +37,7 @@ Task List:
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
+* Add support for more database systems and test ( MSSQL, Oracle, Postgre SQL, SQLite, etc )
 * Clean up update script
 * Re Add the language recognition system after recode
 
@@ -47,6 +48,10 @@ Completed:
 * Add ability to center bottom of code
 * Add updating script
 * Add site renaming
+* Database Update
+	- Added Mysql Support.
+	- Project Updated to use PDO so future support for more database systems can be added.
+	- Updated to store program data ( Not project data ) in databases.
 * Fix JS errors already showing
 * Remove Codiad autocomplete in favor of Ace's
 * Updated for PHP 7.2

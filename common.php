@@ -201,15 +201,9 @@ class Common {
 		global $sql;
 		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
 		$bind_variables = array( $_SESSION["user"], "admin" );
-		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking user acess." ), 'fetchColumn' );
-		
-		if( $return > 0 ) {
-			
-			return( true );
-		} else {
-			
-			return( false );
-		}
+		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
+		$admin = ( $return > 0 );
+		return $admin;
 	}
 	
 	public static function logout() {
@@ -644,7 +638,7 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
-function is_admin() { Common::is_admin(); }
+function is_admin() { return Common::is_admin(); }
 function debug($message) { Common::debug($message); }
 function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
 function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }

@@ -142,3 +142,10 @@ if ($_GET['action']=='verify') {
     //$User->Verify();
     checkSession();
 }
+
+
+if ( $_GET['action'] == 'update_access' ) {
+
+	checkSession();
+	echo json_encode( array( $_GET["username"], $_GET["access"] ) );
+}
