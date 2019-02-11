@@ -208,26 +208,48 @@ class Settings {
 		}
 	}
 	
-	public function update_option( $option, $value, $user_setting = null ) {
+	public function update_option( $option, $value, $user_setting = true ) {
 		
 		global $sql;
-		$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
-		$bind_variables = array(
-			$option,
-			$this->username,
-			$value,
-		);
-		$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $result == 0 ) {
+		if( $user_setting == null ) {
 			
-			$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+			$query = "INSERT INTO options ( name, username, value ) VALUES ( ?, ? );";
 			$bind_variables = array(
-				$value,
 				$option,
-				$this->username,
+				$value,
 			);
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result == 0 ) {
+				
+				$query = "UPDATE options SET value=? WHERE name=?;";
+				$bind_variables = array(
+					$value,
+					$option,
+				);
+				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			}
+		} else {
+			
+			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$bind_variables = array(
+				$option,
+				$this->username,
+				$value,
+			);
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result == 0 ) {
+				
+				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$bind_variables = array(
+					$value,
+					$option,
+					$this->username,
+				);
+				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			}
 		}
 		
 		if( $result > 0 ) {
