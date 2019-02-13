@@ -69,7 +69,7 @@
 	            if( option != codiad.filemanager.auto_reload ) {
 	                
 	                //codiad.auto_save.reload_interval();
-	                window.location.reload();
+	                window.location.reload( true );
 	            }
 			});
             
@@ -509,7 +509,7 @@
 	        		codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
 	        		return;
 	        	}
-        		_this.preview.location.reload();
+        		_this.preview.location.reload( true );
         	} catch( e ) {
         		
         		console.log( e );
