@@ -32,8 +32,7 @@ class Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public static function construct() {
-		
-		global $cookie_lifetime;
+
 		$path = str_replace( "index.php", "", $_SERVER['SCRIPT_FILENAME'] );
 		foreach ( array( "components", "plugins" ) as $folder ) {
 			
@@ -201,15 +200,9 @@ class Common {
 		global $sql;
 		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
 		$bind_variables = array( $_SESSION["user"], "admin" );
-		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking user acess." ), 'fetchColumn' );
-		
-		if( $return > 0 ) {
-			
-			return( true );
-		} else {
-			
-			return( false );
-		}
+		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
+		$admin = ( $return > 0 );
+		return $admin;
 	}
 	
 	public static function logout() {
@@ -301,12 +294,6 @@ class Common {
 	public static function start_session() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
@@ -361,12 +348,6 @@ class Common {
 	public static function startSession() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
@@ -644,7 +625,7 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
-function is_admin() { Common::is_admin(); }
+function is_admin() { return Common::is_admin(); }
 function debug($message) { Common::debug($message); }
 function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
 function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }
