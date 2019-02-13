@@ -151,7 +151,7 @@ class Settings {
 		}
 		
 		if( ! empty( $return ) ) {
-				
+			
 			$return = $return["value"];
 		} else {
 			

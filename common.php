@@ -32,8 +32,7 @@ class Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public static function construct() {
-		
-		global $cookie_lifetime;
+
 		$path = str_replace( "index.php", "", $_SERVER['SCRIPT_FILENAME'] );
 		foreach ( array( "components", "plugins" ) as $folder ) {
 			
@@ -295,12 +294,6 @@ class Common {
 	public static function start_session() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
@@ -355,12 +348,6 @@ class Common {
 	public static function startSession() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
