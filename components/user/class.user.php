@@ -167,10 +167,13 @@ class User {
 	
 	public function Authenticate() {
 		
+		ini_set('display_errors', 1);
+		ini_set('display_startup_errors', 1);
+		error_reporting(E_ALL);
+		
 		if( $this->username == "" || $this->password == "" ) {
 			
-			echo( formatJSEND( "error", "Username or password can not be blank." ) );
-			return;
+			exit( formatJSEND( "error", "Username or password can not be blank." ) );
 		}
 		
 		if( ! is_dir( SESSIONS_PATH ) ) {
@@ -194,8 +197,7 @@ class User {
 				chown( SESSIONS_PATH, $server_user );
 			} catch( Exception $e ) {
 				
-				echo( formatJSEND("error", "Error, incorrect owner of sessions folder.  Expecting: $server_user, Recieved: " . $sessions_owner ) );
-				return;
+				exit( formatJSEND("error", "Error, incorrect owner of sessions folder.  Expecting: $server_user, Recieved: " . $sessions_owner ) );
 			}
 		}
 		
@@ -206,8 +208,7 @@ class User {
 				chmod( SESSIONS_PATH, 00755 );
 			} catch( Exception $e ) {
 				
-				echo( formatJSEND("error", "Error, incorrect permissions on sessions folder.  Expecting: 0755, Recieved: " . $sessions_permissions ) );
-				return;
+				exit( formatJSEND("error", "Error, incorrect permissions on sessions folder.  Expecting: 0755, Recieved: " . $sessions_permissions ) );
 			}
 		}
 		

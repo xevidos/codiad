@@ -71,11 +71,22 @@
 		//////////////////////////////////////////////////////////////////
 		
 		authenticate: function() {
-			$.post(this.controller + '?action=authenticate', this.loginForm.serialize(), function(data) {
-				parsed = codiad.jsend.parse(data);
-				if(parsed != 'error') {
-					// Session set, reload
-					window.location.reload();
+			
+			$.ajax({
+				type: "POST",
+				url: this.controller + '?action=authenticate',
+				data: this.loginForm.serialize(),
+				success: function( data ) {
+					
+					parsed = codiad.jsend.parse(data);
+					if( parsed != 'error' ) {
+						// Session set, reload
+						window.location.reload();
+					}
+				},
+				error: function( XMLHttpRequest, textStatus, errorThrown ) {
+					
+					console.log( XMLHttpRequest, textStatus, errorThrown );
 				}
 			});
 		},
