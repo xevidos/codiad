@@ -8,12 +8,10 @@
 
 require_once( './config.php' );
 require_once( './common.php' );
-require_once( './components/sql/class.sql.php' );
 
 class api {
 	
 	private $sql = null;
-	
 	public $user = null;
 	
 	public function __construct() {
@@ -23,30 +21,51 @@ class api {
 			"user",
 		);
 		
+		if( isset( $_POST["action"] ) ) {
+			
+			$request = $_POST;
+		} elseif( isset( $_GET["action"] ) ) {
+			
+			$request = $_GET;
+		} else {
+			
+			$this->return( "error", "Error, action was expected but not recieved." );
+		}
+		
 		foreach( $requirements as $requirement ) {
 			
-			if( ! isset( $_POST[$requirement] ) ) {
+			if( ! isset( $request[$requirement] ) ) {
 				
 				$this->return( "error", "Error, '$requirement' was expected but not recieved." );
 			}
 		}
 		
-		if( isset( $_POST["action"] ) ) {
+		if( isset( $request["action"] ) ) {
 			
-			$action = $_POST["action"];
+			$action = $request["action"];
 			
 			if( $action === "get_token" ) {
 				
-				if( isset( $_POST["user"] ) && isset( $_POST["password"] ) ) {
+				if( isset( $request["user"] ) && isset( $request["password"] ) ) {
 					
-					$this->get_token( $_POST["user"], $_POST["password"] );
+					$this->get_token( $request["user"], $request["password"] );
 				}
 				exit();
 			}
 			
-			$this->user = $_POST["user"];
-			$_SESSION["user"] = $_POST["user"];
-			$_SESSION["token"] = $_POST["token"];
+			if( ! isset( $request["token"] ) ) {
+				
+				$this->return( "error", "Error, token was expected but not recieved." );
+			}
+			
+			if( ! isset( $request["atts"] ) ) {
+				
+				$this->return( "error", "Error, atts were expected but not recieved." );
+			}
+			
+			$this->user = $request["user"];
+			$_SESSION["user"] = $request["user"];
+			$_SESSION["token"] = $request["token"];
 			
 			
 			
@@ -58,11 +77,11 @@ class api {
 				//require_once( "./components/settings/class.settings.php" );
 				//require_once( "./components/user/class.user.php" );
 				
-				$atts = json_decode( $_POST["atts"], true );
+				$atts = json_decode( $request["atts"], true );
 				
 				if ( json_last_error() !== JSON_ERROR_NONE ) {
 					
-					$atts = $_POST["atts"];
+					$atts = $request["atts"];
 				}
 				call_user_func( array( $this, $action ), $atts );
 			} else {
@@ -75,15 +94,18 @@ class api {
 	
 	function check_session() {
 		
+		global $sql;
 		$pass = false;
-		$sql = "SELECT * FROM users WHERE username=? AND token=?;";
-		$bind = "ss";
-		$bind_variables = array( $_SESSION["user"], $_SESSION["token"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking access." ) );
+		$query = "SELECT * FROM users WHERE username=? AND token=?;";
+		$bind_variables = array( $_SESSION["user"], sha1( $_SESSION["token"] ) );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( $return > 0 ) {
 			
 			$pass = true;
+		} else {
+			
+			$pass = false;
 		}
 		
 		return( $pass );
@@ -127,32 +149,23 @@ class api {
 	
 	function get_token( $username, $password ) {
 		
+		global $sql;
 		$pass = false;
-		$sql = "SELECT * FROM users WHERE username=? AND password=PASSWORD( ? );";
-		$bind = "ss";
+		$query = "SELECT * FROM users WHERE username=? AND password=?;";
 		$bind_variables = array( $username, $this->encrypt( $password ) );
-		$return = sql::sql( $sql, $bind, $bind_variables, "Error fetching user information." );
+		$return = $sql->query( $query, $bind_variables, array() );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( ! empty( $return ) ) {
 			
 			$pass = true;
-			$user = mysqli_fetch_assoc( $return );
+			$user = $return[0];
 			$_SESSION['user'] = $username;
 			
-			if( $user["token"] == null ) {
-				
-				$token = mb_strtoupper( strval( bin2hex( openssl_random_pseudo_bytes( 16 ) ) ) );
-				$_SESSION['token'] = $token;
-				$sql = "UPDATE users SET token=PASSWORD( ? ) WHERE username=?;";
-				$bind = "ss";
-				$bind_variables = array( $token, $username );
-				sql::sql( $sql, $bind, $bind_variables, "Error updating user information." );
-				
-			} else {
-				
-				$token = $user["token"];
-				$_SESSION['token'] = $token;
-			}
+			$token = mb_strtoupper( strval( bin2hex( openssl_random_pseudo_bytes( 16 ) ) ) );
+			$_SESSION['token'] = $token;
+			$query = "UPDATE users SET token=? WHERE username=?;";
+			$bind_variables = array( sha1( $token ), $username );
+			$sql->query( $query, $bind_variables, 0, "rowCount" );
 		}
 		
 		if( $pass ) {
