@@ -72,13 +72,15 @@
 		
 		authenticate: function() {
 			
+			console.log( this.loginForm.serialize() );
+			
 			$.ajax({
 				type: "POST",
 				url: this.controller + '?action=authenticate',
 				data: this.loginForm.serialize(),
 				success: function( data ) {
 					
-					parsed = codiad.jsend.parse(data);
+					let parsed = codiad.jsend.parse( data );
 					if( parsed != 'error' ) {
 						// Session set, reload
 						window.location.reload();

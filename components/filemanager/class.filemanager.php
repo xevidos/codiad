@@ -526,6 +526,8 @@ class Filemanager extends Common {
 			$explode = explode( '/', $this->path );
 			array_pop( $explode );
 			$new_path = implode( "/", $explode ) . "/" . $this->new_name;
+			$new_path = $this->cleanPath( $new_path );
+			
 			if ( ! file_exists( $new_path ) ) {
 				
 				if ( rename( $this->path, $new_path ) ) {
@@ -753,19 +755,32 @@ class Filemanager extends Common {
 	
 	public static function cleanPath( $path ) {
 		
-		// replace backslash with slash
-		$path = str_replace( '\\', '/', $path );
-		
-		// allow only valid chars in paths$
-		$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
-		// maybe this is not needed anymore
-		// prevent Poison Null Byte injections
-		$path = str_replace( chr( 0 ), '', $path );
-		
-		// prevent go out of the workspace
+		// Prevent going out of the workspace
 		while ( strpos( $path, '../' ) !== false ) {
 			
 			$path = str_replace( '../', '', $path );
+		}
+		
+		if( Filemanager::isAbsPath( $path ) ) {
+			
+			$full_path = $path;
+		} else {
+			
+			$full_path = WORKSPACE . "/" . $path;
+		}
+		
+		/**
+		 * If a file with an invalid character exists and the user is
+		 * trying to rename or delete it, allow the actual file name.
+		 */
+		
+		echo var_dump( file_exists( $full_path ),($_GET['action'] == "modify"),($_GET['action'] == "delete" ), $path, $full_path );
+		
+		if( file_exists( $full_path ) && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+		} else {
+			
+			// Only allow certain characters in filenames
+			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
 		}
 		
 		return $path;

@@ -190,6 +190,11 @@ class User {
 		$sessions_permissions = substr( sprintf( '%o', fileperms( SESSIONS_PATH ) ), -4 );
 		$sessions_owner = posix_getpwuid( fileowner( SESSIONS_PATH ) );
 		
+		if( is_array( $server_user ) ) {
+			
+			$server_user = $server_user["uid"];
+		}
+		
 		if( ! ( $sessions_owner === $server_user ) ) {
 			
 			try {
@@ -251,7 +256,7 @@ class User {
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
 			$bind_variables = array( sha1( $token ), $this->username );
-			$sql->query( $query, $bind_variables, 0, 'rowCount' );
+			$return = $sql->query( $query, $bind_variables, 0, 'rowCount' );
 			
 			if( isset( $user['project'] ) && $user['project'] != '' ) {
 				
@@ -274,9 +279,12 @@ class User {
 	* Check duplicate sessions
 	* 
 	* This function checks to see if the user is currently logged in
-	* on any other machine and if they are then log them off.  This
-	* will fix the issue with the new auto save attempting to save both
-	* users at the same time.
+	* on any other machine and if they are then log them off using
+	* session_destroy, otherwise close the session without saving data
+	* using session abort().
+	* 
+	* This should help fix the issue with auto save
+	* attempting to save both users at the same time.
 	*/
 	
 	public static function checkDuplicateSessions( $username ) {
