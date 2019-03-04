@@ -32,7 +32,7 @@ if ($_GET['action']=='authenticate') {
         die(formatJSEND("error", "Missing username or password"));
     }
         
-    $User->username = $_POST['username'];
+    $User->username = User::CleanUsername( $_POST['username'] );
     $User->password = $_POST['password'];
 
     // check if the asked languages exist and is registered in languages/code.php
@@ -68,7 +68,7 @@ if ($_GET['action']=='create') {
             die(formatJSEND("error", "Missing username or password"));
         }
             
-        $User->username = User::CleanUsername($_POST['username']);
+        $User->username = User::CleanUsername( $_POST['username'] );
         $User->password = $_POST['password'];
         $User->Create();
     }
@@ -84,7 +84,7 @@ if ($_GET['action']=='delete') {
             die(formatJSEND("error", "Missing username"));
         }
             
-        $User->username = $_GET['username'];
+        $User->username = User::CleanUsername( $_GET['username'] );
         $User->Delete();
     }
 }
@@ -99,7 +99,7 @@ if ($_GET['action']=='password') {
     }
         
     if (checkAccess() || $_POST['username'] == $_SESSION['user']) {
-        $User->username = $_POST['username'];
+        $User->username = User::CleanUsername( $_POST['username'] );
         $User->password = $_POST['password'];
         $User->Password();
     }
