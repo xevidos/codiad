@@ -196,11 +196,11 @@ class Filemanager extends Common {
 					
 					if ( $data['type'] == 'directory' ) {
 						
-						$folders[] = array( "name"=>$data['name'], "type"=>$data['type'], "size"=>$data['size'] );
+						$folders[] = array( "name"=>htmlentities($data['name'], ENT_QUOTES), "type"=>$data['type'], "size"=>$data['size'] );
 					}
 					if ( $data['type'] == 'file' ) {
 						
-						$files[] = array( "name"=>$data['name'], "type"=>$data['type'], "size"=>$data['size'] );
+						$files[] = array( "name"=>htmlentities($data['name'], ENT_QUOTES), "type"=>$data['type'], "size"=>$data['size'] );
 					}
 				}
 				
@@ -709,7 +709,7 @@ class Filemanager extends Common {
 							"url"=>$add,
 							"thumbnail_url"=>$add,
 							"delete_url"=>$add,
-							"delete_type"=>"DELETE"
+							"delete_type"=>'DELETE'
 						);
 					}
 				}
