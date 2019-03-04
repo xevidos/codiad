@@ -166,7 +166,10 @@ if ($newrelic) {
     <label><?php i18n("Database Pass"); ?></label>
     <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
     <label><?php i18n("Database Type"); ?></label>
-    <input type="text" name="dbtype" value="<?php echo($autocomplete['dbtype']); ?>">
+    <select name="dbtype">
+        <option value="mysql">MySQL</option>
+        <option value="postgresql">PostgreSQL</option>
+    </select>
     <hr>
         <?php
         $location = array(

@@ -70,7 +70,7 @@ function cleanPath( $path ) {
 // Verify no overwrites
 //////////////////////////////////////////////////////////////////////
 
-if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && defined( "DBPASS" ) && defined( "DBTYPE" ) ) ) {
+if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && defined( 'DBPASS' ) && defined( 'DBTYPE' ) ) ) {
 	
 	//////////////////////////////////////////////////////////////////
 	// Get POST responses
@@ -95,15 +95,16 @@ if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && de
 	$dbpass = $_POST['dbpass'];
 	
 	//Valid databases Codiad is able to use
-	$aValidDBType = [
-		'mysql'
-		,'postgresql'
-		//,'sqlite'
+	$db_types = [
+		'mysql',
+		'postgresql',
+		//'sqlite',
 	];
 
 	//Is selected database type valid?
-	if(!in_array($dbtype,$aValidDBType)){
-		die( "Invalid database. Please select one of ".implode(", ",$aValidDBType)."." );
+	if( ! in_array( $dbtype, $db_types ) ) {
+		
+		die( "Invalid database. Please select one of " . implode( ", ", $db_types ) . "." );
 	}
 
 	try {
@@ -116,16 +117,18 @@ if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && de
 	}
 	$bind_vars = array();
 	$bind = "";
-	$database_sql_fullpath = $path.'/components/install/sql/'.$dbtype.".sql";
-	if(!is_file($database_sql_fullpath)){
+	$database_sql_fullpath = $path . '/components/install/sql/' . $dbtype . '.sql';
+	if( ! is_file( $database_sql_fullpath ) ) {
+		
         die("Could not find the sql of the database ".$dbtype." to execute");
 	}
-    $sql = file_get_contents($database_sql_fullpath);
+    $sql = file_get_contents( $database_sql_fullpath );
     
 
 	try {
+		
 		//Create the database
-		$result = $connection->exec($sql);
+		$result = $connection->exec( $sql );
 	} catch( PDOException $e ) {
 		
 		die($e->getMessage());
