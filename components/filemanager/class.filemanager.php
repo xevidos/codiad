@@ -709,7 +709,7 @@ class Filemanager extends Common {
 							"url"=>$add,
 							"thumbnail_url"=>$add,
 							"delete_url"=>$add,
-							"delete_type"=>"DELETE"
+							"delete_type"=>'DELETE'
 						);
 					}
 				}
