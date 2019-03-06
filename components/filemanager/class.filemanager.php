@@ -774,15 +774,16 @@ class Filemanager extends Common {
 		 * trying to rename or delete it, allow the actual file name.
 		 */
 		
-		echo var_dump( file_exists( $full_path ),($_GET['action'] == "modify"),($_GET['action'] == "delete" ), $path, $full_path );
 		
-		if( file_exists( $full_path ) && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+		
+		if( preg_match( '/[^A-Za-z0-9\-\._\/\ ]/', $path ) && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+			
+			exit( '{"status":"error","message":"Error, the filename contains invalid characters, please either rename or delete it."}' );
+		} elseif( preg_match( '/[^A-Za-z0-9\-\._\/\ ]/', $path ) && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 		} else {
 			
-			// Only allow certain characters in filenames
 			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
 		}
-		
 		return $path;
 	}
 }
