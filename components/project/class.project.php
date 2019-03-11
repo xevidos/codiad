@@ -392,6 +392,11 @@ class Project extends Common {
 						mkdir( WORKSPACE . '/' . $this->path );
 					} else {
 						
+						if( ! is_admin() ) {
+							
+							die( formatJSEND( "error", "Absolute Paths are only allowed for admins" ) );
+						}
+						
 						if ( defined( 'WHITEPATHS' ) ) {
 							
 							$allowed = false;
