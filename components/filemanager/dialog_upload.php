@@ -19,7 +19,7 @@ checkSession();
 <label><?php i18n("Upload Files"); ?></label>
 <div id="upload-drop-zone">
 	<span id="upload-wrapper">
-		<input id="fileupload" type="file" name="upload[]" data-url="components/filemanager/controller.php?action=upload&path=<?php echo($_GET['path']); ?>" multiple directory webkitdirectory mozdirectory>
+		<input id="fileupload" type="file" name="upload[]" data-url="components/filemanager/controller.php?action=upload&path=<?php echo($_GET['path']); ?>" multiple>
 		<span id="upload-clicker"><?php i18n("Drag Files or Click Here to Upload"); ?></span>
 	</span>
 	<div id="upload-progress"><div class="bar"></div></div>

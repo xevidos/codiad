@@ -167,10 +167,6 @@ class User {
 	
 	public function Authenticate() {
 		
-		ini_set('display_errors', 1);
-		ini_set('display_startup_errors', 1);
-		error_reporting(E_ALL);
-		
 		if( $this->username == "" || $this->password == "" ) {
 			
 			exit( formatJSEND( "error", "Username or password can not be blank." ) );
@@ -238,6 +234,10 @@ class User {
 				
 				$query = "UPDATE users SET password=? WHERE username=?;";
 				$bind_variables = array( $this->password, $this->username );
+				$return = $sql->query( $query, $bind_variables, array() );
+				
+				$query = "SELECT * FROM users WHERE username=? AND password=?;";
+				$bind_variables = array( $this->username, $this->password );
 				$return = $sql->query( $query, $bind_variables, array() );
 			}
 		}

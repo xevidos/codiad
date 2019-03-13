@@ -72,8 +72,6 @@
 		
 		authenticate: function() {
 			
-			console.log( this.loginForm.serialize() );
-			
 			$.ajax({
 				type: "POST",
 				url: this.controller + '?action=authenticate',
