@@ -33,6 +33,7 @@
 		
 		// Allows relative `this.path` linkage
 		auto_save_trigger: null,
+		change: null,
 		content: null,
 		editor: null,
 		invalid_states: [ "", " ", null, undefined ],
@@ -113,7 +114,7 @@
 				
 				_this.editor = codiad.editor.getActive();
 				_this.content = codiad.editor.getContent();
-				_this.editor.addEventListener( "change", _this.auto_save );
+				_this.change = _this.editor.addEventListener( "change", _this.auto_save );
 			});
 		},
 		
@@ -199,6 +200,13 @@
 				}
 			}
 			_this.saving = false;
+			
+			setTimeout(function() {
+				
+				//Call the function again after one second so that if we missed the last change we resave the file.
+				let _this = codiad.auto_save;
+				_this.auto_save();
+			}, 1000);
 		},
 		
 		reload_interval: async function() {
