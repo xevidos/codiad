@@ -344,11 +344,14 @@ if ($newrelic) {
             if(!password_match){ alert('The passwords entered do not match'); }
 
             if(!empty_fields && password_match && check_path){
-                $.post('components/install/process.php',$('#install').serialize(),function(data){
-                    if(data=='success'){
+                $.post('components/install/process.php',$('#install').serialize(),function( data ) {
+                	
+                    if( data == 'success' ){
                         window.location.reload();
-                    }else{
-                        alert("An Error Occoured\n"+data);
+                    } else {
+                		data = JSON.parse( data );
+                		console.log( data.error );
+                        alert( "An Error Occurred\n" + data.message );
                     }
                 });
             }

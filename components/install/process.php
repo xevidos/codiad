@@ -1,5 +1,4 @@
 <?php
-
 /*
 *  Copyright (c) Codiad & Kent Safranski (codiad.com), Isaac Brown (telaaedifex.com),
 *  distributed as-is and without warranty under the MIT License. See
@@ -27,7 +26,7 @@ $config = $path . "/config.php";
 
 function saveFile( $file, $data ) {
 	
-	$write = fopen( $file, 'w' ) or die( "can't open file" );
+	$write = fopen( $file, 'w' ) or die( '{"message": "can\'t open file"}' );
 	fwrite( $write, $data );
 	fclose( $write );
 }
@@ -104,26 +103,24 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 	//Is selected database type valid?
 	if( ! in_array( $dbtype, $db_types ) ) {
 		
-		die( "Invalid database. Please select one of " . implode( ", ", $db_types ) . "." );
+		die( '{"message": "Invalid database. Please select one of the following: ' . implode( ", ", $db_types ) . '.", "error": "' . addslashes(json_encode( array( $dbtype, $db_types ) ) ) . '"}' );
 	}
 
 	try {
 		
 		$connection = new PDO( "{$dbtype}:host={$dbhost};dbname={$dbname}", $dbuser, $dbpass );
-	} catch( exception $e ) {
+	} catch( PDOException $e ) {
 		
-		die( "Could not connect to database." );
-		die();
+		die( '{"message":"Could not connect to database.","error":"' . addslashes( json_encode( $e->getMessage() ) ) .'"}' );
 	}
 	$bind_vars = array();
 	$bind = "";
 	$database_sql_fullpath = $path . '/components/install/sql/' . $dbtype . '.sql';
 	if( ! is_file( $database_sql_fullpath ) ) {
 		
-        die("Could not find the sql of the database ".$dbtype." to execute");
+        die( '{"message":"Could not find the sql script for the database type: ' . $dbtype . '","error":"' . addslashes( json_encode( array( "path" => $database_sql_fullpath, "dbtype" => $dbtype ) ) ) .'"}' );
 	}
     $sql = file_get_contents( $database_sql_fullpath );
-    
 
 	try {
 		
@@ -131,13 +128,13 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 		$result = $connection->exec( $sql );
 	} catch( PDOException $e ) {
 		
-		die($e->getMessage());
+		die( '{"message":"Could not create initial tables in database.","error":"' . addslashes( json_encode( $e->getMessage() ) ) .'"}' );
 	}
 	
 	$error = $connection->errorInfo();
 	if( ! $error[0] == "00000" ) {
 		
-		die( $error[2] );
+		die( '{"message":"Could not create initial tables in database.","error":"' . addslashes( json_encode( $error ) ) .'"}' );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -164,13 +161,13 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 			
 			if ( ! mkdir( $project_path . '/', 0755, true ) ) {
 				
-				die( "Unable to create Absolute Path" );
+				die( '{"message": "Unable to create Absolute Path"}' );
 			}
 		} else {
 			
 			if ( ! is_writable( $project_path ) || ! is_readable( $project_path ) ) {
 				
-				die( "No Read/Write Permission" );
+				die( '{"message": "No Read/Write Permission"}' );
 			}
 		}
 	}
@@ -187,7 +184,7 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 	
 	if( ! $error[0] == "00000" ) {
 		
-		die( $error[2] );
+		die( '{"message":"Could not create project in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
 	}
 	
 	$bind_variables = array(
@@ -208,7 +205,7 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 	
 	if( ! $error[0] == "00000" ) {
 		
-		die( $error[2] );
+		die( '{"message":"Could not create user in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
 	}
 	
 
