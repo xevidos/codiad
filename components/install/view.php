@@ -49,6 +49,14 @@ $autocomplete = array(
   'dbtype' => 'mysql',
 );
 
+//Valid databases Codiad is able to use
+$aValidDBType = [
+    'mysql'
+    ,'postgresql'
+    ,'sqlite'
+];
+
+
 if (!empty($query)) {
     $params = explode('&', $query);
     foreach ($params as $param) {
@@ -111,12 +119,21 @@ if ($newrelic) {
 
         <label><?php i18n("Dependencies"); ?></label>
         <div id="dependencies">
-            <?php foreach (array("ZIP", "OpenSSL", "MBString") as $dep) {
+		<?php foreach ([
+			"ZIP"=>"required",
+			"OpenSSL"=>"required",
+			"MBString"=>"required",
+			"MySQL"=>"",
+			"PGSQL"=>"",
+			"SQLite3"=>""
+		] as $dep=>$status) {
                 if (extension_loaded(strtolower($dep))) { ?>
                     <div class="success"><span class="icon-check"></span> <?=$dep?></div>
                 <?php
-                } else { ?>
-                    <div class="error"><span class="icon-cancel"></span> <?=$dep?></div>
+		} else {
+                    $class_name = ($status == 'required') ? 'error' : 'warning';
+                ?>
+		    <div class="<?php echo $class_name; ?>"><span class="icon-cancel"></span> <?=$dep?></div>
 <?php
                 }
 } ?>
@@ -166,7 +183,20 @@ if ($newrelic) {
     <label><?php i18n("Database Pass"); ?></label>
     <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
     <label><?php i18n("Database Type"); ?></label>
-    <input type="text" name="dbtype" value="<?php echo($autocomplete['dbtype']); ?>">
+    <select name="dbtype">
+        <?php
+        foreach ($aValidDBType as $pos => $key) {
+            if ($autocomplete['dbtype'] == $key) {
+                $select_dbtypes .= '<option selected="selected" value="' . $key . '">' . $key . '</option>';
+            } else {
+                $select_dbtypes .= '<option value="' . $key . '">' . $key . '</option>';
+            }
+        }
+        echo($select_dbtypes);
+        unset($select_dbtypes);
+        ?>
+ 
+    </select>
     <hr>
         <?php
         $location = array(
@@ -266,6 +296,7 @@ if ($newrelic) {
     <label><?php i18n("Timezone"); ?></label>
     <select name="timezone">
         <?php
+	$timezones = "";
         foreach ($location as $key => $city) {
             if ($autocomplete['timezone'] == $key) {
                 $timezones .= '<option selected="selected" value="' . $key . '">' . $city . '</option>';
@@ -273,7 +304,8 @@ if ($newrelic) {
                 $timezones .= '<option value="' . $key . '">' . $city . '</option>';
             }
         }
-        echo($timezones);
+	echo($timezones);
+	unset($timezones);
         ?>
     </select>
     <button><?php i18n("Install"); ?></button>
