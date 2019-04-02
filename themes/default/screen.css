@@ -169,6 +169,10 @@ label .icon {
 	color: green;
 }
 
+#dependencies .warning {
+	color: yellow;
+}
+
 select option { background: #242424; }
 
 textarea {
