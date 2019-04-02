@@ -52,7 +52,7 @@ $autocomplete = array(
 //Valid databases Codiad is able to use
 $aValidDBType = [
     'MySQL'=>'mysql'
-    ,'PostgreSQL'=>'postgresql'
+    ,'PostgreSQL'=>'pgsql'
     ,'SQLite'=>'sqlite'
 ];
 

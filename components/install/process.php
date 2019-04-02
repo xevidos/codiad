@@ -96,7 +96,7 @@ if ( ! ( defined( 'DBHOST' ) && defined( 'DBNAME' ) && defined( 'DBUSER' ) && de
 	//Valid databases Codiad is able to use
 	$db_types = [
 		'mysql',
-		'postgresql',
+		'pgsql',
 		//'sqlite',
 	];
 
