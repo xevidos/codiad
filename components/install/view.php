@@ -51,9 +51,9 @@ $autocomplete = array(
 
 //Valid databases Codiad is able to use
 $aValidDBType = [
-    'mysql'
-    ,'postgresql'
-    ,'sqlite'
+    'MySQL'=>'mysql'
+    ,'PostgreSQL'=>'postgresql'
+    ,'SQLite'=>'sqlite'
 ];
 
 
@@ -185,17 +185,16 @@ if ($newrelic) {
     <label><?php i18n("Database Type"); ?></label>
     <select name="dbtype">
         <?php
-        foreach ($aValidDBType as $pos => $key) {
+        foreach ($aValidDBType as $db_name => $key) {
             if ($autocomplete['dbtype'] == $key) {
-                $select_dbtypes .= '<option selected="selected" value="' . $key . '">' . $key . '</option>';
+                $select_dbtypes .= '<option selected="selected" value="' . $key . '">' . $db_name . '</option>';
             } else {
-                $select_dbtypes .= '<option value="' . $key . '">' . $key . '</option>';
+                $select_dbtypes .= '<option value="' . $key . '">' . $db_name . '</option>';
             }
         }
         echo($select_dbtypes);
         unset($select_dbtypes);
         ?>
- 
     </select>
     <hr>
         <?php
@@ -373,11 +372,14 @@ if ($newrelic) {
             if(!password_match){ alert('The passwords entered do not match'); }
 
             if(!empty_fields && password_match && check_path){
-                $.post('components/install/process.php',$('#install').serialize(),function(data){
-                    if(data=='success'){
+                $.post('components/install/process.php',$('#install').serialize(),function( data ) {
+                	
+                    if( data == 'success' ){
                         window.location.reload();
-                    }else{
-                        alert("An Error Occoured\n"+data);
+                    } else {
+                		data = JSON.parse( data );
+                		console.log( data.error );
+                        alert( "An Error Occurred\n" + data.message );
                     }
                 });
             }

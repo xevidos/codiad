@@ -44,7 +44,7 @@ Dual licensed under the MIT or GPL licenses.
 		
 		setItem: async function( key, value ) {
 			
-			let value = await codiad.settings.update_option( key, value );
+			let return_value = await codiad.settings.update_option( key, value );
 		},
 	}
 	

@@ -296,8 +296,13 @@
         //////////////////////////////////////////////////////////////////
 
         getType: function(path) {
-            return $('#file-manager a[data-path="' + path + '"]')
-                .attr('data-type');
+        	
+        	if( path.match( /\\/g ) ) {
+        		
+        		path = path.replace( '\\', '\\\\' );
+        	}
+        	
+            return $('#file-manager a[data-path="' + path + '"]').attr('data-type');
         },
 
         //////////////////////////////////////////////////////////////////
@@ -611,6 +616,7 @@
             });
             $('#modal-content form')
                 .live('submit', function(e) {
+                	let project = codiad.project.getCurrent();
                     e.preventDefault();
                     var shortName = $('#modal-content form input[name="object_name"]')
                         .val();
@@ -631,7 +637,7 @@
                                 codiad.filemanager.openFile(createPath, true);
                             }
                             
-                            codiad.filemanager.rescan( path );
+                            codiad.filemanager.rescan( project );
                             
                             /* Notify listeners. */
                             amplify.publish('filemanager.onCreate', {createPath: createPath, path: path, shortName: shortName, type: type});
@@ -660,6 +666,7 @@
             } else if (path == this.clipboard) {
                 codiad.message.error(i18n('Cannot Paste Directory Into Itself'));
             } else {
+            	let project = codiad.project.getCurrent();
                 var shortName = _this.getShortName(_this.clipboard);
                 if ($('#file-manager a[data-path="' + path + '/' + shortName + '"]')
                     .length) { // Confirm overwrite?
@@ -680,7 +687,7 @@
                     _this.processPasteNode(path,false);
                 }
                 
-                codiad.filemanager.rescan( path );
+                codiad.filemanager.rescan( project );
             }
         },
 		
@@ -713,6 +720,7 @@
             codiad.modal.load(250, this.dialog, { action: 'rename', path: path, short_name: shortName, type: type});
             $('#modal-content form')
                 .live('submit', function(e) {
+                	let project = codiad.project.getCurrent();
                     e.preventDefault();
                     var newName = $('#modal-content form input[name="object_name"]')
                         .val();
@@ -725,11 +733,19 @@
                     var newPath = temp.join('/') + '/' + newName;
                     $.get(_this.controller, { action: 'modify', path: path, new_name: newName} , function(data) {
                         var renameResponse = codiad.jsend.parse(data);
+                        let renamedMessage = "";
                         if (renameResponse != 'error') {
-                            codiad.message.success(type.charAt(0)
-                                .toUpperCase() + type.slice(1) + ' Renamed');
+                        	
+                        	if( type == undefined ) {
+                        		
+                        		renamedMessage = 'Successfully Renamed'
+                        	} else {
+                        		
+                            	renamedMessage = type.charAt(0).toUpperCase() + type.slice(1) + ' Renamed'
+                        	}
+                        	
+                            codiad.message.success(renamedMessage);
                             var node = $('#file-manager a[data-path="' + path + '"]');
-                            let parentPath = node.parent().parent().prev().attr('data-path');
                             // Change pathing and name for node
                             node.attr('data-path', newPath)
                                 .html(newName);
@@ -745,9 +761,9 @@
                             // Change any active files
                             codiad.active.rename(path, newPath);
                             codiad.modal.unload();
-                            codiad.filemanager.rescan( parentPath );
+                            codiad.filemanager.rescan( project );
                             /* Notify listeners. */
-                        	amplify.publish('filemanager.onRename', {path: path, newPath: newPath, parentPath: parentPath });
+                        	amplify.publish('filemanager.onRename', {path: path, newPath: newPath, project: project });
                         }
                     });
                 });

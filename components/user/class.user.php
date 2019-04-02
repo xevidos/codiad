@@ -167,10 +167,6 @@ class User {
 	
 	public function Authenticate() {
 		
-		ini_set('display_errors', 1);
-		ini_set('display_startup_errors', 1);
-		error_reporting(E_ALL);
-		
 		if( $this->username == "" || $this->password == "" ) {
 			
 			exit( formatJSEND( "error", "Username or password can not be blank." ) );
@@ -189,6 +185,11 @@ class User {
 		$server_user = posix_getpwuid( posix_geteuid() );
 		$sessions_permissions = substr( sprintf( '%o', fileperms( SESSIONS_PATH ) ), -4 );
 		$sessions_owner = posix_getpwuid( fileowner( SESSIONS_PATH ) );
+		
+		if( is_array( $server_user ) ) {
+			
+			$server_user = $server_user["uid"];
+		}
 		
 		if( ! ( $sessions_owner === $server_user ) ) {
 			
@@ -234,6 +235,10 @@ class User {
 				$query = "UPDATE users SET password=? WHERE username=?;";
 				$bind_variables = array( $this->password, $this->username );
 				$return = $sql->query( $query, $bind_variables, array() );
+				
+				$query = "SELECT * FROM users WHERE username=? AND password=?;";
+				$bind_variables = array( $this->username, $this->password );
+				$return = $sql->query( $query, $bind_variables, array() );
 			}
 		}
 		
@@ -251,7 +256,7 @@ class User {
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
 			$bind_variables = array( sha1( $token ), $this->username );
-			$sql->query( $query, $bind_variables, 0, 'rowCount' );
+			$return = $sql->query( $query, $bind_variables, 0, 'rowCount' );
 			
 			if( isset( $user['project'] ) && $user['project'] != '' ) {
 				
@@ -274,9 +279,12 @@ class User {
 	* Check duplicate sessions
 	* 
 	* This function checks to see if the user is currently logged in
-	* on any other machine and if they are then log them off.  This
-	* will fix the issue with the new auto save attempting to save both
-	* users at the same time.
+	* on any other machine and if they are then log them off using
+	* session_destroy, otherwise close the session without saving data
+	* using session abort().
+	* 
+	* This should help fix the issue with auto save
+	* attempting to save both users at the same time.
 	*/
 	
 	public static function checkDuplicateSessions( $username ) {
@@ -339,7 +347,7 @@ class User {
 	
 	public static function CleanUsername( $username ) {
 		
-		return preg_replace( '#[^A-Za-z0-9' . preg_quote( '-_@. ').']#', '', $username );
+		return strtolower( preg_replace( '#[^A-Za-z0-9' . preg_quote( '-_@. ').']#', '', $username ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////

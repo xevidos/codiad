@@ -3,7 +3,7 @@
     height: 100%;
     float: left;
     margin: 0;
-    padding: 15px;
+    padding: 15px 15px 30px 15px;
     overflow: auto;
 }
 #file-manager ul {
