@@ -98,11 +98,12 @@ if ( ! ( defined( "DBHOST" ) && defined( "DBNAME" ) && defined( "DBUSER" ) && de
 	$aValidDBType = [
 		'mysql'
 		,'postgresql'
+		,'sqlite'
 	];
 
 	//Is selected database type valid?
 	if(!in_array($dbtype,$aValidDBType)){
-		die( "Invalid database. Please select one of ".implode(", "$aValidDBType)."." );
+		die( "Invalid database. Please select one of ".implode(", ",$aValidDBType)."." );
 	}
 
 	try {
