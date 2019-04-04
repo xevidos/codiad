@@ -1,15 +1,17 @@
 <?php
 
+require_once( "./class.sql.conversions.php" );
 
 class sql {
 	
 	public $connection = null;
+	public $conversions = null;
 	public $identifier_character = null;
 	protected static $instance = null;
 	
 	public function __construct() {
 		
-		
+		$this->conversions = new sql_conversions();
 	}
 	
 	public function close() {
@@ -31,6 +33,45 @@ class sql {
 		}
 		
 		return( $this->connection );
+	}
+	
+	public static function create_table( $table_name, $fields=array(), $attributes=array() ) {
+		
+		$dbtype = DBTYPE;
+		$query = "{$this->conversions->actions["create"][$dbtype]} {$table_name} (";
+		
+		foreach( $fields as $id => $type ) {
+			
+			$query .= "{$id} {$this->conversions->data_types[$type][$dbtype]}";
+			
+			foreach( $attributes[$id] as $attribute ) {
+				
+				$attribute_string = $this->conversions->specials["$attribute"];
+				
+				if( ! strpos( $attribute_string, "%table_name%" ) === FALSE ) {
+					
+					$attribute_string = str_replace( "%table_name%", $table_name, $attribute_string );
+				}
+				
+				if( ! strpos( $attribute_string, "%fields%" ) === FALSE ) {
+					
+					$fields_string = "";
+					
+					foreach( $fields as $field ) {
+						
+						$fields_string .= "field,";
+					}
+					
+					$fields_string = substr( $fields_string, 0, -1 );
+					$attribute_string = str_replace( "%fields%", $fields_string, $attribute_string );
+				}
+				$query .= " {$attribute_string}";
+			}
+			$query .= ",";
+		}
+		
+		$query .= ");";
+		
 	}
 	
 	public static function escape_identifier( $i ) {
