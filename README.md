@@ -37,9 +37,9 @@ Task List:
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
-* Add support for more database systems and test ( MSSQL, Oracle, Postgre SQL, SQLite, etc )
+* Add support for more database systems ( MSSQL, Oracle, SQLite, Maybe Filesystem again, etc )
 * Clean up update script
-* Re Add the language recognition system after recode
+* Re Add the custom language recognition system after recode
 
 
 Completed:
