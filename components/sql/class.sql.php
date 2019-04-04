@@ -38,6 +38,9 @@ class sql {
 	public static function create_table( $table_name, $fields=array(), $attributes=array() ) {
 		
 		$dbtype = DBTYPE;
+		$identifier_close = $this->conversions->wraps["close"][$dbtype];
+		$identifier_open = $this->conversions->wraps["open"][$dbtype];
+		
 		$query = "{$this->conversions->actions["create"][$dbtype]} {$table_name} (";
 		
 		foreach( $fields as $id => $type ) {
@@ -59,7 +62,7 @@ class sql {
 					
 					foreach( $fields as $field ) {
 						
-						$fields_string .= "field,";
+						$fields_string .= "{$identifier_open}field{$identifier_close},";
 					}
 					
 					$fields_string = substr( $fields_string, 0, -1 );

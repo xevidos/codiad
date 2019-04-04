@@ -10,18 +10,28 @@ class sql_conversions {
 			"pgsql" => "CREATE TABLE IF NOT EXISTS",
 			"sqlite" => "CREATE TABLE IF NOT EXISTS",
 		),
+		
 		"delete" => array(
 			
 			"mysql" => "DELETE",
 			"pgsql" => "DELETE",
 			"sqlite" => "DELETE",
 		),
+		
+		"find" => array(
+			
+			"mysql" => "LOCATE( %string%, %substring% )",
+			"pgsql" => "POSITION( %substring% in %string% )",
+			"sqlite" => "INSTR( %string%, %substring% )",
+		),
+		
 		"select" => array(
 			
 			"mysql" => "SELECT",
 			"pgsql" => "SELECT",
 			"sqlite" => "SELECT",
 		),
+		
 		"update" => array(
 			
 			"mysql" => "UPDATE",
@@ -38,24 +48,28 @@ class sql_conversions {
 			"pgsql" => "=",
 			"sqlite" => "=",
 		),
+		
 		"less than" => array(
 			
 			"mysql" => "<",
 			"pgsql" => "<",
 			"sqlite" => "<",
 		),
+		
 		"more than" => array(
 			
 			"mysql" => ">",
 			"pgsql" => ">",
 			"sqlite" => ">",
 		),
+		
 		"not" => array(
 			
 			"mysql" => "!",
 			"pgsql" => "!",
 			"sqlite" => "!",
 		),
+		
 		"not equal" => array(
 			
 			"mysql" => "!=",
@@ -72,18 +86,21 @@ class sql_conversions {
 			"pgsql" => "BOOL",
 			"sqlite" => "BOOL",
 		),
+		
 		"int" => array(
 			
 			"mysql" => "INT",
 			"pgsql" => "INT",
 			"sqlite" => "INT",
 		),
+		
 		"string" => array(
 			
 			"mysql" => "VARCHAR",
 			"pgsql" => "VARCHAR",
 			"sqlite" => "VARCHAR",
 		),
+		
 		"text" => array(
 			
 			"mysql" => "TEXT",
@@ -100,29 +117,52 @@ class sql_conversions {
 			"pgsql" => "PRIMARY KEY",
 			"sqlite" => "PRIMARY KEY",
 		),
+		
 		"key" => array(
 			
 			"mysql" => "CONSTRAINT %table_name% UNIQUE(%fields%)",
 			"pgsql" => "CONSTRAINT %table_name% UNIQUE(%fields%)",
 			"sqlite" => "CONSTRAINT %table_name% UNIQUE(%fields%)",
 		),
+		
 		"auto increment" => array(
 			
 			"mysql" => "AUTO_INCREMENT",
 			"pgsql" => "AUTO_INCREMENT",
 			"sqlite" => "AUTO_INCREMENT",
 		),
+		
 		"not null" => array(
 			
 			"mysql" => "NOT NULL",
 			"pgsql" => "NOT NULL",
 			"sqlite" => "NOT NULL",
 		),
+		
 		"null" => array(
 			
 			"mysql" => "NULL",
 			"pgsql" => "NULL",
 			"sqlite" => "NULL",
+		),
+	);
+	
+	public $wraps = array(
+		
+		"close" => array(
+			
+			"mysql" => "`",
+			"mssql" => "]",
+			"pgsql" => "\"",
+			"sqlite" => "\"",
+		),
+		
+		"open" => array(
+			
+			"mysql" => "`",
+			"mssql" => "[",
+			"pgsql" => "\"",
+			"sqlite" => "\"",
 		),
 	);
 }
