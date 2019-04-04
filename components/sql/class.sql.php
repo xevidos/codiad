@@ -1,6 +1,6 @@
 <?php
 
-require_once( "./class.sql.conversions.php" );
+require_once( __DIR__ . "/class.sql.conversions.php" );
 
 class sql {
 	
@@ -35,52 +35,55 @@ class sql {
 		return( $this->connection );
 	}
 	
-	public static function create_table( $table_name, $fields=array(), $attributes=array() ) {
+	public function create_table( $table_name, $fields=array(), $attributes=array() ) {
 		
-		$dbtype = DBTYPE;
-		$identifier_close = $this->conversions->wraps["close"][$dbtype];
-		$identifier_open = $this->conversions->wraps["open"][$dbtype];
+		$query = $this->conversions->table( $table_name, $fields, $attributes );
+		//$this->query( $query, array(), array(), null, "rowCount" );
+	}
+	
+	public function create_tables( $table ) {
 		
-		$query = "{$this->conversions->actions["create"][$dbtype]} {$table_name} (";
-		
-		foreach( $fields as $id => $type ) {
+		/**
+		Tables layout
+		array(
 			
-			$query .= "{$id} {$this->conversions->data_types[$type][$dbtype]}";
-			
-			foreach( $attributes[$id] as $attribute ) {
+			"table_name" => array(
 				
-				$attribute_string = $this->conversions->specials["$attribute"];
+				"fields" => array(
+					
+					"id" => "int",
+					"test_field" => "string"
+				),
+				"attributes" => array(
+					
+					"id" => array( "id" ),
+					"test_field" => array( "not null" ),
+				)
+			),
+			"table2_name" => array(
 				
-				if( ! strpos( $attribute_string, "%table_name%" ) === FALSE ) {
+				"fields" => array(
 					
-					$attribute_string = str_replace( "%table_name%", $table_name, $attribute_string );
-				}
-				
-				if( ! strpos( $attribute_string, "%fields%" ) === FALSE ) {
+					"id" => "int",
+					"test_field" => "string"
+				),
+				"attributes" => array(
 					
-					$fields_string = "";
-					
-					foreach( $fields as $field ) {
-						
-						$fields_string .= "{$identifier_open}field{$identifier_close},";
-					}
-					
-					$fields_string = substr( $fields_string, 0, -1 );
-					$attribute_string = str_replace( "%fields%", $fields_string, $attribute_string );
-				}
-				$query .= " {$attribute_string}";
-			}
-			$query .= ",";
-		}
+					"id" => array( "id" ),
+					"test_field" => array( "not null" ),
+				)
+			)
+		);
+		*/
 		
-		$query .= ");";
-		
+		$query = $this->conversions->tables( $table );
+		echo var_dump( $query );
 	}
 	
 	public static function escape_identifier( $i ) {
 		
 		$i = preg_replace('/[^A-Za-z0-9_]+/', '', $i );
-		$i = $i;
+		return $i;
 	}
 	
 	public static function is_not_error( $i ) {
