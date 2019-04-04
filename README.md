@@ -39,6 +39,7 @@ Task List:
 * Add mobile compatibility
 * Add support for more database systems ( MSSQL, Oracle, SQLite, Maybe Filesystem again, etc )
 * Clean up update script
+* Fix broken themes
 * Re Add the custom language recognition system after recode
 
 
