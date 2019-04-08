@@ -130,6 +130,13 @@ a:hover,a:active {;
 .show-language-selector { display: block; float: right; color: #666; margin: 20px 0 0 0; }
 .show-language-selector:hover { color: #fff; }
 
+.in-field-icon-right {
+	
+	float: right;
+	position: relative;
+	top: -30px;
+}
+
 /* FORMS */
 
 label {

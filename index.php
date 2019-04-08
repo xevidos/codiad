@@ -134,11 +134,16 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 			
             <form id="login" method="post" style="position: fixed; width: 350px; top: 30%; left: 50%; margin-left: -175px; padding: 35px;">
 
-                <label><span class="icon-user login-icon"></span> <?php i18n("Username"); ?></label>
-                <input type="text" name="username" autofocus="autofocus" autocomplete="off">
+                <label>
+                	<span class="icon-user login-icon"></span> <?php i18n("Username"); ?>
+                	<input type="text" name="username" autofocus="autofocus" autocomplete="off">
+                </label>
 
-                <label><span class="icon-lock login-icon"></span> <?php i18n("Password"); ?></label>
-                <input type="password" name="password">
+                <label>
+                	<span class="icon-lock login-icon"></span> <?php i18n("Password"); ?>
+                	<input type="password" name="password">
+                	<span class="icon-eye in-field-icon-right" id="hide_password">
+                </label>
                 
                 <div class="language-selector">
                     <label><span class="icon-picture login-icon"></span> <?php i18n("Theme"); ?></label>
@@ -175,6 +180,22 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
             </form>
 
             <script src="components/user/init.js"></script>
+            <script>
+            	$( "#hide_password" ).on( "click", function( e ) {
+            		
+            		let password = document.querySelector( "input[name='password']" );
+            		
+            		console.log( password, password.type );
+            		
+            		if( password.type == "password" ) {
+            			
+            			password.type = "text";
+            		} else {
+            			
+            			password.type = "password";
+            		}
+            	});
+            </script>
             <?php
 
         }
