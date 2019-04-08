@@ -559,12 +559,32 @@ class Common {
 	public static function checkPath( $path ) {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
-		$bind_variables = array( $path );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
+		//$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
+		//$bind_variables = array( $path );
+		//$result = $sql->query( $query, $bind_variables, array() )[0];
+		$result = $sql->select(
+			"projects",
+			array(),
+			array(
+				array(
+					"find",
+					"[path]",
+					$path,
+					array(
+						"more than",
+						0
+					)
+				),
+				array(
+					"limit",
+					1
+				)
+			)
+		);
 		
 		if( ! empty( $result ) ) {
 			
+			$result = $result[0];
 			try {
 				
 				$users = json_decode( $result["access"] );

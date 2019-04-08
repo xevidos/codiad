@@ -77,7 +77,8 @@ class sql {
 		*/
 		
 		$query = $this->conversions->tables( $table );
-		echo var_dump( $query );
+		//echo var_dump( $query ) . "<br>";
+		$result = $this->query( $query, array(), array() );
 	}
 	
 	public static function escape_identifier( $i ) {
@@ -107,6 +108,22 @@ class sql {
 		}
 		
 		return self::$instance;
+	}
+	
+	public function select( $table, $fields=array(), $where=array() ) {
+		
+		$array = $this->conversions->select( $table, $fields, $where );
+		$query = $array[0];
+		$bind_vars = $array[1];
+		$result = $this->query( $query, $bind_vars, array() );
+		//echo var_dump( $query, $bind_vars ) . "<br>";
+		return $result;
+	}
+	
+	public function update( $table, $fields=array(), $where=array() ) {
+		
+		$query = $this->conversions->update( $table, $fields, $where );
+		//echo var_dump( $query ) . "<br>";
 	}
 	
 	public function query( $query, $bind_variables, $default, $action='fetchAll' ) {
@@ -145,6 +162,8 @@ class sql {
 			echo var_export( $return );
 			$return = $default;
 		}
+		
+		//echo var_dump( $error, $return );
 		
 		$this->close();
 		return( $return );

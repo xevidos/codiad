@@ -7,6 +7,8 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+require_once( "./install.php" );
+
 $path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']), "/");
 
 $workspace = is_writable($path . "/workspace");
@@ -48,14 +50,6 @@ $autocomplete = array(
   'dbpass' => '',
   'dbtype' => 'mysql',
 );
-
-//Valid databases Codiad is able to use
-$aValidDBType = [
-    'MySQL'=>'mysql'
-    ,'PostgreSQL'=>'pgsql'
-    ,'SQLite'=>'sqlite'
-];
-
 
 if (!empty($query)) {
     $params = explode('&', $query);

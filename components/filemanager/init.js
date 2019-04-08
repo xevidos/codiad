@@ -440,6 +440,10 @@
         //////////////////////////////////////////////////////////////////
 
         openFile: function(path, focus) {
+            
+            /* Notify listeners. */
+            amplify.publish('filemanager.onFileWillOpen', {path: path});
+            
             if (focus === undefined) {
                 focus = true;
             }

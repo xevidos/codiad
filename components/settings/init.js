@@ -140,6 +140,19 @@
 					option: option,
 					value: value
 				},
+				success: function( data ) {
+					
+					console.log( "Data: " + data )
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					
+					console.log('jqXHR:');
+					console.log(jqXHR);
+					console.log('textStatus:');
+					console.log(textStatus);
+					console.log('errorThrown:');
+					console.log(errorThrown);
+				},
 			});
 		},
 		

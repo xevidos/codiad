@@ -54,6 +54,8 @@
         		
         		
         	//}
+        	/* Notify listeners. */
+            amplify.publish('active.onFileWillAppear', {path: path});
         	
             if (focus === undefined) {
                 focus = true;
@@ -375,6 +377,9 @@
             if (moveToTabList === undefined) {
                 moveToTabList = true;
             }
+            
+            /* Notify listeners. */
+            amplify.publish('active.onWillFocus', path);
             
             this.highlightEntry(path, moveToTabList);
             

@@ -77,10 +77,6 @@ class Settings {
 			"name" => "codiad.settings.autosave",
 			"value" => "true",
 		),
-		array(
-			"name" => "codiad.settings.plugin.sync",
-			"value" => "true",
-		),
 	);
 	
 	//////////////////////////////////////////////////////////////////
@@ -211,7 +207,6 @@ class Settings {
 	public function update_option( $option, $value, $user_setting = true ) {
 		
 		global $sql;
-		
 		if( $user_setting == null ) {
 			
 			$query = "INSERT INTO options ( name, username, value ) VALUES ( ?, ? );";
