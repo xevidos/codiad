@@ -4,6 +4,13 @@ require_once( __DIR__ . "/class.sql.conversions.php" );
 
 class sql {
 	
+	const DB_TYPES = array(
+		
+		"MySQL" => "mysql",
+		"PostgresSQL" => "pgsql",
+		"SQLite" => "sqlite",
+	);
+	
 	public $connection = null;
 	public $conversions = null;
 	public $identifier_character = null;
@@ -77,8 +84,9 @@ class sql {
 		*/
 		
 		$query = $this->conversions->tables( $table );
-		//echo var_dump( $query ) . "<br>";
-		$result = $this->query( $query, array(), array() );
+		$connection = $this->connect();
+		$result = $connection->exec( $query );
+		//echo var_dump( $query, $result, $connection->errorInfo() ) . "<br>";
 	}
 	
 	public static function escape_identifier( $i ) {
@@ -156,6 +164,7 @@ class sql {
 		}
 		
 		$error = $statement->errorInfo();
+		
 		if( ! $error[0] == "00000" ) {
 			
 			echo var_export( $error );

@@ -1,5 +1,12 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require_once( __DIR__ . "/../sql/class.sql.php" );
+require_once( __DIR__ . "/../settings/class.settings.php" );
+
 class Install {
 	
 	public $active = "";
@@ -15,24 +22,30 @@ class Install {
 	
 	function __construct() {
 		
-		$path = $_POST['path'];
-		$rel = str_replace( '/components/install/install.php', '', $_SERVER['REQUEST_URI'] );
-		
-		$this->active = $path . "/data/active.php";
-		$this->config = $path . "/config.php";
-		$this->projects = $path . "/data/projects.php";
-		$this->path = $path;
-		$this->sessions = $path . "/data/sessions";
-		$this->users = $path . "/data/users.php";
-		$this->rel = $rel;
-		$this->workspace = $path . "/workspace";
-		$this->db_types = sql::db_types;
-		
-		$this->check();
-		
-		require_once( "../sql/class.sql.php" );
-		$this->sql = new sql();
-		$this->install();
+		if( isset( $_POST["path"] ) ) {
+			
+			$path = $_POST['path'];
+			$rel = str_replace( '/components/install/install.php', '', $_SERVER['REQUEST_URI'] );
+			
+			$this->active = $path . "/data/active.php";
+			$this->config = $path . "/config.php";
+			$this->projects = $path . "/data/projects.php";
+			$this->path = $path;
+			$this->sessions = $path . "/data/sessions";
+			$this->users = $path . "/data/users.php";
+			$this->rel = $rel;
+			$this->workspace = $path . "/workspace";
+			$this->db_types = sql::DB_TYPES;
+			$this->project_name = $_POST["project_name"];
+			$this->project_path = $this->clean_path( $_POST["project_path"] );
+			$this->username = $this->clean_username( $_POST["username"] );
+			$this->password = $this->encrypt_password( $_POST["password"] );
+			
+			$this->check();
+			$this->sql = new sql();
+			$this->install();
+			exit;
+		}
 	}
 	
 	function check() {
@@ -51,7 +64,12 @@ class Install {
 		
 		if( ! in_array( DBTYPE, $this->db_types ) ) {
 			
-			$this->JSEND( "Invalid database. Please select one of the following: " . implode( ", ", $db_types ),  addslashes( json_encode( array( $dbtype, $db_types ) ) ) );
+			$this->JSEND( "Invalid database. Please select one of the following: " . implode( ", ", $db_types ),  json_encode( array( $dbtype, $db_types ) ) );
+		}
+		
+		if( ! is_dir( $this->sessions ) ) {
+			
+			mkdir( $this->sessions, 00755 );
 		}
 	}
 	
@@ -134,20 +152,20 @@ define("WSURL", BASE_URL . "/workspace");
 // Marketplace
 //define("MARKETURL", "http://market.codiad.com/json");
 ';
-		saveFile( $config, $config_data );
+		$this->save_file( $this->config, $config_data );
 		echo( "success" );
 	}
 	
 	function create_project() {
 		
-		$project_path = $this->clean_path( $project_path );
+		$project_path = $this->project_path;
 			
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
 			$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
-			if( ! is_dir( $workspace . "/" . $project_path ) ) {
+			if( ! is_dir( $this->workspace . "/" . $project_path ) ) {
 				
-				mkdir( $workspace . "/" . $project_path );
+				mkdir( $this->workspace . "/" . $project_path );
 			}
 		} else {
 			
@@ -171,11 +189,12 @@ define("WSURL", BASE_URL . "/workspace");
 		}
 		
 		$bind_variables = array(
-			$project_name,
+			$this->project_name,
 			$project_path,
-			$username
+			$this->username
 		);
 		$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,?);";
+		$connection = $this->sql->connect();
 		$statement = $connection->prepare( $query );
 		$statement->execute( $bind_variables );
 		$error = $statement->errorInfo();
@@ -190,6 +209,18 @@ define("WSURL", BASE_URL . "/workspace");
 		
 		$this->sql->create_tables(
 			array(
+				"active" => array(
+					"fields" => array(
+						"username" => "string",
+						"path" => "text",
+						"focused" => "string"
+					),
+					"attributes" => array(
+						"username" => array( "not null", "unique" ),
+						"path" => array( "not null", "unique" ),
+						"focused" => array( "not null" ),
+					)
+				),
 				"options" => array(
 					"fields" => array(
 						"id" => "int",
@@ -216,7 +247,7 @@ define("WSURL", BASE_URL . "/workspace");
 						"name" => array( "not null" ),
 						"path" => array( "not null", "unique" ),
 						"owner" => array( "not null", "unique" ),
-						"access" => array( "not null" ),
+						"access" => array(),
 					)
 				),
 				"users" => array(
@@ -262,15 +293,16 @@ define("WSURL", BASE_URL . "/workspace");
 		$bind_variables = array(
 			"",
 			"",
-			$username,
-			$password,
+			$this->username,
+			$this->password,
 			"",
-			$project_path,
+			$this->project_path,
 			"admin",
 			"",
 			""
 		);
 		$query = "INSERT INTO users(first_name, last_name, username, password, email, project, access, groups, token) VALUES (?,?,?,?,?,?,?,?,?)";
+		$connection = $this->sql->connect();
 		$statement = $connection->prepare( $query );
 		$statement->execute( $bind_variables );
 		$error = $statement->errorInfo();
@@ -279,6 +311,13 @@ define("WSURL", BASE_URL . "/workspace");
 			
 			die( '{"message":"Could not create user in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
 		}
+		
+		$this->set_default_options();
+	}
+	
+	function encrypt_password( $string ) {
+		
+		return sha1( md5( $string ) );
 	}
 	
 	function is_abs_path( $path ) {
@@ -309,6 +348,7 @@ define("WSURL", BASE_URL . "/workspace");
 		$this->create_tables();
 		$this->create_project();
 		$this->create_user();
+		//exit( "stop" );
 		$this->create_config();
 	}
 	
@@ -325,6 +365,37 @@ define("WSURL", BASE_URL . "/workspace");
 		exit( json_encode( $message ) );
 	}
 	
+	function save_file( $file, $data ) {
+		
+		$write = fopen( $file, 'w' ) or die( '{"message": "can\'t open file"}' );
+		fwrite( $write, $data );
+		fclose( $write );
+	}
+	
+	public function set_default_options() {
+		
+		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
+			
+			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$bind_variables = array(
+				$option["name"],
+				$this->username,
+				$option["value"],
+			);
+			$result = $this->sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result == 0 ) {
+				
+				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$bind_variables = array(
+					$option["value"],
+					$option["name"],
+					$this->username,
+				);
+				$result = $this->sql->query( $query, $bind_variables, 0, "rowCount" );
+			}
+		}
+	}
 }
 
 $Install = new Install();

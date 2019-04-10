@@ -168,6 +168,36 @@ class Settings {
 		}
 	}
 	
+	public function get_options( $action = "return" ) {
+		
+		global $sql;
+		
+		$query = "SELECT name, value FROM user_options WHERE username=?;";
+		$bind_variables = array( $option, $this->username );
+		$return = $sql->query( $query, $bind_variables, array() );
+		$options = array();
+		
+		foreach( $return as $id => $data ) {
+			
+			$options[$data["name"]] = $data["value"];
+		}
+		
+		$options = json_encode( $options );
+		
+		switch( $action ) {
+			
+			case( "exit" ):
+				
+				exit( $options );
+			break;
+			
+			case( "return" ):
+				
+				return( $options );
+			break;
+		}
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// Save User Settings
 	//////////////////////////////////////////////////////////////////

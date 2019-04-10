@@ -252,7 +252,7 @@ class User {
 			$_SESSION['lang'] = $this->lang;
 			$_SESSION['theme'] = $this->theme;
 			$_SESSION["login_session"] = true;
-			$user = $return;
+			$user = $return[0];
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
 			$bind_variables = array( sha1( $token ), $this->username );

@@ -257,6 +257,7 @@
 			$.get( this.controller + '?action=get_current', function( data ) {
 				
 				var projectInfo = codiad.jsend.parse( data );
+				
 				if ( projectInfo != 'error' ) {
 					
 					$( '#file-manager' )

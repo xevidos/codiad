@@ -165,9 +165,9 @@ class sql_conversions {
 		
 		"unique" => array(
 			
-			"mysql" => "CONSTRAINT '%constraint_name%' UNIQUE ( %field_names% )",
-			"pgsql" => "CONSTRAINT '%constraint_name%' UNIQUE ( %field_names% )",
-			"sqlite" => "CONSTRAINT '%constraint_name%' UNIQUE ( %field_names% )",
+			"mysql" => "CONSTRAINT %constraint_name% UNIQUE ( %field_names% )",
+			"pgsql" => "CONSTRAINT %constraint_name% UNIQUE ( %field_names% )",
+			"sqlite" => "CONSTRAINT %constraint_name% UNIQUE ( %field_names% )",
 		),
 	);
 	
@@ -338,33 +338,44 @@ class sql_conversions {
 			
 			$query .= "{$id} {$this->data_types[$type][$dbtype]}";
 			
-			foreach( $attributes[$id] as $attribute ) {
+			if( isset( $attributes[$id] ) ) {
 				
-				$attribute_string = $this->specials["$attribute"][$dbtype];
-				
-				if( $attribute == "unique" ) {
+				foreach( $attributes[$id] as $attribute ) {
 					
-					continue;
-				}
-				
-				if( ! strpos( $attribute_string, "%table_name%" ) === FALSE ) {
+					$attribute_string = $this->specials["$attribute"][$dbtype];
 					
-					$attribute_string = str_replace( "%table_name%", $table_name, $attribute_string );
-				}
-				
-				if( ! strpos( $attribute_string, "%fields%" ) === FALSE ) {
-					
-					$fields_string = "";
-					
-					foreach( $fields as $field ) {
+					if( $attribute == "unique" ) {
 						
-						$fields_string .= "{$id_open}field{$id_close},";
+						continue;
 					}
 					
-					$fields_string = substr( $fields_string, 0, -1 );
-					$attribute_string = str_replace( "%fields%", $fields_string, $attribute_string );
+					if( $dbtype == "pgsql" ) {
+						
+						if( $id == "id" ) {
+							
+							$query = substr( $query, 0, -( strlen( " {$this->data_types[$type][$dbtype]}" ) ) );
+						}
+					}
+					
+					if( ! strpos( $attribute_string, "%table_name%" ) === FALSE ) {
+						
+						$attribute_string = str_replace( "%table_name%", $table_name, $attribute_string );
+					}
+					
+					if( ! strpos( $attribute_string, "%fields%" ) === FALSE ) {
+						
+						$fields_string = "";
+						
+						foreach( $fields as $field ) {
+							
+							$fields_string .= "{$id_open}field{$id_close},";
+						}
+						
+						$fields_string = substr( $fields_string, 0, -1 );
+						$attribute_string = str_replace( "%fields%", $fields_string, $attribute_string );
+					}
+					$query .= " {$attribute_string}";
 				}
-				$query .= " {$attribute_string}";
 			}
 			$query .= ",";
 		}
@@ -380,14 +391,14 @@ class sql_conversions {
 				
 				if( $unique_string == "" ) {
 					
-					$unique_string = $this->specials["unique"] . ",";
+					$unique_string = $this->specials["unique"][$dbtype] . ",";
 				}
 				$fields_string .= "{$id_open}{$id}{$id_close},";
 			}
 		}
 		
-		$unique_string = str_replace( "%constraint_name%", $fields_string, $unique_string );
-		$unique_string = str_replace( "%field_names%", $fields_string, $unique_string );
+		$unique_string = str_replace( "%constraint_name%", strtolower( preg_replace( '#[^A-Za-z0-9' . preg_quote( '-_@. ').']#', '', $fields_string ) ), $unique_string );
+		$unique_string = str_replace( "%field_names%", substr( $fields_string, 0, -1 ), $unique_string );
 		$query .= $unique_string;
 		
 		$query = substr( $query, 0, -1 );

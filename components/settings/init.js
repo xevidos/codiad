@@ -56,6 +56,29 @@
 			}
 		},
 		
+		get_options: async function() {
+			
+			let result;
+			
+			try {
+				
+				result = await $.ajax({
+					
+					url: this.controller + '?action=get_options',
+					type: "POST",
+					dataType: 'html',
+					data: {
+					},
+				});
+				
+				return result;
+			} catch (error) {
+				
+				console.log(error);
+				throw error;
+			}
+		},
+		
 		//////////////////////////////////////////////////////////////////
 		// Save Settings
 		//////////////////////////////////////////////////////////////////
@@ -142,7 +165,7 @@
 				},
 				success: function( data ) {
 					
-					console.log( "Data: " + data )
+					console.log( `Update Option ( ${option} ): ` + data )
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					

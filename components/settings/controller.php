@@ -54,6 +54,12 @@ if ( $_GET['action'] == 'get_option' ) {
 	$Settings->get_option( $_POST['option'], $_SESSION["user"], "exit" );
 }
 
+if ( $_GET['action'] == 'get_options' ) {
+	
+	$Settings->username = $_SESSION['user'];
+	$Settings->get_options( "exit" );
+}
+
 if ( $_GET['action'] == 'update_option' ) {
 	
 	$Settings->username = $_SESSION['user'];

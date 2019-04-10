@@ -99,7 +99,17 @@
 			amplify.subscribe( 'active.onClose', function( path ) {
 				
 				let _this = codiad.auto_save;
-				_this.editor.removeEventListener( "change", _this.change );
+				try {
+					
+					_this.editor.removeEventListener( "change", _this.change );
+				} catch( e ) {
+					
+					/**
+					 * If the listener is not currently on file and we
+					 * try to close it, the program will throw an exception and
+					 * stop you from closing the file
+					 */
+				}
 			});
 			
 			/* Subscribe to know when a file become active. */

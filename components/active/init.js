@@ -669,9 +669,8 @@
                 var newSession = this.sessions[newPath];
 
                 // Change Editor Mode
-                var ext = codiad.filemanager.getExtension(newPath);
-                var mode = codiad.editor.selectMode(ext);
-
+                var mode = codiad.editor.selectMode(newPath);
+				
                 // handle async mode change
                 var fn = function() {
                     codiad.editor.setModeDisplay(newSession);

@@ -321,18 +321,18 @@
         //
         //////////////////////////////////////////////////////////////////
 
-        getSettings: function() {
+        getSettings: async function() {
         	
-            var boolVal = null;
-            var _this = this;
-			var options = [
+            let boolVal = null;
+            let _this = this;
+			let options = [
 				'editor.fontSize',
 				'editor.overScroll',
 				'editor.printMarginColumn',
 				'editor.tabSize',
 				'editor.theme',
 			];
-			var bool_options = [
+			let bool_options = [
 				'editor.autocomplete',
 				'settings.autosave',
 				'editor.printMargin',
@@ -345,9 +345,11 @@
 				'editor.persistentModal',
 			];
 			
-            $.each( options, async function( idx, key ) {
+			let user_settings = await codiad.settings.get_options();
+			
+            $.each( options, function( idx, key ) {
             	
-                let localValue = await codiad.settings.get_option( 'codiad.' + key );
+                let localValue = user_settings['codiad.' + key];
                 if ( localValue != null ) {
             		
                     _this.settings[key.split('.').pop()] = localValue;
@@ -356,7 +358,7 @@
 
             $.each( bool_options, async function(idx, key) {
             	
-               let localValue = await codiad.settings.get_option( 'codiad.' + key );
+               let localValue = user_settings['codiad.' + key];
                if ( localValue != null ) {
                	
         			_this.settings[key.split('.').pop()] = (localValue == 'true');

@@ -7,9 +7,9 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
-require_once( "./install.php" );
+require_once( __DIR__ . "/install.php" );
 
-$path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']), "/");
+$path = rtrim( str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']), "/");
 
 $workspace = is_writable($path . "/workspace");
 $data = is_writable($path . "/data");
@@ -179,7 +179,8 @@ if ($newrelic) {
     <label><?php i18n("Database Type"); ?></label>
     <select name="dbtype">
         <?php
-        foreach ($aValidDBType as $db_name => $key) {
+        $select_dbtypes = "";
+        foreach (sql::DB_TYPES as $db_name => $key) {
             if ($autocomplete['dbtype'] == $key) {
                 $select_dbtypes .= '<option selected="selected" value="' . $key . '">' . $db_name . '</option>';
             } else {
@@ -366,7 +367,7 @@ if ($newrelic) {
             if(!password_match){ alert('The passwords entered do not match'); }
 
             if(!empty_fields && password_match && check_path){
-                $.post('components/install/process.php',$('#install').serialize(),function( data ) {
+                $.post('components/install/install.php',$('#install').serialize(),function( data ) {
                 	
                     if( data == 'success' ){
                         window.location.reload();
