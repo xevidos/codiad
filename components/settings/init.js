@@ -14,6 +14,7 @@
 	codiad.settings = {
 		
 		controller: 'components/settings/controller.php',
+		settings: null,
 		
 		init: function() {
 			
@@ -59,17 +60,25 @@
 		get_options: async function() {
 			
 			let result;
+			let _self = codiad.settings;
 			
 			try {
 				
-				result = await $.ajax({
+				if( _self.settings == null ) {
 					
-					url: this.controller + '?action=get_options',
-					type: "POST",
-					dataType: 'html',
-					data: {
-					},
-				});
+					result = await $.ajax({
+						
+						url: this.controller + '?action=get_options',
+						type: "POST",
+						dataType: 'html',
+						data: {
+						},
+					});
+					result = JSON.parse( result );
+				} else {
+					
+					result = _self.settings
+				}
 				
 				return result;
 			} catch (error) {
@@ -154,6 +163,8 @@
 				return false;
 			}
 			
+			let _self = codiad.settings;
+			
 			jQuery.ajax({
 					
 				url: this.controller + '?action=update_option',
@@ -165,7 +176,8 @@
 				},
 				success: function( data ) {
 					
-					console.log( `Update Option ( ${option} ): ` + data )
+					console.log( `Update Option ( ${option} ): ` + data );
+					_self.settings = null;
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					

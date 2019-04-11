@@ -173,7 +173,7 @@ class Settings {
 		global $sql;
 		
 		$query = "SELECT name, value FROM user_options WHERE username=?;";
-		$bind_variables = array( $option, $this->username );
+		$bind_variables = array( $this->username );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$options = array();
 		
@@ -183,6 +183,8 @@ class Settings {
 		}
 		
 		$options = json_encode( $options );
+		
+		//echo var_dump( $options, $return );
 		
 		switch( $action ) {
 			

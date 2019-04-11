@@ -86,7 +86,13 @@ class sql {
 		$query = $this->conversions->tables( $table );
 		$connection = $this->connect();
 		$result = $connection->exec( $query );
+		$error = $connection->errorInfo();
 		//echo var_dump( $query, $result, $connection->errorInfo() ) . "<br>";
+
+		if ( $result === false || ! $error[0] == "00000" ) {
+			
+			return false;
+		}
 	}
 	
 	public static function escape_identifier( $i ) {

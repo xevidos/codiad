@@ -96,19 +96,23 @@ class updater {
 		}
 		
 		function copy_backup( $source, $dest ) {
+			
 			// Check for symlinks
-			if (is_link($source)) {
-				return symlink(readlink($source), $dest);
+			if ( is_link( $source ) ) {
+				
+				return symlink( readlink( $source ), $dest );
 			}
 			
 			// Simple copy for a file
-			if (is_file($source)) {
+			if ( is_file( $source ) ) {
+				
 				return copy($source, $dest);
 			}
 			
 			// Make destination directory
-			if (!is_dir($dest)) {
-				mkdir($dest);
+			if ( ! is_dir( $dest ) ) {
+				
+				mkdir( $dest );
 			}
 			
 			$invalid_files = array(
@@ -122,7 +126,7 @@ class updater {
 			
 			// Loop through the folder
 			$dir = dir( $source );
-			while (false !== $entry = $dir->read()) {
+			while ( false !== $entry = $dir->read() ) {
 			// Skip pointers
 				if( in_array( $entry, $invalid_files ) ) {
 					
@@ -197,54 +201,9 @@ class updater {
 		$users_file = DATA . "/users.php";
 		global $sql;
 		$connection = $sql->connect();
+		$result = $sql->create_default_tables();
 		
-		$query = "
-CREATE TABLE IF NOT EXISTS options(
-    id INT(11) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    value TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS projects(
-    id INT(11) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    path VARCHAR(255) NOT NULL,
-    owner VARCHAR(255) NOT NULL,
-    access TEXT
-);
-CREATE TABLE IF NOT EXISTS users(
-    id INT(11) NOT NULL,
-    first_name VARCHAR(255) DEFAULT NULL,
-    last_name VARCHAR(255) DEFAULT NULL,
-    username VARCHAR(255) NOT NULL,
-    password TEXT NOT NULL,
-    email VARCHAR(255) DEFAULT NULL,
-    project VARCHAR(255) DEFAULT NULL,
-    access VARCHAR(255) NOT NULL,
-    groups TEXT,
-    token TEXT
-);
-CREATE TABLE IF NOT EXISTS user_options(
-    id INT(11) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    value TEXT NOT NULL
-);
-ALTER TABLE options ADD PRIMARY KEY(id), ADD UNIQUE KEY option_name(name);
-ALTER TABLE projects ADD PRIMARY KEY(id), ADD UNIQUE KEY project_path(path, owner);
-ALTER TABLE users ADD PRIMARY KEY(id), ADD UNIQUE KEY username(username);
-ALTER TABLE user_options ADD PRIMARY KEY(id), ADD UNIQUE KEY option_name(name, username);
-ALTER TABLE options MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE projects MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE users MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE user_options MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
-
-DELETE FROM options;
-DELETE FROM projects;
-DELETE FROM users;
-DELETE FROM user_options;
-
-";
-		if ( $connection->exec( $query ) === false ) {
+		if ( $result === false ) {
 			
 			$this->restore();
 			exit( $connection->errorInfo() );

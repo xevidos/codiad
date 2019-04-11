@@ -347,6 +347,8 @@
 			
 			let user_settings = await codiad.settings.get_options();
 			
+			//console.log( user_settings );
+			
             $.each( options, function( idx, key ) {
             	
                 let localValue = user_settings['codiad.' + key];
@@ -853,7 +855,7 @@
                 }
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.theme', t );
+            //codiad.settings.update_option( 'codiad.editor.theme', t );
         },
 
         /////////////////////////////////////////////////////////////////
@@ -895,7 +897,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.fontSize', s );
+            //codiad.settings.update_option( 'codiad.editor.fontSize', s );
         },
 
 
@@ -920,7 +922,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.highlightLine', h );
+            //codiad.settings.update_option( 'codiad.editor.highlightLine', h );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -943,7 +945,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.printMargin', p );
+            //codiad.settings.update_option( 'codiad.editor.printMargin', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -966,7 +968,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
+            //codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -989,7 +991,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.indentGuides', g );
+            //codiad.settings.update_option( 'codiad.editor.indentGuides', g );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1031,7 +1033,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.wrapMode', w );
+            //codiad.settings.update_option( 'codiad.editor.wrapMode', w );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1047,7 +1049,7 @@
         setPersistentModal: function(t, i) {
             this.settings.persistentModal = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.persistentModal', t );
+            //codiad.settings.update_option( 'codiad.editor.persistentModal', t );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1063,7 +1065,7 @@
         setRightSidebarTrigger: function(t, i) {
             this.settings.rightSidebarTrigger = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
+            //codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1079,7 +1081,7 @@
         setFileManagerTrigger: function(t, i) {
             this.settings.fileManagerTrigger = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
+            //codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
             codiad.project.loadSide();
         },
         
@@ -1103,7 +1105,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.tabSize', s );
+            //codiad.settings.update_option( 'codiad.editor.tabSize', s );
             
         },
         
@@ -1126,7 +1128,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.softTabs', t );
+            //codiad.settings.update_option( 'codiad.editor.softTabs', t );
             
         },
         
@@ -1458,7 +1460,7 @@
         //////////////////////////////////////////////////////////////////
 
         setOverScroll: function( s, i ) {
-        	
+        
             if (i) {
                 i.setOption( "scrollPastEnd", s );
             } else {
@@ -1468,7 +1470,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.overScroll', s );
+            //codiad.settings.update_option( 'codiad.editor.overScroll', s );
         },
         
         setLiveAutocomplete: function( s, i ) {
@@ -1486,7 +1488,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.autocomplete', s );
+            //codiad.settings.update_option( 'codiad.editor.autocomplete', s );
         },
 		
 		toggleMultiLine: function( e ) {
