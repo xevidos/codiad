@@ -20,7 +20,7 @@ class sql_conversions {
 		
 		"find" => array(
 			
-			"mysql" => "LOCATE( %string%, %substring% )",
+			"mysql" => "LOCATE( %substring%, %string% )",
 			"pgsql" => "POSITION( %substring% in %string% )",
 			"sqlite" => "INSTR( %string%, %substring% )",
 		),
@@ -103,7 +103,7 @@ class sql_conversions {
 		
 		"string" => array(
 			
-			"mysql" => "VARCHAR",
+			"mysql" => "VARCHAR(255)",
 			"pgsql" => "VARCHAR",
 			"sqlite" => "VARCHAR",
 		),
@@ -393,7 +393,13 @@ class sql_conversions {
 					
 					$unique_string = $this->specials["unique"][$dbtype] . ",";
 				}
-				$fields_string .= "{$id_open}{$id}{$id_close},";
+				if( $dbtype == "mysql" && $fields[$id] == "text" ) {
+					
+					$fields_string .= "{$id_open}{$id}{$id_close}(1024),";
+				} else {
+					
+					$fields_string .= "{$id_open}{$id}{$id_close},";
+				}
 			}
 		}
 		
@@ -412,7 +418,7 @@ class sql_conversions {
 		
 		foreach( $tables as $table_name => $table_data ) {
 			
-			$query .= $this->table( $table_name, $table_data["fields"], $table_data["attributes"] );
+			$query .= $this->table( $table_name, $table_data["fields"], $table_data["attributes"] ) . PHP_EOL;
 		}
 		return( $query );
 	}
