@@ -32,7 +32,6 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
 ?>
 <!doctype html>
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,7 +44,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
         if(file_exists(THEMES . "/". $theme . "/".$sheet)){
             echo('<link rel="stylesheet" href="themes/'.$theme.'/'.$sheet.'">');
         } else {
-            echo('<link rel="stylesheet" href="themes/default/'.$sheet.'">');
+            echo('<link rel="stylesheet" href="themes/default/'.$sheet.'?v=' . get_version() . '">');
         }
     }
     
@@ -55,7 +54,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
             echo('<link rel="stylesheet" href="themes/'.$theme.'/'.$component.'/screen.css">');
         } else {
             if(file_exists("themes/default/" . $component . "/screen.css")){
-                echo('<link rel="stylesheet" href="themes/default/'.$component.'/screen.css">');
+                echo('<link rel="stylesheet" href="themes/default/'.$component.'/screen.css?v=' . get_version() . '">');
             } else {
                 if(file_exists(COMPONENTS . "/" . $component . "/screen.css")){
                     echo('<link rel="stylesheet" href="components/'.$component.'/screen.css">');

@@ -93,6 +93,7 @@ class Common {
 			define( "LANGUAGE", "en" );
 		}
 		
+		require_once( COMPONENTS . "/update/class.update.php" );
 		require_once( COMPONENTS . "/sql/class.sql.php" );
 		global $sql;
 		$sql = sql::get_instance();
@@ -193,6 +194,11 @@ class Common {
 			$return = formatJSEND( "error", "Error selecting user information." );
 		}
 		return( $return );
+	}
+	
+	public static function get_version() {
+		
+		return Update::VERSION;
 	}
 	
 	public static function is_admin() {
@@ -659,4 +665,5 @@ function isAvailable($func) { return Common::isAvailable($func); }
 function logout() { return Common::logout(); }
 function get_users( $return = "return", $exclude_current = false ) { return Common::get_users( $return, $exclude_current ); }
 function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
+function get_version() { return Common::get_version(); }
 ?>
