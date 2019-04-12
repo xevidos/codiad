@@ -50,7 +50,7 @@ class sql {
 	
 	public function create_default_tables() {
 		
-		$this->sql->create_tables(
+		$result = $this->create_tables(
 			array(
 				"active" => array(
 					"fields" => array(
@@ -130,6 +130,8 @@ class sql {
 				),
 			)
 		);
+		
+		return $result;
 	}
 	
 	public function create_tables( $table ) {
@@ -176,6 +178,9 @@ class sql {
 		if ( $result === false || ! $error[0] == "00000" ) {
 			
 			return false;
+		} else {
+			
+			return true;
 		}
 	}
 	

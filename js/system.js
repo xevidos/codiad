@@ -105,6 +105,52 @@
             codiad.settings.show();
         });
     });
+    
+    $(function() {
+		
+		codiad.system.init();
+	});
+	
+	codiad.system = {
+		
+		controller: 'components/system/controller.php',
+		session_id: '',
+		site_id: '',
+		
+		init: function() {
+			
+			let _this = this;
+			
+		},
+		
+		create_default_tables: function() {
+			
+			jQuery.ajax({
+					
+				url: this.controller,
+				type: "POST",
+				dataType: 'html',
+				data: {
+					action: 'create_default_tables'
+				},
+				success: function( data ) {
+					
+					let response = codiad.jsend.parse( data );
+					
+					console.log( data );
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					
+					console.log('jqXHR:');
+					console.log(jqXHR);
+					console.log('textStatus:');
+					console.log(textStatus);
+					console.log('errorThrown:');
+					console.log(errorThrown);
+				},
+			});
+		},
+	};
 
 })(this, jQuery);
 

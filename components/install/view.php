@@ -21,6 +21,10 @@ $conf = $path . '/config.php';
 
 $config = is_writable(file_exists($conf) ? $conf : $path);
 
+$date = new DateTime();
+$timeZone = $date->getTimezone()->getName();
+
+
 if (ini_get('register_globals') == 1) {
     $register = true;
 } else {
@@ -41,7 +45,7 @@ $autocomplete = array(
   'password_confirm' => '',
   'project_name' => '',
   'project_path' => '',
-  'timezone' => '',
+  'timezone' => $timeZone,
   'site_name' => '',
   
   'dbhost' => '',
@@ -302,7 +306,7 @@ if ($newrelic) {
 	$timezones = "";
         foreach ($location as $key => $city) {
             if ($autocomplete['timezone'] == $key) {
-                $timezones .= '<option selected="selected" value="' . $key . '">' . $city . '</option>';
+                $timezones .= '<option value="' . $key . '" selected="selected">' . $city . '</option>';
             } else {
                 $timezones .= '<option value="' . $key . '">' . $city . '</option>';
             }
@@ -344,9 +348,9 @@ if ($newrelic) {
             if($(this).text().indexOf(timezone) > -1) $("[name=timezone]").val($(this).val());
         })
 		
-		document.querySelectorAll( ".hide_field" ).addEventListener( "click", function( e ) {
-            		
-			let input = e.target.parent.querySelector( 'input' );
+		$(".hide_field").click( function( e ) {
+            
+			let input = e.target.parentElement.querySelector( 'input' );
 			
 			if( input.type == "password" ) {
 				

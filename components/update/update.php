@@ -95,6 +95,8 @@ class updater {
 			mkdir( $backup, 00755 );
 		}
 		
+		
+		
 		function copy_backup( $source, $dest ) {
 			
 			// Check for symlinks
@@ -161,6 +163,15 @@ class updater {
 		}
 	}
 	
+	function check_sql() {
+		
+		require_once('../../common.php');
+		require_once('../sql/class.sql.php');
+		$sql = new sql();
+		$connection = $sql->connect();
+		$result = $sql->create_default_tables();
+	}
+	
 	function check_update() {
 		
 		$response = $this->update->getRemoteVersion();
@@ -199,7 +210,7 @@ class updater {
 		$user_settings_file = DATA . "/settings.php";
 		$projects_file = DATA . "/projects.php";
 		$users_file = DATA . "/users.php";
-		global $sql;
+		$sql = new sql();
 		$connection = $sql->connect();
 		$result = $sql->create_default_tables();
 		
@@ -457,6 +468,7 @@ class updater {
 			$this->copyr( $src, $dest );
 			$this->remove_directory( $src );
 			$this->convert();
+			$this->check_sql();
 			return( "true" );
 		} catch( Exception $e ) {
 			
