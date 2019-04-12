@@ -140,15 +140,21 @@ if ($newrelic) {
 
     <div style="float:left; width: 48%; margin-right: 4%;">
 
-        <label><?php i18n("Password"); ?></label>
-        <input type="password" name="password" value="<?php echo($autocomplete['password']); ?>">
+        <label>
+        	<?php i18n("Password"); ?>
+        	<input type="password" name="password" value="<?php echo($autocomplete['password']); ?>">
+        	<span class="icon-eye in-field-icon-right hide_field">
+        </label>
 
     </div>
 
     <div style="float:left; width: 48%;">
 
-        <label><?php i18n("Confirm Password"); ?></label>
-        <input type="password" name="password_confirm" value="<?php echo($autocomplete['password_confirm']); ?>">
+        <label>
+        	<?php i18n("Confirm Password"); ?>
+    		<input type="password" name="password_confirm" value="<?php echo($autocomplete['password_confirm']); ?>">
+    		<span class="icon-eye in-field-icon-right hide_field">
+        </label>
 
     </div>
 	
@@ -174,8 +180,11 @@ if ($newrelic) {
     <input type="text" name="dbname" value="<?php echo($autocomplete['dbname']); ?>">
     <label><?php i18n("Database User"); ?></label>
     <input type="text" name="dbuser" value="<?php echo($autocomplete['dbuser']); ?>">
-    <label><?php i18n("Database Pass"); ?></label>
-    <input type="text" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
+    <label>
+    	<?php i18n("Database Pass"); ?>
+    	<input type="password" name="dbpass" value="<?php echo($autocomplete['dbpass']); ?>">
+    	<span class="icon-eye in-field-icon-right hide_field">
+    </label>
     <label><?php i18n("Database Type"); ?></label>
     <select name="dbtype">
         <?php
@@ -334,7 +343,20 @@ if ($newrelic) {
         $("[name=timezone] option").each(function() {
             if($(this).text().indexOf(timezone) > -1) $("[name=timezone]").val($(this).val());
         })
-
+		
+		document.querySelectorAll( ".hide_field" ).addEventListener( "click", function( e ) {
+            		
+			let input = e.target.parent.querySelector( 'input' );
+			
+			if( input.type == "password" ) {
+				
+				input.type = "text";
+			} else {
+				
+				input.type = "password";
+			}
+		});
+		
         $('#install').on('submit',function(e){
             e.preventDefault();
 

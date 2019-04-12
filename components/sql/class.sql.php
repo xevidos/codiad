@@ -48,6 +48,90 @@ class sql {
 		//$this->query( $query, array(), array(), null, "rowCount" );
 	}
 	
+	public function create_default_tables() {
+		
+		$this->sql->create_tables(
+			array(
+				"active" => array(
+					"fields" => array(
+						"username" => "string",
+						"path" => "text",
+						"position" => "string",
+						"focused" => "string"
+					),
+					"attributes" => array(
+						"username" => array( "not null", "unique" ),
+						"path" => array( "not null", "unique" ),
+						"focused" => array( "not null" ),
+					)
+				),
+				"options" => array(
+					"fields" => array(
+						"id" => "int",
+						"name" => "string",
+						"value" => "text",
+					),
+					"attributes" => array(
+						"id" => array( "id" ),
+						"name" => array( "not null", "unique" ),
+						"value" => array( "not null" ),
+					)
+				),
+				"projects" => array(
+					"fields" => array(
+						"id" => "int",
+						"name" => "string",
+						"path" => "text",
+						"owner" => "string",
+						"access" => "string",
+					),
+					"attributes" => array(
+						
+						"id" => array( "id" ),
+						"name" => array( "not null" ),
+						"path" => array( "not null", "unique" ),
+						"owner" => array( "not null", "unique" ),
+						"access" => array(),
+					)
+				),
+				"users" => array(
+					"fields" => array(
+						"id" => "int",
+						"first_name" => "string",
+						"last_name" => "string",
+						"username" => "string",
+						"password" => "text",
+						"email" => "string",
+						"project" => "string",
+						"access" => "string",
+						"groups" => "string",
+						"token" => "string",
+					),
+					"attributes" => array(
+						"id" => array( "id" ),
+						"username" => array( "not null", "unique" ),
+						"password" => array( "not null" ),
+						"access" => array( "not null" ),
+					)
+				),
+				"user_options" => array(
+					"fields" => array(
+						"id" => "int",
+						"name" => "string",
+						"username" => "string",
+						"value" => "text",
+					),
+					"attributes" => array(
+						"id" => array( "id" ),
+						"name" => array( "not null", "unique" ),
+						"username" => array( "not null", "unique" ),
+						"value" => array( "not null" ),
+					)
+				),
+			)
+		);
+	}
+	
 	public function create_tables( $table ) {
 		
 		/**

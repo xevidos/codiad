@@ -141,7 +141,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
                 <label>
                 	<span class="icon-lock login-icon"></span> <?php i18n("Password"); ?>
                 	<input type="password" name="password">
-                	<span class="icon-eye in-field-icon-right" id="hide_password">
+                	<span class="icon-eye in-field-icon-right hide_field">
                 </label>
                 
                 <div class="language-selector">
@@ -180,7 +180,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
             <script src="components/user/init.js"></script>
             <script>
-            	$( "#hide_password" ).on( "click", function( e ) {
+            	$( ".hide_field" ).on( "click", function( e ) {
             		
             		let password = document.querySelector( "input[name='password']" );
             		
