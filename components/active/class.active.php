@@ -99,7 +99,7 @@ class Active extends Common {
 		
 		if ( ( count( $result ) == 1 && ! $user ) || count( $result ) > 1 ) {
 			
-			echo formatJSEND( "warning", "Warning: File " . substr( $this->path, strrpos( $this->path, "/" ) +1 ) . " Currently Opened By: " . implode( ", ", $users ) );
+			//echo formatJSEND( "warning", "Warning: File " . substr( $this->path, strrpos( $this->path, "/" ) +1 ) . " Currently Opened By: " . implode( ", ", $users ) );
 		} else {
 			
 			echo formatJSEND("success");

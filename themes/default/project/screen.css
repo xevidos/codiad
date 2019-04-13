@@ -10,7 +10,7 @@
 
 .project-list-title {
     position: absolute;
-    z-index: 9998;
+    z-index: 11;
     top: 0;
     left: 0;
     right: 0px;
@@ -34,7 +34,7 @@
     display: block;
     font-size: 15px;
     color: #666;
-    z-index: 99999;
+    z-index: 12;
     cursor: pointer;
     margin: 5px;
     padding: 5px;

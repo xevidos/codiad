@@ -324,7 +324,7 @@ table [class^="icon-"], [class*=" icon-"] {
     text-align: center;
     color: #fff;
     font-weight: bold;
-    z-index: 99999999;
+    z-index: 5;
     line-height: 150%;
     border-radius: 0px 0px 10px 10px;
     text-shadow: 1px 1px 3px #000000;
@@ -418,7 +418,7 @@ table [class^="icon-"], [class*=" icon-"] {
 
 .options-menu {
     position: absolute;
-    z-index: 9999;
+    z-index: 90;
     background-color: #2E2E2E;
     border: 3px solid #666666;
     display: none;
@@ -447,7 +447,7 @@ table [class^="icon-"], [class*=" icon-"] {
 }
 .splitter {
     background-color: black;
-    z-index: 9999;
+    z-index: 80;
 }
 .h-splitter {
     background-image: linear-gradient(left , rgb(120,120,120) 29%, rgb(77,77,77) 77%);
@@ -472,7 +472,7 @@ table [class^="icon-"], [class*=" icon-"] {
     right: 30px;
     bottom: 4px;
     font-size: 12px;
-    z-index: 99;
+    z-index: 2;
     color: #999;
 }
 
@@ -523,7 +523,7 @@ table [class^="icon-"], [class*=" icon-"] {
     position: fixed;
     top: 0;
     height: 100%;
-    z-index: 99999;
+    z-index: 10;
     -moz-user-select: none;
     -khtml-user-select: none;
     -webkit-user-select: none;
@@ -538,7 +538,7 @@ table [class^="icon-"], [class*=" icon-"] {
 }
 #sb-left-title{
     position: absolute;
-    z-index: 9998;
+    z-index: 11;
     top: 0;
     left: 0;
     right: 10px;
@@ -553,13 +553,13 @@ table [class^="icon-"], [class*=" icon-"] {
 .sidebar#sb-right {
     width: 200px;
     right: -190px;
-    z-index: 99999;
+    z-index: 10;
 }
 
 .sidebar-handle {
     width: 12px;
     height: 100%;
-    z-index: 99999;
+    z-index: 12;
     margin: 0;
     padding: 0;
     background: #474747;
@@ -633,7 +633,7 @@ table [class^="icon-"], [class*=" icon-"] {
     display: block;
     font-size: 15px;
     color: #666;
-    z-index: 99999;
+    z-index: 11;
     cursor: pointer;
     margin: 10px;
     float: right;
@@ -648,7 +648,7 @@ table [class^="icon-"], [class*=" icon-"] {
 }
 #sb-right-title{
     position: absolute;
-    z-index: 9998;
+    z-index: 11;
     top: 0;
     left: 12px;
     right: 0;
@@ -660,7 +660,7 @@ table [class^="icon-"], [class*=" icon-"] {
     display: block;
     font-size: 15px;
     color: #666;
-    z-index: 99999;
+    z-index: 11;
     cursor: pointer;
     margin: 10px;
     float: left;
@@ -670,7 +670,7 @@ table [class^="icon-"], [class*=" icon-"] {
 }
 #finder-wrapper {
     position: absolute;
-    z-index: 9999;
+    z-index: 10;
     top: 0; left: 0; bottom: 0; right: 60px;
     display: none;
 }
@@ -761,7 +761,7 @@ table [class^="icon-"], [class*=" icon-"] {
     height: 100%;
     background: #000;
     opacity: 0.4;
-    z-index: 9999998;
+    z-index: 97;
 }
 
 #modal {
@@ -772,7 +772,7 @@ table [class^="icon-"], [class*=" icon-"] {
     max-height: 70vh;
 	overflow: auto;
     background: #333;
-    z-index: 9999999;
+    z-index: 98;
     min-height: 100px;
     padding: 0;
     background-clip: content-box;

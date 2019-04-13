@@ -137,10 +137,17 @@
 					
 					let response = codiad.jsend.parse( data );
 					
-					console.log( data );
+					if( response.status != error ) {
+						
+						codiad.message.success( i18n( 'Created Default Tables' ) );
+					} else {
+						
+						codiad.message.error( i18n( 'Error Creating Default Tables' ) );
+					}
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					
+					codiad.message.error( i18n( 'Error Creating Default Tables' ) );
 					console.log('jqXHR:');
 					console.log(jqXHR);
 					console.log('textStatus:');

@@ -55,7 +55,7 @@
         		
         	//}
         	/* Notify listeners. */
-            amplify.publish('active.onFileWillAppear', {path: path});
+            amplify.publish('active.onFileWillOpen', {path: path, content: content});
         	
             if (focus === undefined) {
                 focus = true;
