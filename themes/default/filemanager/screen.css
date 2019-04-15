@@ -86,7 +86,7 @@
     width: 140px;
     padding: 0;
     background: #333;
-    z-index: 10;
+    z-index: 13;
     background-clip: content-box;
     border: 3px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, .9);

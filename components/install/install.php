@@ -159,7 +159,7 @@ define("WSURL", BASE_URL . "/workspace");
 	function create_project() {
 		
 		$project_path = $this->project_path;
-			
+		
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
 			$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
@@ -211,8 +211,7 @@ define("WSURL", BASE_URL . "/workspace");
 		
 		if ( ! $result === true ) {
 			
-			$this->restore();
-			die( '{"message":"Could not tables in database.","error":"' . json_encode( $error ) .'"}' );
+			die( '{"message":"Could not tables in database.","error":"' . json_encode( $result ) .'"}' );
 		}
 	}
 	
@@ -249,7 +248,7 @@ define("WSURL", BASE_URL . "/workspace");
 	}
 	
 	function is_abs_path( $path ) {
-	
+		
 		return $path[0] === '/';
 	}
 	

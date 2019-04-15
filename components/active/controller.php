@@ -85,3 +85,9 @@ if ($_GET['action']=='focused') {
     $Active->path = $_GET['path'];
     $Active->MarkFileAsFocused();
 }
+
+if ($_GET['action']=='save_position') {
+    $Active->username = $_SESSION['user'];
+    $Active->path = $_POST['path'];
+    $Active->savePosition();
+}

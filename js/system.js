@@ -137,7 +137,7 @@
 					
 					let response = codiad.jsend.parse( data );
 					
-					if( response.status != error ) {
+					if( response.status != 'error' ) {
 						
 						codiad.message.success( i18n( 'Created Default Tables' ) );
 					} else {

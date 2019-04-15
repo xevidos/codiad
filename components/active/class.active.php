@@ -38,7 +38,7 @@ class Active extends Common {
 	public function ListActive() {
 		
 		global $sql;
-		$query = "SELECT path,focused FROM active WHERE username=?";
+		$query = "SELECT path,position,focused FROM active WHERE username=?";
 		$bind_variables = array( $this->username );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
@@ -184,6 +184,19 @@ class Active extends Common {
 		global $sql;
 		$query = "UPDATE active SET focused=? WHERE username=?;UPDATE active SET focused=? WHERE path=? AND username=?;";
 		$bind_variables = array( false, $this->username, true, $this->path, $this->username );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		
+		if( $return > 0 ) {
+			
+			echo formatJSEND( "success" );
+		}
+	}
+	
+	public function savePosition() {
+		
+		global $sql;
+		$query = "UPDATE active SET position=? WHERE path=? AND username=?;";
+		$bind_variables = array( $_POST["position"], $this->path, $this->username );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {

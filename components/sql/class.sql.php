@@ -229,7 +229,7 @@ class sql {
 		//echo var_dump( $query ) . "<br>";
 	}
 	
-	public function query( $query, $bind_variables, $default, $action='fetchAll' ) {
+	public function query( $query, $bind_variables, $default, $action='fetchAll', $show_errors=false ) {
 		
 		$connection = $this->connect();
 		$statement = $connection->prepare( $query );
@@ -265,6 +265,11 @@ class sql {
 			echo var_export( $error );
 			echo var_export( $return );
 			$return = $default;
+		}
+		
+		if( $show_errors ) {
+			
+			$return = json_encode( $error );
 		}
 		
 		//echo var_dump( $error, $return );

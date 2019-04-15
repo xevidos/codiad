@@ -474,7 +474,8 @@
             this.setSession(session, i);
 
             this.changeListener(i);
-            this.cursorTracking(i);
+            //this.cursorTracking(i);
+            this.clickListener(i);
             this.bindKeys(i);
 
             this.instances.push(i);
@@ -1178,9 +1179,21 @@
         //////////////////////////////////////////////////////////////////
 
         changeListener: function(i) {
+        	
             var _this = this;
             i.on('change', function() {
+            	
                 codiad.active.markChanged(_this.getActive().getSession().path);
+                codiad.active.savePosition();
+            });
+        },
+        
+        clickListener: function(i) {
+        	
+            var _this = this;
+            i.on('click', function() {
+            	
+                codiad.active.savePosition();
             });
         },
 

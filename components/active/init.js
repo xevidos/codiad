@@ -34,7 +34,11 @@
         
         // History of opened files
         history: [],
-
+		
+		// List of active file positions
+		positions: {},
+		position_timer: null,
+		
         //////////////////////////////////////////////////////////////////
         //
         // Check if a file is open.
@@ -71,6 +75,7 @@
             var mode = codiad.editor.selectMode( path );
 			
             var fn = function() {
+            	
                 //var Mode = require('ace/mode/' + mode)
                 //    .Mode;
 
@@ -95,6 +100,12 @@
                     codiad.editor.setSession(session);
                 }
                 _this.add(path, session, focus);
+                
+                if( ! ( _this.positions[`${path}`] === undefined ) ) {
+                	
+                	_this.setPosition( _this.positions[`${path}`] );
+                }
+                
                 /* Notify listeners. */
                 amplify.publish('active.onOpen', path);
             };
@@ -265,6 +276,8 @@
                 var listResponse = codiad.jsend.parse(data);
                 if (listResponse !== null) {
                     $.each(listResponse, function(index, data) {
+                    	
+                    	codiad.active.positions[`${data.path}`] = JSON.parse( data.position );
                         codiad.filemanager.openFile(data.path, data.focused);
                     });
                 }
@@ -978,7 +991,89 @@
                 $('#tab-close').hide();
             }
         },
-
+		
+		savePosition: function() {
+			
+			let editor = codiad.editor.getActive();
+			let session = editor.getSession();
+			let path = session.path;
+			let position = this.getPosition( null, true );
+			
+			this.positions[path] = position;
+			
+			setTimeout( function() {
+				
+				if(  ( codiad.active.position_timer + 500 ) > Date.now() ) {
+					
+					return;
+				}
+				
+				//console.log( codiad.active.position_timer, path, JSON.stringify( position ) );
+				
+				$.ajax({
+					type: 'POST',
+					url: codiad.active.controller + '?action=save_position',
+					data: {
+						path: path,
+						position: JSON.stringify( position )
+					},
+					success: function( data ) {
+						
+						codiad.active.position_timer = Date.now();
+						//console.log( "called save position: ", data );
+					},
+				});
+			}, 500);
+		},
+		
+		getPosition: function( path=null, live=false ) {
+			
+			if( path === null ) {
+				
+				path = this.getPath();
+			}
+			
+			let editor = null;
+			let position = null;
+			let session = codiad.active.sessions[path];
+			
+			for( let i = codiad.editor.instances.length;i--; ) {
+				
+				//console.log( codiad.editor.instances[i].getSession().path, path, ( codiad.editor.instances[i].getSession().path == path ) );
+				
+				if( codiad.editor.instances[i].getSession().path == path ) {
+					
+					editor = codiad.editor.instances[i];
+				}
+			}
+			
+			if( live ) {
+				
+				position = editor.getCursorPosition();
+			} else {
+				
+				if( ! this.positions[path] === undefined ) {
+					
+					position = this.positions[path].position;
+				}
+			}
+			return position;
+		},
+		
+		setPosition: function( cursor=null ) {
+			
+			let editor = codiad.editor.getActive();
+			
+			if( cursor == null ) {
+				
+				cursor = this.getPosition();
+			}
+			
+			console.log( "setting position", cursor );
+			
+			editor.scrollToLine( cursor.row, true, true, function() {});
+			editor.moveCursorTo( cursor.row, cursor.column );
+		},
         //////////////////////////////////////////////////////////////////
         // Factory
         //////////////////////////////////////////////////////////////////
