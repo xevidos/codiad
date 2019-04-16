@@ -88,7 +88,7 @@ class Install {
 	
 	function clean_username( $username ) {
 		
-		return strtolower( preg_replace( '#[^A-Za-z0-9' . preg_quote( '-_@. ').']#', '', $username ) );
+		return strtolower( preg_replace( '/[^\w\-\._@]/', '-', $username ) );
 	}
 	
 	function create_config() {
@@ -162,7 +162,7 @@ define("WSURL", BASE_URL . "/workspace");
 		
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
-			$project_path = str_replace( " ", "_", preg_replace( '/[^\w-\.]/', '', $project_path ) );
+			$project_path = preg_replace( '/[^\w-._@]/', '-', $project_path );
 			if( ! is_dir( $this->workspace . "/" . $project_path ) ) {
 				
 				mkdir( $this->workspace . "/" . $project_path );

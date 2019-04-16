@@ -176,7 +176,6 @@
 				},
 				success: function( data ) {
 					
-					console.log( `Update Option ( ${option} ): ` + data );
 					_self.settings = null;
 				},
 				error: function(jqXHR, textStatus, errorThrown) {

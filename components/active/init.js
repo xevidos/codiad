@@ -1008,8 +1008,6 @@
 					return;
 				}
 				
-				//console.log( codiad.active.position_timer, path, JSON.stringify( position ) );
-				
 				$.ajax({
 					type: 'POST',
 					url: codiad.active.controller + '?action=save_position',
@@ -1020,7 +1018,6 @@
 					success: function( data ) {
 						
 						codiad.active.position_timer = Date.now();
-						//console.log( "called save position: ", data );
 					},
 				});
 			}, 500);
@@ -1038,8 +1035,6 @@
 			let session = codiad.active.sessions[path];
 			
 			for( let i = codiad.editor.instances.length;i--; ) {
-				
-				//console.log( codiad.editor.instances[i].getSession().path, path, ( codiad.editor.instances[i].getSession().path == path ) );
 				
 				if( codiad.editor.instances[i].getSession().path == path ) {
 					
@@ -1068,8 +1063,6 @@
 				
 				cursor = this.getPosition();
 			}
-			
-			console.log( "setting position", cursor );
 			
 			editor.scrollToLine( cursor.row, true, true, function() {});
 			editor.moveCursorTo( cursor.row, cursor.column );

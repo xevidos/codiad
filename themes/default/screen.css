@@ -134,7 +134,7 @@ a:hover,a:active {;
 	
 	float: right;
 	position: relative;
-	top: -30px;
+	margin: -30px 8px 0 0;
 }
 
 /* FORMS */

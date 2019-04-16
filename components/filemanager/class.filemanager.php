@@ -774,7 +774,7 @@ class Filemanager extends Common {
 		 * trying to rename or delete it, allow the actual file name.
 		 */
 		
-		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._\/\ ]/', $path );
+		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\ ]/', $path );
 		
 		if( $invalid_characters && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 			
