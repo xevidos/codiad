@@ -62,17 +62,24 @@ class updater {
 	 */
 	 
 	public $archive = "";
+	public $development_archive = "";
+	public $install_folder = "";
 	public $path = "";
 	public $protocol = "";
 	public $update = null;
 	public $username = "";
+	public $tags = "";
+	public $commits = "";
 	
 	function __construct() {
 		
 		
 		$this->update = new Update();
 		$this->protocol = $this->check_protocol();
-		$this->archive = $this->update->archive;
+		$this->archive = "https://gitlab.com/xevidos/codiad/-/archive/master/codiad-master.zip";
+		$this->development_archive = "https://gitlab.com/xevidos/codiad/-/archive/development/codiad-development.zip";
+		$this->commits = "https://gitlab.com/api/v4/projects/8466613/repository/commits/";
+		$this->tags = "https://gitlab.com/api/v4/projects/8466613/repository/tags/";
 		$this->path = BASE_PATH;
 		$this->username = $_SESSION["user"];
 		/*
@@ -122,6 +129,7 @@ class updater {
 				'..',
 				'backup',
 				'codiad-master',
+				'codiad-development',
 				'update.zip',
 				'workspace',
 			);
@@ -174,7 +182,7 @@ class updater {
 	
 	function check_update() {
 		
-		$response = $this->update->getRemoteVersion();
+		$response = $this->get_remote_version();
 		$local_version = $this->update::VERSION;
 		$remote_version = $response["name"];
 		$return = "false";
@@ -203,7 +211,6 @@ class updater {
 	
 	function convert() {
 		
-		require_once('../../common.php');
 		require_once('../sql/class.sql.php');
 		require_once('../settings/class.settings.php');
 		
@@ -297,7 +304,7 @@ class updater {
 		$dir = dir( $source );
 		while (false !== $entry = $dir->read()) {
 		// Skip pointers
-			if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'workspace' || $entry == 'plugins') {
+			if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'codiad-development' || $entry == 'workspace' || $entry == 'plugins') {
 				continue;
 			}
 			
@@ -314,7 +321,7 @@ class updater {
 	// Download latest archive
 	//////////////////////////////////////////////////////////////////
 	
-	function download() {
+	function download( $development = false ) {
 		
 		switch( $this->protocol ) {
 			
@@ -325,7 +332,14 @@ class updater {
 					unlink( $filepath );
 				}
 				$curl = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $this->archive );
+				
+				if( $development ) {
+					
+					curl_setopt( $curl, CURLOPT_URL, $this->development_archive );
+				} else {
+					
+					curl_setopt( $curl, CURLOPT_URL, $this->archive );
+				}
 				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
 				curl_setopt( $curl, CURLOPT_HEADER, 0 );
 				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
@@ -366,6 +380,39 @@ class updater {
 		}
 	}
 	
+	public function get_remote_version( $action="check", $localversion = "" ) {
+		
+		if ( $this->protocol === "none" ) {
+			
+			return;
+		}
+		
+		switch( $this->protocol ) {
+			
+			case( "curl" ):
+				
+				$curl = curl_init();
+				curl_setopt( $curl, CURLOPT_URL, $this->tags );
+				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
+				curl_setopt( $curl, CURLOPT_HEADER, 0 );
+				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );  
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
+				curl_setopt( $curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13' );
+				$content = curl_exec( $curl );
+				curl_close( $curl );
+				
+				$response = json_decode( $content, true );
+				//Return latest release
+				return $response[0];
+			break;
+			
+			case( "fopen" ):
+				
+			break;
+		}
+	}
+	
 	function remove_directory( $path ) {
 		
 		$files = glob($path . '/*');
@@ -402,6 +449,7 @@ class updater {
 		
 		$this->backup();
 		
+		
 		try {
 			
 			$sessions = "../../data/sessions";
@@ -435,6 +483,18 @@ class updater {
 				$this->remove_directory( $dir );
 			}
 			
+			if( is_dir( $this->path . "/codiad-master" ) ) {
+				
+				$src = $this->path . "/codiad-master/";
+				$src_folder = $this->path . "/codiad-master";
+				$update_folder = "codiad-master";
+			} else {
+				
+				$src = $this->path . "/codiad-development/";
+				$src_folder = $this->path . "/codiad-development";
+				$update_folder = "codiad-development";
+			}
+			
 			/**
 			 * If any files in the array below are still set delete them.
 			 * 
@@ -443,13 +503,13 @@ class updater {
 			$file_conflictions = array(
 				
 				$this->path . "/.travis.yml",
-				$this->path . "/codiad-master/.travis.yml",
+				$this->path . "/{$update_folder}/.travis.yml",
 				
 				$this->path . "/.gitignore",
-				$this->path . "/codiad-master/.gitignore",
+				$this->path . "/{$update_folder}/.gitignore",
 				
 				$this->path . "/.gitlab-ci.yml",
-				$this->path . "/codiad-master/.gitlab-ci.yml"
+				$this->path . "/{$update_folder}/.gitlab-ci.yml"
 			);
 			
 			foreach( $file_conflictions as $file ) {
@@ -460,9 +520,6 @@ class updater {
 				}
 			}
 			
-			
-			$src = $this->path . "/codiad-master/";
-			$src_folder = $this->path . "/codiad-master";
 			$dest = $this->path . "/";
 			
 			$this->copyr( $src, $dest );
@@ -546,6 +603,11 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 		case( "download" ):
 			
 			echo $updater->download();
+		break;
+		
+		case( "download_development" ):
+			
+			echo $updater->download( true );
 		break;
 		
 		case( "extract" ):
@@ -679,16 +741,24 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 					});
 				},
 				
-				download: function() {
+				download: function( development=false ) {
+					
+					let data = {}
+					
+					if( development ) {
+						
+						data.action = 'download_development';
+					} else {
+						
+						data.action = 'download';
+					}
 					
 					return jQuery.ajax({
-							
+						
 						url: "update.php",
 						type: "GET",
 						dataType: 'html',
-						data: {
-							action: 'download',
-						},
+						data: data,
 						
 						success: function( result ) {
 							
@@ -782,6 +852,41 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						
 						progress.innerText = "Error, checking for updates failed.";
 					}
+				},
+				
+				update_development: async function() {
+					
+					progress.innerText = "An update was found.  Downloading update.";
+					let download = await this.download( true );
+					
+					if( download !== "true" ) {
+						
+						console.log( download );
+						progress.innerText = "Error downloading update.";
+						return;
+					}
+					
+					progress.innerText = "Extracting update.";
+					let extract = await this.extract();
+					
+					if( extract !== "true" ) {
+						
+						console.log( extract );
+						progress.innerText = "Error extracting update.";
+						return;
+					}
+					
+					progress.innerText = "Applying update.";
+					let apply = await this.apply();
+					
+					if( apply !== "true" ) {
+						
+						console.log( apply );
+						progress.innerText = "Error applying update.";
+						return;
+					}
+					
+					progress.innerText = "Update Finished.";
 				},
 			};
 		</script>

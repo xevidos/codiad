@@ -25,6 +25,7 @@ class Update {
 	public $version = "";
 	public $protocol = "";
 	public $update_file = "";
+	public $development_archive = "";
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
@@ -41,6 +42,7 @@ class Update {
 		
 		$this->archive = "https://gitlab.com/xevidos/codiad/-/archive/master/codiad-master.zip";
 		$this->commits = "https://gitlab.com/api/v4/projects/8466613/repository/commits/";
+		$this->development_archive = "https://gitlab.com/xevidos/codiad/-/archive/development/codiad-development.zip";
 		$this->tags = "https://gitlab.com/api/v4/projects/8466613/repository/tags/";
 		$this->update_file = "https://gitlab.com/xevidos/codiad/raw/master/components/update/update.php";
 		$this->protocol = $this->CheckProtocol();
