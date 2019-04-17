@@ -384,6 +384,15 @@ class sql_conversions {
 		$id_open = $this->wraps["open"][$dbtype];
 		$fields_string = "";
 		$unique_string = "";
+		$unique_length = 0;
+		
+		foreach( $attributes as $id => $attributes ) {
+			
+			if( in_array( "unique", $attributes ) ) {
+				
+				$unique_length++;
+			}
+		}
 		
 		foreach( $attributes as $id => $attributes ) {
 			
@@ -393,9 +402,10 @@ class sql_conversions {
 					
 					$unique_string = $this->specials["unique"][$dbtype] . ",";
 				}
-				if( $dbtype == "mysql" && $fields[$id] == "text" ) {
+				if( $dbtype == "mysql" && $fields ) {
 					
-					$fields_string .= "{$id_open}{$id}{$id_close}(1000),";
+					$field_length = ( 3000 / $unique_length );
+					$fields_string .= "{$id_open}{$id}{$id_close}($field_length),";
 				} else {
 					
 					$fields_string .= "{$id_open}{$id}{$id_close},";
@@ -408,7 +418,7 @@ class sql_conversions {
 		$query .= $unique_string;
 		
 		$query = substr( $query, 0, -1 );
-		$query .= ");";
+		$query .= ") ENGINE=InnoDB;";
 		return( $query );
 	}
 	
