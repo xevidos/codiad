@@ -742,7 +742,7 @@
                 }
             }
             this.applySettings(i);
-            
+            this.cursorTracking(i);
             this.setActive(i);
         },
 
@@ -1275,7 +1275,21 @@
         	
             i = i || this.getActive();
             if (! i) return;
-            i.selection.on("changeCursor", function(e){
+            
+            /**
+             * Update the cursor position now so that when a new file opens,
+             * we do not have the old cursor data.
+             */
+            
+            $('#cursor-position')
+                .html(i18n('Ln') + ': '
+                          + (i.getCursorPosition().row + 1)
+                          + ' &middot; ' + i18n('Col') + ': '
+                          + i.getCursorPosition().column
+                        );
+            
+            //Register the changecursor function so updates continue
+            i.selection.on( "changeCursor", function( e ) {
             	
             	codiad.active.savePosition();
             	$('#cursor-position')
