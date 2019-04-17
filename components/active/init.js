@@ -1,7 +1,8 @@
 /*
- *  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
- *  as-is and without warranty under the MIT License. See
- *  [root]/license.txt for more. This information must remain intact.
+ *  Copyright (c) Codiad & Kent Safranski (codiad.com),
+ *  Isaac Brown ( telaaedifex.com ) distributed as-is and without 
+ *  warranty under the MIT License. See [root]/license.txt for more.
+ *  This information must remain intact.
  */
 
 (function(global, $) {
@@ -37,8 +38,7 @@
 		
 		// List of active file positions
 		positions: {},
-		position_timer: null,
-		
+
         //////////////////////////////////////////////////////////////////
         //
         // Check if a file is open.
@@ -101,7 +101,7 @@
                 }
                 _this.add(path, session, focus);
                 
-                if( ! ( _this.positions[`${path}`] === undefined ) ) {
+                if( ! ( _this.positions[`${path}`] === undefined ) && focus ) {
                 	
                 	_this.setPosition( _this.positions[`${path}`] );
                 }
@@ -148,7 +148,7 @@
                         _this.focus($(this).parent('li').attr('data-path'));
                     }
             });
-
+			
             // Remove from list.
             $('#list-active-files a>span')
                 .live('click', function(e) {
@@ -282,9 +282,11 @@
                     });
                 }
             });
-
+			
             // Prompt if a user tries to close window without saving all filess
             window.onbeforeunload = function(e) {
+            	
+            	codiad.active.uploadPositions();
                 if ($('#list-active-files li.changed')
                     .length > 0) {
                     var e = e || window.event;
@@ -404,7 +406,12 @@
             
             /* Check for users registered on the file. */
             this.check(path);
-
+			
+			if( ! ( this.positions[`${path}`] === undefined ) ) {
+                	
+            	this.setPosition( this.positions[`${path}`] );
+            }
+			
             /* Notify listeners. */
             amplify.publish('active.onFocus', path);
         },
@@ -992,35 +999,27 @@
             }
         },
 		
+		uploadPositions: function() {
+			
+			$.ajax({
+				type: 'POST',
+				url: codiad.active.controller + '?action=save_positions',
+				data: {
+					positions: ( JSON.stringify( codiad.active.positions ) )
+				},
+				success: function( data ) {
+				},
+			});
+		},
+		
 		savePosition: function() {
 			
 			let editor = codiad.editor.getActive();
 			let session = editor.getSession();
 			let path = session.path;
-			let position = this.getPosition( null, true );
+			let position = this.getPosition( path, true );
 			
 			this.positions[path] = position;
-			
-			setTimeout( function() {
-				
-				if(  ( codiad.active.position_timer + 500 ) > Date.now() ) {
-					
-					return;
-				}
-				
-				$.ajax({
-					type: 'POST',
-					url: codiad.active.controller + '?action=save_position',
-					data: {
-						path: path,
-						position: JSON.stringify( position )
-					},
-					success: function( data ) {
-						
-						codiad.active.position_timer = Date.now();
-					},
-				});
-			}, 500);
 		},
 		
 		getPosition: function( path=null, live=false ) {
@@ -1052,6 +1051,16 @@
 					position = this.positions[path].position;
 				}
 			}
+			
+			if( position == null ) {
+				
+				position = {
+					
+					column: 0,
+					row: 0
+				};
+			}
+			
 			return position;
 		},
 		

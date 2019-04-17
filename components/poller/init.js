@@ -1,18 +1,21 @@
 /*
- *  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
- *  as-is and without warranty under the MIT License. See
- *  [root]/license.txt for more. This information must remain intact.
+ *  Copyright (c) Codiad & Kent Safranski (codiad.com),
+ *  Isaac Brown ( telaaedifex.com ) distributed as-is and without 
+ *  warranty under the MIT License. See [root]/license.txt for more.
+ *  This information must remain intact.
  */
 (function(global, $) {
 
 	var codiad = global.codiad;
 
 	$(function() {
+		
 		codiad.poller.init();
 	});
 
 	codiad.poller = {
 		
+		poller: null,
 		interval: 10000,
 		
 		init: function() {
@@ -20,11 +23,11 @@
 			let _this = this;
 			let interval = null;
 			
-			setInterval( function() {
+			_this.poller = setInterval( function() {
 				
 				_this.checkAuth();
 				_this.saveDrafts();
-				
+				codiad.active.uploadPositions();
 			}, _this.interval);
 		},
 		

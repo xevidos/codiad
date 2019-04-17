@@ -192,16 +192,30 @@ class Active extends Common {
 		}
 	}
 	
-	public function savePosition() {
+	public function savePositions( $positions ) {
 		
 		global $sql;
-		$query = "UPDATE active SET position=? WHERE path=? AND username=?;";
-		$bind_variables = array( $_POST["position"], $this->path, $this->username );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		$positions = json_decode( $positions, true );
+		$query = "";
+		$bind_variables = array();
 		
-		if( $return > 0 ) {
+		if( json_last_error() == JSON_ERROR_NONE ) {
 			
-			echo formatJSEND( "success" );
+			foreach( $positions as $path => $cursor ) {
+				
+				$query .= "UPDATE active SET position=? WHERE path=? AND username=?;";
+				array_push( $bind_variables, json_encode( $cursor ), $path, $this->username );
+			}
+			
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $return > 0 ) {
+				
+				exit( formatJSEND( "success" ) );
+			}
+		} else {
+			
+			exit( formatJSEND( "success" ) );
 		}
 	}
 }

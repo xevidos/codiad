@@ -86,8 +86,9 @@ if ($_GET['action']=='focused') {
     $Active->MarkFileAsFocused();
 }
 
-if ($_GET['action']=='save_position') {
+if ($_GET['action']=='save_positions') {
+	
+	ignore_user_abort( true );
     $Active->username = $_SESSION['user'];
-    $Active->path = $_POST['path'];
-    $Active->savePosition();
+    $Active->savePositions( $_POST["positions"] );
 }

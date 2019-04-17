@@ -474,7 +474,7 @@
             this.setSession(session, i);
 
             this.changeListener(i);
-            //this.cursorTracking(i);
+            this.cursorTracking(i);
             this.clickListener(i);
             this.bindKeys(i);
 
@@ -1272,17 +1272,19 @@
         //////////////////////////////////////////////////////////////////
 
         cursorTracking: function(i) {
+        	
             i = i || this.getActive();
             if (! i) return;
-            clearInterval(codiad._cursorPoll);
-            codiad._cursorPoll = setInterval(function() {
-                $('#cursor-position')
-                    .html(i18n('Ln') + ': '
+            i.selection.on("changeCursor", function(e){
+            	
+            	codiad.active.savePosition();
+            	$('#cursor-position')
+                .html(i18n('Ln') + ': '
                           + (i.getCursorPosition().row + 1)
                           + ' &middot; ' + i18n('Col') + ': '
                           + i.getCursorPosition().column
-                         );
-            }, 100);
+                        );
+            });
         },
 
         //////////////////////////////////////////////////////////////////
