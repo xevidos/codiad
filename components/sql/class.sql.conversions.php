@@ -418,7 +418,16 @@ class sql_conversions {
 		$query .= $unique_string;
 		
 		$query = substr( $query, 0, -1 );
-		$query .= ") ENGINE=InnoDB;";
+		$query .= ")";
+		
+		if( $dbtype == "mysql" ) {
+			
+			$query .= " ENGINE=InnoDB;";
+		} else {
+			
+			$query .= ";";
+		}
+		
 		return( $query );
 	}
 	
