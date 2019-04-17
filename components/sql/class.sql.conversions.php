@@ -395,7 +395,7 @@ class sql_conversions {
 				}
 				if( $dbtype == "mysql" && $fields[$id] == "text" ) {
 					
-					$fields_string .= "{$id_open}{$id}{$id_close}(1024),";
+					$fields_string .= "{$id_open}{$id}{$id_close}(1000),";
 				} else {
 					
 					$fields_string .= "{$id_open}{$id}{$id_close},";

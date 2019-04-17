@@ -221,10 +221,10 @@ class updater {
 		$connection = $sql->connect();
 		$result = $sql->create_default_tables();
 		
-		if ( $result === false ) {
+		if ( ! $result === true ) {
 			
 			$this->restore();
-			exit( $connection->errorInfo() );
+			exit( json_encode( $connection->errorInfo(), JSON_PRETTY_PRINT ) );
 		}
 		
 		if( file_exists( $user_settings_file ) ) {
