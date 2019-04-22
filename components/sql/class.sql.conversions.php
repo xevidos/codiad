@@ -386,17 +386,17 @@ class sql_conversions {
 		$unique_string = "";
 		$unique_length = 0;
 		
-		foreach( $attributes as $id => $attributes ) {
+		foreach( $attributes as $id => $attribute ) {
 			
-			if( in_array( "unique", $attributes ) ) {
+			if( in_array( "unique", $attribute ) ) {
 				
 				$unique_length++;
 			}
 		}
 		
-		foreach( $attributes as $id => $attributes ) {
+		foreach( $attributes as $id => $attribute ) {
 			
-			if( in_array( "unique", $attributes ) ) {
+			if( is_array( $attribute ) && in_array( "unique", $attribute ) ) {
 				
 				if( $unique_string == "" ) {
 					
