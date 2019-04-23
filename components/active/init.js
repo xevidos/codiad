@@ -399,18 +399,20 @@
             this.highlightEntry(path, moveToTabList);
             
             if(path != this.getPath()) {
+            	
                 codiad.editor.setSession(this.sessions[path]);
                 this.history.push(path);
-                $.get(this.controller, {'action':'focused', 'path':path});
+                $.get(this.controller, {'action':'focused', 'path':path}, function() {
+                	
+                	if( ! ( this.positions[`${path}`] === undefined ) ) {
+                		
+						this.setPosition( this.positions[`${path}`] );
+	            	}
+                });
             }
             
             /* Check for users registered on the file. */
             this.check(path);
-			
-			if( ! ( this.positions[`${path}`] === undefined ) ) {
-                	
-            	this.setPosition( this.positions[`${path}`] );
-            }
 			
             /* Notify listeners. */
             amplify.publish('active.onFocus', path);
