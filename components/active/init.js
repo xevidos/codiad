@@ -400,13 +400,14 @@
             
             if(path != this.getPath()) {
             	
+            	let _this = this;
                 codiad.editor.setSession(this.sessions[path]);
                 this.history.push(path);
                 $.get(this.controller, {'action':'focused', 'path':path}, function() {
                 	
-                	if( ! ( this.positions[`${path}`] === undefined ) ) {
+                	if( ! ( _this.positions[`${path}`] === undefined ) ) {
                 		
-						this.setPosition( this.positions[`${path}`] );
+						_this.setPosition( .positions[`${path}`] );
 	            	}
                 });
             }

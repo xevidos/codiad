@@ -144,6 +144,7 @@
 						
 						codiad.message.error( i18n( 'Error Creating Default Tables' ) );
 					}
+					console.log( data );
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					

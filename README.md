@@ -6,6 +6,16 @@ Codiad was built with simplicity in mind, allowing for fast, interactive develop
 For more information on the project please check out the check out the Wiki.
 Distributed under the MIT-Style License. See LICENSE.txt file for more information.
 
+Repositories:
+
+[GitLab](https://gitlab.com/xevidos/codiad)
+[GitHub](https://github.com/xevidos/codiad)
+
+Issues:
+
+[GitLab](https://gitlab.com/xevidos/codiad/issues)
+[GitHub](https://github.com/xevidos/codiad/issues)
+
 Features:
 
 * 100+ Native programming languages supported.
@@ -37,7 +47,8 @@ Task List:
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
-* Add support for more database systems ( MSSQL, Oracle, SQLite, Maybe Filesystem again, etc )
+* Add support for more database systems ( MSSQL, Oracle, SQLite, Filesystem storage, etc )
+* Add in auto save timer that saves after the user stops typing instead of after every change
 * Clean up update script
 * Fix broken themes
 * Re Add the custom language recognition system after recode
@@ -45,14 +56,21 @@ Task List:
 
 Completed:
 
-* Add Auto Save.
+* Add Auto Save
 * Add ability to center bottom of code
 * Add updating script
 * Add site renaming
 * Database Update
-	- Added Mysql Support.
+	- Added ( MySQL, PostgreSQL ) Support.
 	- Project Updated to use PDO so future support for more database systems can be added.
 	- Updated to store program data ( Not project data ) in databases.
 * Fix JS errors already showing
 * Remove Codiad autocomplete in favor of Ace's
+* Updated Cursor tracking
 * Updated for PHP 7.2
+
+
+Bugs:
+
+* Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file.
+* Cursor is set to the wrong position if in split view.

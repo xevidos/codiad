@@ -177,7 +177,7 @@ class sql {
 
 		if ( $result === false || ! $error[0] == "00000" ) {
 			
-			return false;
+			return $error;
 		} else {
 			
 			return true;

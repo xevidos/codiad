@@ -404,8 +404,15 @@ class sql_conversions {
 				}
 				if( $dbtype == "mysql" && $fields ) {
 					
-					$field_length = ( 3000 / $unique_length );
-					$fields_string .= "{$id_open}{$id}{$id_close}($field_length),";
+					if( $fields[$id] == "text" ) {
+						
+						$field_length = ( 3000 / $unique_length );
+						$fields_string .= "{$id_open}{$id}{$id_close}($field_length),";
+					} elseif( $fields[$id] == "string" ) {
+						
+						$field_length = ( 3000 / $unique_length );
+						$fields_string .= "{$id_open}{$id}{$id_close}(255),";
+					}
 				} else {
 					
 					$fields_string .= "{$id_open}{$id}{$id_close},";
