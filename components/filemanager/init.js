@@ -387,18 +387,18 @@
 							var appendage = '<ul style="' + display + '">';
 							$.each( files, function( index ) {
 								var ext = '';
-								var name = files[ index ].name.replace( path, '' );
+								var name = files[index].name.replace( path, '' );
 								var nodeClass = 'none';
 								name = name.split( '/' )
 								.join( ' ' );
-								if( files[ index ].type == 'file' ) {
+								if( files[index].type == 'file' ) {
 									var ext = ' ext-' + name.split( '.' )
 									.pop();
 								}
-								if( files[ index ].type == 'directory' && files[ index ].size > 0 ) {
+								if( files[index].type == 'directory' && files[index].size > 0 ) {
 									nodeClass = 'plus';
 								}
-								appendage += '<li><span class="' + nodeClass + '"></span><a class="' + files[ index ].type + ext + '" data-type="' + files[ index ].type + '" data-path="' + files[ index ].name + '">' + name + '</a></li>';
+								appendage += '<li><span class="' + nodeClass + '"></span><a class="' + files[index].type + ext + '" data-type="' + files[index].type + '" data-path="' + files[index].name + '">' + name + '</a></li>';
 							});
 							appendage += '</ul>';
 							if( rescan ) {
@@ -416,7 +416,7 @@
 					}
 					node.removeClass( 'loading' );
 					if( rescan && _this.rescanChildren.length > _this.rescanCounter ) {
-						_this.rescan( _this.rescanChildren[ _this.rescanCounter++ ] );
+						_this.rescan( _this.rescanChildren[_this.rescanCounter++] );
 					} else {
 						_this.rescanChildren = [];
 						_this.rescanCounter = 0;
@@ -578,7 +578,7 @@
 				codiad.message.error( i18n( 'File could not be saved' ) );
 				if( typeof callbacks.error === 'function' ) {
 					var context = callbacks.context || _this;
-					callbacks.error.apply( context, [ data ] );
+					callbacks.error.apply( context, [data] );
 				}
 			}
 			$.post( this.controller + '?action=modify&path=' + encodeURIComponent( path ), data, function( resp ) {
@@ -611,7 +611,7 @@
 					} else codiad.message.error( i18n( 'File could not be saved' ) );
 					if( typeof callbacks.error === 'function' ) {
 						var context = callbacks.context || _this;
-						callbacks.error.apply( context, [ resp.data ] );
+						callbacks.error.apply( context, [resp.data] );
 					}
 				}
 			}).error( notifySaveErr );
@@ -778,7 +778,7 @@
 				var arr = path.split( '/' );
 				var temp = new Array();
 				for( i = 0; i < arr.length - 1; i++ ) {
-					temp.push( arr[ i ] )
+					temp.push( arr[i] )
 				}
 				var newPath = temp.join( '/' ) + '/' + newName;
 				$.get( _this.controller, {
@@ -969,12 +969,12 @@
 					if( searchResponse != 'error' ) {
 						$.each( searchResponse.index, function( key, val ) {
 							// Cleanup file format
-							if( val[ 'file' ].substr( -1 ) == '/' ) {
-								val[ 'file' ] = val[ 'file' ].substr( 0, str.length - 1 );
+							if( val['file'].substr( -1 ) == '/' ) {
+								val['file'] = val['file'].substr( 0, str.length - 1 );
 							}
-							val[ 'file' ] = val[ 'file' ].replace( '//', '/' );
+							val['file'] = val['file'].replace( '//', '/' );
 							// Add result
-							results += '<div><a onclick="codiad.filemanager.openFile(\'' + val[ 'result' ] + '\');setTimeout( function() { codiad.active.gotoLine(' + val[ 'line' ] + '); }, 500);codiad.modal.unload();">Line ' + val[ 'line' ] + ': ' + val[ 'file' ] + '</a></div>';
+							results += '<div><a onclick="codiad.filemanager.openFile(\'' + val['result'] + '\');setTimeout( function() { codiad.active.gotoLine(' + val['line'] + '); }, 500);codiad.modal.unload();">Line ' + val['line'] + ': ' + val['file'] + '</a></div>';
 						});
 						$( '#filemanager-search-results' )
 						.slideDown()
