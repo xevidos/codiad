@@ -407,7 +407,7 @@
                 	
                 	if( ! ( _this.positions[`${path}`] === undefined ) ) {
                 		
-						_this.setPosition( .positions[`${path}`] );
+						_this.setPosition( _this.positions[`${path}`] );
 	            	}
                 });
             }
