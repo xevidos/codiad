@@ -11,6 +11,11 @@
     $(window)
         .load(function() {
             codiad.update.init();
+            
+            $( document ).ready( function() {
+            	
+            	codiad.update.check_for_update();
+            });
         });
 
     codiad.update = {
@@ -37,6 +42,15 @@
                 .die('submit'); // Prevent form bubbling
                 codiad.modal.load(500, this.dialog + '?action=check');
                 $('#modal-content').html('<div id="modal-loading"></div><div align="center">' + i18n("Contacting GitHub...") + '</div><br>');
+        }, 
+        
+        check_for_update: function () {
+			
+            var _this = this;
+			$.get( _this.controller + '?action=check_for_update', function( data ) {
+				
+				response = codiad.jsend.parse( data );
+			});
         }, 
         
         //////////////////////////////////////////////////////////////////

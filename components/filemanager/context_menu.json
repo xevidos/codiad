@@ -138,6 +138,12 @@
         "onclick": "document.execCommand( 'copy' );"
     },
     {
+        "title": "Cut",
+        "icon": "icon-pencil",
+        "applies-to" : "editor-only",
+        "onclick": "document.execCommand( 'cut' );"
+    },
+    {
         "title": "Paste",
         "icon": "icon-docs",
         "applies-to" : "editor-only",
@@ -151,13 +157,13 @@
     },
     {
         "title": "Find",
-        "icon": "icon-docs",
+        "icon": "icon-search",
         "applies-to" : "editor-only",
         "onclick": "codiad.editor.openSearch('find');"
     },
     {
         "title": "Replace",
-        "icon": "icon-docs",
+        "icon": "icon-pencil",
         "applies-to" : "editor-only",
         "onclick": "codiad.editor.openSearch('replace');"
     },
@@ -169,7 +175,7 @@
     },
     {
         "title": "Sort",
-        "icon": "icon-docs",
+        "icon": "icon-box",
         "applies-to" : "editor-only",
         "onclick": "codiad.editor.openSort();"
     }

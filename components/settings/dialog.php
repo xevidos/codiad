@@ -63,7 +63,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-right" onclick="save(); return false;"><?php i18n("Save"); ?></button>
+            <button class="btn-left" onclick="save(); return false;"><?php i18n("Save"); ?></button>
             <button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Close"); ?></button>
             <div class="loading"></div>
             <script>
@@ -134,10 +134,13 @@
                                     codiad.editor.setOverScroll(val);
                                 break;
                                 case "codiad.editor.autocomplete":
-                                	var bool_val = (val == "true");
+								var bool_val = (val == "true");
 									codiad.editor.setLiveAutocomplete(bool_val)
                                 break;
                                 case "codiad.settings.autosave":
+                                    var bool_val = (val == "true");
+                                break;
+                        		case "codiad.filemanager.autoReloadPreview":
                                     var bool_val = (val == "true");
                                 break;
                             }
@@ -161,7 +164,6 @@
                     /* Notify listeners */
                     amplify.publish( 'settings.dialog.save', null );
                     codiad.settings.save( settings );
-                    codiad.modal.unload();
                 }
             </script>
 			<?php

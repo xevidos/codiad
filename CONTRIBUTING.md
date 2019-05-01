@@ -14,13 +14,12 @@ Stick to the conventions defined in other components as closely as possible.
 
 * Utilize the same commenting structure
 * Use underscores in namespaces instead of interCaps
-* Use intend with 4 spaces in your code
-* Use single quotes for parameternames and double quotes for strings 
+* Use intend with a tab character in your code
 * When working with the editor utilize the `active` object whenever possible instead of going direct to the `editor`
 
 **Javascript Formatting**
 
-In order to maintain a consistant code structure to the code across the application please follow the wordpress standard, or run any changes through JSBeautifier (http://jsbeautifier.org/) with the settings below.
+In order to maintain a consistant code structure to the code across the application please follow the wordpress standard, or run any changes through [JSBeautifier] (http://jsbeautifier.org/) with the settings below.
 
 	{
 		"indent_size": "1",
@@ -45,4 +44,4 @@ If you have questions, please ask. Submit an issue or [contact us directly](mail
 
 **PHP Formatting**
 
-In order to maintain a consistant code structure we follow PSR2 standards.
+In order to maintain a consistant code structure we follow WordPress standards.

@@ -10,8 +10,7 @@
 		
 		hide_loading: function() {
 			
-			let loading = document.getElementById( 'modal' ).getElementsByClassName( 'loading' )[0];
-			loading.style.display = "none";
+			$('#modal-content .loading').css( "display", "none" );
 		},
 		
 		hideOverlay: function() {
@@ -55,8 +54,7 @@
 		
 		show_loading: function() {
 			
-			let loading = document.getElementById( 'modal' ).getElementsByClassName( 'loading' )[0];
-			loading.style.display = "inline-block";
+			$('#modal-content .loading').css( "display", "inline-block" );
 		},
 		
 		unload: function() {

@@ -14,6 +14,7 @@
 	codiad.settings = {
 		
 		controller: 'components/settings/controller.php',
+		settings: null,
 		
 		init: function() {
 			
@@ -56,6 +57,37 @@
 			}
 		},
 		
+		get_options: async function() {
+			
+			let result;
+			let _self = codiad.settings;
+			
+			try {
+				
+				if( _self.settings == null ) {
+					
+					result = await $.ajax({
+						
+						url: this.controller + '?action=get_options',
+						type: "POST",
+						dataType: 'html',
+						data: {
+						},
+					});
+					result = JSON.parse( result );
+				} else {
+					
+					result = _self.settings
+				}
+				
+				return result;
+			} catch (error) {
+				
+				console.log(error);
+				throw error;
+			}
+		},
+		
 		//////////////////////////////////////////////////////////////////
 		// Save Settings
 		//////////////////////////////////////////////////////////////////
@@ -65,9 +97,20 @@
 			var systemRegex = /^codiad/;
 			var pluginRegex = /^codiad.plugin/;
 			
-			$.post( this.controller + '?action=save', {settings: JSON.stringify( settings )}, function( data ) {
-				
-				parsed = codiad.jsend.parse( data );
+			$.ajax({
+				type: 'POST',
+				url: this.controller + '?action=save',
+				data: {settings: JSON.stringify( settings )},
+				success: function( data ) {
+					data = data.replace(/},/gi, ",").split(",");
+					length = data.length;
+					
+					for( i = 0;i < length; i++ ) {
+						
+						parsed = codiad.jsend.parse( data );
+					}
+					codiad.modal.unload();
+				},
 			});
 			
 			/* Notify listeners */
@@ -120,6 +163,8 @@
 				return false;
 			}
 			
+			let _self = codiad.settings;
+			
 			jQuery.ajax({
 					
 				url: this.controller + '?action=update_option',
@@ -128,6 +173,19 @@
 				data: {
 					option: option,
 					value: value
+				},
+				success: function( data ) {
+					
+					_self.settings = null;
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					
+					console.log('jqXHR:');
+					console.log(jqXHR);
+					console.log('textStatus:');
+					console.log(textStatus);
+					console.log('errorThrown:');
+					console.log(errorThrown);
 				},
 			});
 		},

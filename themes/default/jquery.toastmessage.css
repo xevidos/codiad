@@ -1,6 +1,6 @@
 .toast-container {
     width: 280px;
-    z-index: 99999;
+    z-index: 5;
 }
 
 
@@ -33,7 +33,7 @@
 
 .toast-item p {
     text-align: left;
-    margin-left: 50px;
+    margin: 0 15px 0 45px;
 }
 
 .toast-item-close {

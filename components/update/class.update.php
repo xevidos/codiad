@@ -24,7 +24,8 @@ class Update {
 	public $archive = "";
 	public $version = "";
 	public $protocol = "";
-	public $update_fiile = "";
+	public $update_file = "";
+	public $development_archive = "";
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
@@ -41,6 +42,7 @@ class Update {
 		
 		$this->archive = "https://gitlab.com/xevidos/codiad/-/archive/master/codiad-master.zip";
 		$this->commits = "https://gitlab.com/api/v4/projects/8466613/repository/commits/";
+		$this->development_archive = "https://gitlab.com/xevidos/codiad/-/archive/development/codiad-development.zip";
 		$this->tags = "https://gitlab.com/api/v4/projects/8466613/repository/tags/";
 		$this->update_file = "https://gitlab.com/xevidos/codiad/raw/master/components/update/update.php";
 		$this->protocol = $this->CheckProtocol();
@@ -165,6 +167,16 @@ class Update {
 			
 			//None are enabled exit.
 			return "none";
+		}
+	}
+	
+	public function check_for_update() {
+		
+		$vars = json_decode( $this->Check(), true );
+		
+		if( $vars[0]['data']['currentversion'] < $vars[0]['data']['remoteversion'] ) {
+			
+			echo formatJSEND( "notice", "An update for Codiad is available" );
 		}
 	}
 	

@@ -6,7 +6,6 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
-
 require_once('../../common.php');
 require_once('./class.project.php');
 
@@ -18,6 +17,12 @@ checkSession();
 
 $Project = new Project();
 $Project->projects = $Project->get_projects();
+
+if( ! is_array( $Project->projects ) ) {
+	
+	$Project->projects = array();
+}
+
 
 if( $_GET['action'] == 'add_user' ) {
 	

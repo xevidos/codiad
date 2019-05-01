@@ -321,18 +321,18 @@
         //
         //////////////////////////////////////////////////////////////////
 
-        getSettings: function() {
+        getSettings: async function() {
         	
-            var boolVal = null;
-            var _this = this;
-			var options = [
+            let boolVal = null;
+            let _this = this;
+			let options = [
 				'editor.fontSize',
 				'editor.overScroll',
 				'editor.printMarginColumn',
 				'editor.tabSize',
 				'editor.theme',
 			];
-			var bool_options = [
+			let bool_options = [
 				'editor.autocomplete',
 				'settings.autosave',
 				'editor.printMargin',
@@ -345,9 +345,13 @@
 				'editor.persistentModal',
 			];
 			
-            $.each( options, async function( idx, key ) {
+			let user_settings = await codiad.settings.get_options();
+			
+			//console.log( user_settings );
+			
+            $.each( options, function( idx, key ) {
             	
-                let localValue = await codiad.settings.get_option( 'codiad.' + key );
+                let localValue = user_settings['codiad.' + key];
                 if ( localValue != null ) {
             		
                     _this.settings[key.split('.').pop()] = localValue;
@@ -356,7 +360,7 @@
 
             $.each( bool_options, async function(idx, key) {
             	
-               let localValue = await codiad.settings.get_option( 'codiad.' + key );
+               let localValue = user_settings['codiad.' + key];
                if ( localValue != null ) {
                	
         			_this.settings[key.split('.').pop()] = (localValue == 'true');
@@ -471,6 +475,7 @@
 
             this.changeListener(i);
             this.cursorTracking(i);
+            this.clickListener(i);
             this.bindKeys(i);
 
             this.instances.push(i);
@@ -737,7 +742,7 @@
                 }
             }
             this.applySettings(i);
-            
+            this.cursorTracking(i);
             this.setActive(i);
         },
 
@@ -851,7 +856,7 @@
                 }
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.theme', t );
+            //codiad.settings.update_option( 'codiad.editor.theme', t );
         },
 
         /////////////////////////////////////////////////////////////////
@@ -893,7 +898,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.fontSize', s );
+            //codiad.settings.update_option( 'codiad.editor.fontSize', s );
         },
 
 
@@ -918,7 +923,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.highlightLine', h );
+            //codiad.settings.update_option( 'codiad.editor.highlightLine', h );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -941,7 +946,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.printMargin', p );
+            //codiad.settings.update_option( 'codiad.editor.printMargin', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -964,7 +969,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
+            //codiad.settings.update_option( 'codiad.editor.printMarginColumn', p );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -987,7 +992,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.indentGuides', g );
+            //codiad.settings.update_option( 'codiad.editor.indentGuides', g );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1029,7 +1034,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.wrapMode', w );
+            //codiad.settings.update_option( 'codiad.editor.wrapMode', w );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1045,7 +1050,7 @@
         setPersistentModal: function(t, i) {
             this.settings.persistentModal = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.persistentModal', t );
+            //codiad.settings.update_option( 'codiad.editor.persistentModal', t );
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1061,7 +1066,7 @@
         setRightSidebarTrigger: function(t, i) {
             this.settings.rightSidebarTrigger = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
+            //codiad.settings.update_option( 'codiad.editor.rightSidebarTrigger', t );
         },
         
         //////////////////////////////////////////////////////////////////
@@ -1077,7 +1082,7 @@
         setFileManagerTrigger: function(t, i) {
             this.settings.fileManagerTrigger = t;
             //Database
-            codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
+            //codiad.settings.update_option( 'codiad.editor.fileManagerTrigger', t );
             codiad.project.loadSide();
         },
         
@@ -1101,7 +1106,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.tabSize', s );
+            //codiad.settings.update_option( 'codiad.editor.tabSize', s );
             
         },
         
@@ -1124,7 +1129,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.softTabs', t );
+            //codiad.settings.update_option( 'codiad.editor.softTabs', t );
             
         },
         
@@ -1174,9 +1179,21 @@
         //////////////////////////////////////////////////////////////////
 
         changeListener: function(i) {
+        	
             var _this = this;
             i.on('change', function() {
+            	
                 codiad.active.markChanged(_this.getActive().getSession().path);
+                codiad.active.savePosition();
+            });
+        },
+        
+        clickListener: function(i) {
+        	
+            var _this = this;
+            i.on('click', function() {
+            	
+                codiad.active.savePosition();
             });
         },
 
@@ -1255,17 +1272,33 @@
         //////////////////////////////////////////////////////////////////
 
         cursorTracking: function(i) {
+        	
             i = i || this.getActive();
             if (! i) return;
-            clearInterval(codiad._cursorPoll);
-            codiad._cursorPoll = setInterval(function() {
-                $('#cursor-position')
-                    .html(i18n('Ln') + ': '
+            
+            /**
+             * Update the cursor position now so that when a new file opens,
+             * we do not have the old cursor data.
+             */
+            
+            $('#cursor-position')
+                .html(i18n('Ln') + ': '
                           + (i.getCursorPosition().row + 1)
                           + ' &middot; ' + i18n('Col') + ': '
                           + i.getCursorPosition().column
-                         );
-            }, 100);
+                        );
+            
+            //Register the changecursor function so updates continue
+            i.selection.on( "changeCursor", function( e ) {
+            	
+            	codiad.active.savePosition();
+            	$('#cursor-position')
+                .html(i18n('Ln') + ': '
+                          + (i.getCursorPosition().row + 1)
+                          + ' &middot; ' + i18n('Col') + ': '
+                          + i.getCursorPosition().column
+                        );
+            });
         },
 
         //////////////////////////////////////////////////////////////////
@@ -1456,7 +1489,7 @@
         //////////////////////////////////////////////////////////////////
 
         setOverScroll: function( s, i ) {
-        	
+        
             if (i) {
                 i.setOption( "scrollPastEnd", s );
             } else {
@@ -1466,7 +1499,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.overScroll', s );
+            //codiad.settings.update_option( 'codiad.editor.overScroll', s );
         },
         
         setLiveAutocomplete: function( s, i ) {
@@ -1484,7 +1517,7 @@
                 });
             }
             //Database
-            codiad.settings.update_option( 'codiad.editor.autocomplete', s );
+            //codiad.settings.update_option( 'codiad.editor.autocomplete', s );
         },
 		
 		toggleMultiLine: function( e ) {
@@ -1514,9 +1547,8 @@
 			}
 		},
 		
-		paste: function() {
-			//this works only in chrome
-			console.log( "this works only in chrome." );
+		paste: function(  ) {
+			
 			navigator.clipboard.readText().then(text => {codiad.editor.getActive().insert( text )});
 		},
 		

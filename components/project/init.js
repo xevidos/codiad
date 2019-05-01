@@ -257,6 +257,7 @@
 			$.get( this.controller + '?action=get_current', function( data ) {
 				
 				var projectInfo = codiad.jsend.parse( data );
+				
 				if ( projectInfo != 'error' ) {
 					
 					$( '#file-manager' )
@@ -275,8 +276,13 @@
 		//////////////////////////////////////////////////////////////////
 		loadSide: async function() {
 			
+			this._sideExpanded = ( await codiad.settings.get_option( "codiad.projects.sideExpanded" ) == "true" );
 			$( '.sb-projects-content' ).load( this.dialog + '?action=sidelist&trigger='+ await codiad.settings.get_option( 'codiad.editor.fileManagerTrigger' ) );
-			this._sideExpanded = true;
+			
+			if ( ! this._sideExpanded ) {
+				
+				this.projectsCollapse();
+			}
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -318,6 +324,7 @@
 		projectsExpand: function() {
 			
 			this._sideExpanded = true;
+			codiad.settings.update_option( 'codiad.projects.sideExpanded', this._sideExpanded );
 			$( '#side-projects' ).css( 'height', 276 + 'px' );
 			$( '.project-list-title' ).css( 'right', 0 );
 			$( '.sb-left-content' ).css( 'bottom', 276 + 'px' );
@@ -329,6 +336,7 @@
 		projectsCollapse: function() {
 			
 			this._sideExpanded = false;
+			codiad.settings.update_option( 'codiad.projects.sideExpanded', this._sideExpanded );
 			$( '#side-projects' ).css( 'height', 33 + 'px' );
 			$( '.project-list-title' ).css( 'right', 0 );
 			$( '.sb-left-content' ).css( 'bottom', 33 + 'px' );
@@ -422,6 +430,7 @@
 				async: false,
 				success: function( data ) {
 					
+					console.log( data );
 					current_response = codiad.jsend.parse( data );
 				} 
 			});
@@ -433,7 +442,7 @@
 				for( let i = current_response.length; i--; ) {
 				
 					let optionElement = document.createElement( 'option' );
-					optionElement.innerText = current_response[i];
+					optionElement.innerText = current_response[i].username;
 					select_list.appendChild( optionElement );
 				}
 			}
