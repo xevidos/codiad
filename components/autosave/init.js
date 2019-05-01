@@ -38,6 +38,7 @@
 		editor: null,
 		invalid_states: [ "", " ", null, undefined ],
 		path: curpath,
+		save_interval: null,
 		saving: false,
 		settings: {
 			autosave: true,
@@ -128,6 +129,30 @@
 			});
 		},
 		
+		auto_save: function() {
+			
+			/**
+			 * When saving after every change, we encounter an issue where every
+			 * once in a while the last change or last few changes will not get
+			 * saved.  Due to this, I decided to instead only save after the user
+			 * has finished typing their changes.
+			 * 
+			 * On every change to the editor, we set a timeout of half a second
+			 * to see if the user is still typing.  If they are, we clear the 
+			 * timeout and set it again.  If they have stopped typing then the
+			 * timout is triggered after 500 miliseconds and the file is saved.
+			 */
+			
+			let _this = codiad.auto_save;
+			
+			if( _this.save_interval !== null ) {
+				
+				clearTimeout( _this.save_interval );
+				_this.save_interval = null;
+			}
+			_this.save_interval = setTimeout( _this.save, 500 );
+		},
+		
 		/**
 		* 
 		* This is where the core functionality goes, any call, references,
@@ -135,9 +160,15 @@
 		* 
 		*/
 		
-		auto_save: function() {
+		save: function() {
 			
 			let _this = codiad.auto_save;
+			
+			if( _this.saving ) {
+				
+				return;
+			}
+			
 			_this.saving = true;
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
@@ -193,7 +224,8 @@
 			
 			_this.content = content;
 			codiad.active.save;
-			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
+			//codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
+			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ) );
 			let session = codiad.active.sessions[path];
 			if( typeof session != 'undefined' ) {
 				
@@ -210,13 +242,6 @@
 				}
 			}
 			_this.saving = false;
-			
-			setTimeout(function() {
-				
-				//Call the function again after one second so that if we missed the last change we resave the file.
-				let _this = codiad.auto_save;
-				_this.auto_save();
-			}, 1000);
 		},
 		
 		reload_interval: async function() {
