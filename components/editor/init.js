@@ -33,8 +33,8 @@
 		this.childElements = {};
 		this.splitProp = 0.5;
 		
-		this.setChild( 0, children[0 ] );
-		this.setChild( 1, children[1 ] );
+		this.setChild( 0, children[0] );
+		this.setChild( 1, children[1] );
 		
 		this.splitter = $( '<div>' )
 		.addClass( 'splitter' )
@@ -45,10 +45,9 @@
 				if( _this.splitType === 'horizontal' ) {
 					var w1, w2;
 					w1 = ui.position.left - separatorWidth / 2;
-					w2 = _this.root.width() - ui.position.left -
-						separatorWidth / 2;
+					w2 = _this.root.width() - ui.position.left - separatorWidth / 2;
 					_this.splitProp = w1 / _this.root.width();
-					_this.childElements[0
+					_this.childElements[0]
 					.width( w1 )
 					.trigger( 'h-resize', [true, true] );
 					_this.childElements[1]
