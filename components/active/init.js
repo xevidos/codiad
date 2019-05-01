@@ -1,7 +1,8 @@
 /*
- *  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
- *  as-is and without warranty under the MIT License. See
- *  [root]/license.txt for more. This information must remain intact.
+ *  Copyright (c) Codiad & Kent Safranski (codiad.com),
+ *  Isaac Brown ( telaaedifex.com ) distributed as-is and without 
+ *  warranty under the MIT License. See [root]/license.txt for more.
+ *  This information must remain intact.
  */
 
 (function(global, $) {
@@ -34,6 +35,9 @@
         
         // History of opened files
         history: [],
+		
+		// List of active file positions
+		positions: {},
 
         //////////////////////////////////////////////////////////////////
         //
@@ -54,6 +58,8 @@
         		
         		
         	//}
+        	/* Notify listeners. */
+            amplify.publish('active.onFileWillOpen', {path: path, content: content});
         	
             if (focus === undefined) {
                 focus = true;
@@ -69,6 +75,7 @@
             var mode = codiad.editor.selectMode( path );
 			
             var fn = function() {
+            	
                 //var Mode = require('ace/mode/' + mode)
                 //    .Mode;
 
@@ -93,6 +100,12 @@
                     codiad.editor.setSession(session);
                 }
                 _this.add(path, session, focus);
+                
+                if( ! ( _this.positions[`${path}`] === undefined ) && focus ) {
+                	
+                	_this.setPosition( _this.positions[`${path}`] );
+                }
+                
                 /* Notify listeners. */
                 amplify.publish('active.onOpen', path);
             };
@@ -135,7 +148,7 @@
                         _this.focus($(this).parent('li').attr('data-path'));
                     }
             });
-
+			
             // Remove from list.
             $('#list-active-files a>span')
                 .live('click', function(e) {
@@ -263,13 +276,17 @@
                 var listResponse = codiad.jsend.parse(data);
                 if (listResponse !== null) {
                     $.each(listResponse, function(index, data) {
+                    	
+                    	codiad.active.positions[`${data.path}`] = JSON.parse( data.position );
                         codiad.filemanager.openFile(data.path, data.focused);
                     });
                 }
             });
-
+			
             // Prompt if a user tries to close window without saving all filess
             window.onbeforeunload = function(e) {
+            	
+            	codiad.active.uploadPositions();
                 if ($('#list-active-files li.changed')
                     .length > 0) {
                     var e = e || window.event;
@@ -376,17 +393,28 @@
                 moveToTabList = true;
             }
             
+            /* Notify listeners. */
+            amplify.publish('active.onWillFocus', path);
+            
             this.highlightEntry(path, moveToTabList);
             
             if(path != this.getPath()) {
+            	
+            	let _this = this;
                 codiad.editor.setSession(this.sessions[path]);
                 this.history.push(path);
-                $.get(this.controller, {'action':'focused', 'path':path});
+                $.get(this.controller, {'action':'focused', 'path':path}, function() {
+                	
+                	if( ! ( _this.positions[`${path}`] === undefined ) ) {
+                		
+						_this.setPosition( .positions[`${path}`] );
+	            	}
+                });
             }
             
             /* Check for users registered on the file. */
             this.check(path);
-
+			
             /* Notify listeners. */
             amplify.publish('active.onFocus', path);
         },
@@ -447,7 +475,7 @@
         // Save active editor
         //////////////////////////////////////////////////////////////////
 
-        save: function(path) {
+        save: function(path, alerts=true) {
             /* Notify listeners. */
             amplify.publish('active.onSave', path);
 
@@ -487,17 +515,17 @@
                     if (success) {
                         codiad.filemanager.savePatch(path, patch, session.serverMTime, {
                             success: handleSuccess
-                        });
+                        }, alerts);
                     } else {
                         codiad.filemanager.saveFile(path, newContent, {
                             success: handleSuccess
-                        });
+                        }, alerts);
                     }
                 }, this);
             } else {
                 codiad.filemanager.saveFile(path, newContent, {
                     success: handleSuccess
-                });
+                }, alert);
             }
         },
         
@@ -664,9 +692,8 @@
                 var newSession = this.sessions[newPath];
 
                 // Change Editor Mode
-                var ext = codiad.filemanager.getExtension(newPath);
-                var mode = codiad.editor.selectMode(ext);
-
+                var mode = codiad.editor.selectMode(newPath);
+				
                 // handle async mode change
                 var fn = function() {
                     codiad.editor.setModeDisplay(newSession);
@@ -974,7 +1001,84 @@
                 $('#tab-close').hide();
             }
         },
-
+		
+		uploadPositions: function() {
+			
+			$.ajax({
+				type: 'POST',
+				url: codiad.active.controller + '?action=save_positions',
+				data: {
+					positions: ( JSON.stringify( codiad.active.positions ) )
+				},
+				success: function( data ) {
+				},
+			});
+		},
+		
+		savePosition: function() {
+			
+			let editor = codiad.editor.getActive();
+			let session = editor.getSession();
+			let path = session.path;
+			let position = this.getPosition( path, true );
+			
+			this.positions[path] = position;
+		},
+		
+		getPosition: function( path=null, live=false ) {
+			
+			if( path === null ) {
+				
+				path = this.getPath();
+			}
+			
+			let editor = null;
+			let position = null;
+			let session = codiad.active.sessions[path];
+			
+			for( let i = codiad.editor.instances.length;i--; ) {
+				
+				if( codiad.editor.instances[i].getSession().path == path ) {
+					
+					editor = codiad.editor.instances[i];
+				}
+			}
+			
+			if( live ) {
+				
+				position = editor.getCursorPosition();
+			} else {
+				
+				if( ! this.positions[path] === undefined ) {
+					
+					position = this.positions[path].position;
+				}
+			}
+			
+			if( position == null ) {
+				
+				position = {
+					
+					column: 0,
+					row: 0
+				};
+			}
+			
+			return position;
+		},
+		
+		setPosition: function( cursor=null ) {
+			
+			let editor = codiad.editor.getActive();
+			
+			if( cursor == null ) {
+				
+				cursor = this.getPosition();
+			}
+			
+			editor.scrollToLine( cursor.row, true, true, function() {});
+			editor.moveCursorTo( cursor.row, cursor.column );
+		},
         //////////////////////////////////////////////////////////////////
         // Factory
         //////////////////////////////////////////////////////////////////

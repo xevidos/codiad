@@ -56,86 +56,30 @@ class updater {
 	/**
 	 * Constants
 	 */
-	
-	const DEFAULT_OPTIONS = array(
-		array(
-			"name" => "codiad.editor.autocomplete",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.fileManagerTrigger",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.fontSize",
-			"value" => "14px",
-		),
-		array(
-			"name" => "codiad.editor.highlightLine",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.indentGuides",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.overScroll",
-			"value" => "0.5",
-		),
-		array(
-			"name" => "codiad.editor.persistentModal",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.printMargin",
-			"value" => "true",
-		),
-		array(
-			"name" => "codiad.editor.printMarginColumn",
-			"value" => "80",
-		),
-		array(
-			"name" => "codiad.editor.rightSidebarTrigger",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.softTabs",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.editor.tabSize",
-			"value" => "4",
-		),
-		array(
-			"name" => "codiad.editor.theme",
-			"value" => "twilight",
-		),
-		array(
-			"name" => "codiad.editor.wrapMode",
-			"value" => "false",
-		),
-		array(
-			"name" => "codiad.settings.autosave",
-			"value" => "true",
-		),
-	);
 	 
 	/**
 	 * Properties
 	 */
 	 
 	public $archive = "";
+	public $development_archive = "";
+	public $install_folder = "";
 	public $path = "";
 	public $protocol = "";
 	public $update = null;
 	public $username = "";
+	public $tags = "";
+	public $commits = "";
 	
 	function __construct() {
 		
 		
 		$this->update = new Update();
 		$this->protocol = $this->check_protocol();
-		$this->archive = $this->update->archive;
+		$this->archive = "https://gitlab.com/xevidos/codiad/-/archive/master/codiad-master.zip";
+		$this->development_archive = "https://gitlab.com/xevidos/codiad/-/archive/development/codiad-development.zip";
+		$this->commits = "https://gitlab.com/api/v4/projects/8466613/repository/commits/";
+		$this->tags = "https://gitlab.com/api/v4/projects/8466613/repository/tags/";
 		$this->path = BASE_PATH;
 		$this->username = $_SESSION["user"];
 		/*
@@ -158,20 +102,26 @@ class updater {
 			mkdir( $backup, 00755 );
 		}
 		
+		
+		
 		function copy_backup( $source, $dest ) {
+			
 			// Check for symlinks
-			if (is_link($source)) {
-				return symlink(readlink($source), $dest);
+			if ( is_link( $source ) ) {
+				
+				return symlink( readlink( $source ), $dest );
 			}
 			
 			// Simple copy for a file
-			if (is_file($source)) {
+			if ( is_file( $source ) ) {
+				
 				return copy($source, $dest);
 			}
 			
 			// Make destination directory
-			if (!is_dir($dest)) {
-				mkdir($dest);
+			if ( ! is_dir( $dest ) ) {
+				
+				mkdir( $dest );
 			}
 			
 			$invalid_files = array(
@@ -179,13 +129,14 @@ class updater {
 				'..',
 				'backup',
 				'codiad-master',
+				'codiad-development',
 				'update.zip',
 				'workspace',
 			);
 			
 			// Loop through the folder
 			$dir = dir( $source );
-			while (false !== $entry = $dir->read()) {
+			while ( false !== $entry = $dir->read() ) {
 			// Skip pointers
 				if( in_array( $entry, $invalid_files ) ) {
 					
@@ -220,9 +171,18 @@ class updater {
 		}
 	}
 	
+	function check_sql() {
+		
+		require_once('../../common.php');
+		require_once('../sql/class.sql.php');
+		$sql = new sql();
+		$connection = $sql->connect();
+		$result = $sql->create_default_tables();
+	}
+	
 	function check_update() {
 		
-		$response = $this->update->getRemoteVersion();
+		$response = $this->get_remote_version();
 		$local_version = $this->update::VERSION;
 		$remote_version = $response["name"];
 		$return = "false";
@@ -251,60 +211,20 @@ class updater {
 	
 	function convert() {
 		
-		require_once('../../common.php');
 		require_once('../sql/class.sql.php');
+		require_once('../settings/class.settings.php');
 		
 		$user_settings_file = DATA . "/settings.php";
 		$projects_file = DATA . "/projects.php";
 		$users_file = DATA . "/users.php";
-		
 		$sql = new sql();
 		$connection = $sql->connect();
+		$result = $sql->create_default_tables();
 		
-		$sql = "
-CREATE TABLE IF NOT EXISTS `options`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `value` TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS `projects`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `path` VARCHAR(255) NOT NULL,
-    `owner` VARCHAR(255) NOT NULL,
-    `access` TEXT
-);
-CREATE TABLE IF NOT EXISTS `users`(
-    `id` INT(11) NOT NULL,
-    `first_name` VARCHAR(255) DEFAULT NULL,
-    `last_name` VARCHAR(255) DEFAULT NULL,
-    `username` VARCHAR(255) NOT NULL,
-    `password` TEXT NOT NULL,
-    `email` VARCHAR(255) DEFAULT NULL,
-    `project` VARCHAR(255) DEFAULT NULL,
-    `access` VARCHAR(255) NOT NULL,
-    `groups` TEXT,
-    `token` TEXT
-);
-CREATE TABLE IF NOT EXISTS `user_options`(
-    `id` INT(11) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
-    `username` VARCHAR(255) NOT NULL,
-    `value` TEXT NOT NULL
-);
-ALTER TABLE `options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`);
-ALTER TABLE `projects` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `project_path`(`path`, `owner`);
-ALTER TABLE `users` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `username`(`username`);
-ALTER TABLE `user_options` ADD PRIMARY KEY(`id`), ADD UNIQUE KEY `option_name`(`name`, `username`);
-ALTER TABLE `options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `projects` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `users` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
-";
-		if ( $connection->multi_query( $sql ) !== TRUE ) {
+		if ( ! $result === true ) {
 			
 			$this->restore();
-			exit( $connection->error );
+			exit( json_encode( $connection->errorInfo(), JSON_PRETTY_PRINT ) );
 		}
 		
 		if( file_exists( $user_settings_file ) ) {
@@ -318,12 +238,11 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 			foreach( $projects as $project => $data ) {
 				
 				$owner = 'nobody';
-				$sql = "INSERT INTO `projects`( `name`, `path`, `owner` ) VALUES ( ?, ?, ? );";
-				$bind = "sss";
+				$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
 				$bind_variables = array( $data["name"], $data["path"], $owner );
-				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error creating project $project." ) );
+				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
-				if( sql::check_sql_error( $return ) ) {
+				if( $return > 0 ) {
 				} else {
 					
 					$this->restore();
@@ -345,12 +264,11 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 					
 					$access = "user";
 				}
-				$sql = "INSERT INTO `users`( `username`, `password`, `access`, `project` ) VALUES ( ?, PASSWORD( ? ), ?, ? );";
-				$bind = "ssss";
+				$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
 				$bind_variables = array( $user["username"], $user["password"], $access, null );
-				$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error that username is already taken." ) );
+				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
-				if( sql::check_sql_error( $return ) ) {
+				if( $return > 0 ) {
 					
 					$this->username = $user["username"];
 					$this->set_default_options();
@@ -386,7 +304,7 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 		$dir = dir( $source );
 		while (false !== $entry = $dir->read()) {
 		// Skip pointers
-			if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'workspace' || $entry == 'plugins') {
+			if ($entry == '.' || $entry == '..' || $entry == 'backup' || $entry == 'codiad-master' || $entry == 'codiad-development' || $entry == 'workspace' || $entry == 'plugins') {
 				continue;
 			}
 			
@@ -403,7 +321,7 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 	// Download latest archive
 	//////////////////////////////////////////////////////////////////
 	
-	function download() {
+	function download( $development = false ) {
 		
 		switch( $this->protocol ) {
 			
@@ -414,7 +332,14 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 					unlink( $filepath );
 				}
 				$curl = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $this->archive );
+				
+				if( $development ) {
+					
+					curl_setopt( $curl, CURLOPT_URL, $this->development_archive );
+				} else {
+					
+					curl_setopt( $curl, CURLOPT_URL, $this->archive );
+				}
 				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
 				curl_setopt( $curl, CURLOPT_HEADER, 0 );
 				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
@@ -455,6 +380,39 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 		}
 	}
 	
+	public function get_remote_version( $action="check", $localversion = "" ) {
+		
+		if ( $this->protocol === "none" ) {
+			
+			return;
+		}
+		
+		switch( $this->protocol ) {
+			
+			case( "curl" ):
+				
+				$curl = curl_init();
+				curl_setopt( $curl, CURLOPT_URL, $this->tags );
+				//curl_setopt($curl, CURLOPT_POSTFIELDS, "");
+				curl_setopt( $curl, CURLOPT_HEADER, 0 );
+				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );  
+				curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
+				curl_setopt( $curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13' );
+				$content = curl_exec( $curl );
+				curl_close( $curl );
+				
+				$response = json_decode( $content, true );
+				//Return latest release
+				return $response[0];
+			break;
+			
+			case( "fopen" ):
+				
+			break;
+		}
+	}
+	
 	function remove_directory( $path ) {
 		
 		$files = glob($path . '/*');
@@ -481,7 +439,7 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 	
 	public function set_default_options() {
 		
-		foreach( self::DEFAULT_OPTIONS as $id => $option ) {
+		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
 			$this->update_option( $option["name"], $option["value"], true );
 		}
@@ -490,6 +448,7 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 	function update() {
 		
 		$this->backup();
+		
 		
 		try {
 			
@@ -524,6 +483,18 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 				$this->remove_directory( $dir );
 			}
 			
+			if( is_dir( $this->path . "/codiad-master" ) ) {
+				
+				$src = $this->path . "/codiad-master/";
+				$src_folder = $this->path . "/codiad-master";
+				$update_folder = "codiad-master";
+			} else {
+				
+				$src = $this->path . "/codiad-development/";
+				$src_folder = $this->path . "/codiad-development";
+				$update_folder = "codiad-development";
+			}
+			
 			/**
 			 * If any files in the array below are still set delete them.
 			 * 
@@ -532,13 +503,13 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 			$file_conflictions = array(
 				
 				$this->path . "/.travis.yml",
-				$this->path . "/codiad-master/.travis.yml",
+				$this->path . "/{$update_folder}/.travis.yml",
 				
 				$this->path . "/.gitignore",
-				$this->path . "/codiad-master/.gitignore",
+				$this->path . "/{$update_folder}/.gitignore",
 				
 				$this->path . "/.gitlab-ci.yml",
-				$this->path . "/codiad-master/.gitlab-ci.yml"
+				$this->path . "/{$update_folder}/.gitlab-ci.yml"
 			);
 			
 			foreach( $file_conflictions as $file ) {
@@ -549,14 +520,12 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 				}
 			}
 			
-			
-			$src = $this->path . "/codiad-master/";
-			$src_folder = $this->path . "/codiad-master";
 			$dest = $this->path . "/";
 			
 			$this->copyr( $src, $dest );
 			$this->remove_directory( $src );
 			$this->convert();
+			$this->check_sql();
 			return( "true" );
 		} catch( Exception $e ) {
 			
@@ -567,25 +536,32 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 	
 	public function update_option( $option, $value, $user_setting = null ) {
 		
-		$query = "INSERT INTO user_options ( `name`, `username`, `value` ) VALUES ( ?, ?, ? );";
-		$bind = "sss";
+		$sql = new sql();
+		$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
 		$bind_variables = array(
 			$option,
 			$this->username,
 			$value,
 		);
-		$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not add user's settings." ) );
+		$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $result !== true ) {
+		if( $result == 0 ) {
 			
-			$query = "UPDATE user_options SET `value`=? WHERE `name`=? AND `username`=?;";
-			$bind = "sss";
+			$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
 			$bind_variables = array(
 				$value,
 				$option,
 				$this->username,
 			);
-			$result = sql::sql( $query, $bind, $bind_variables, formatJSEND( "error", "Error, Could not update user's settings." ) );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		}
+		
+		if( $result > 0 ) {
+			
+			echo formatJSEND( "success", null );
+		} else {
+			
+			echo formatJSEND( "error", "Error, Could not update option $option" );
 		}
 	}
 	
@@ -602,8 +578,10 @@ ALTER TABLE `user_options` MODIFY `id` INT(11) NOT NULL AUTO_INCREMENT;
 
 if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 	
+	global $sql;
 	$updater = new updater();
 	$action = $_GET["action"];
+	$sql = new sql();
 	
 	switch( $action ) {
 		
@@ -625,6 +603,11 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 		case( "download" ):
 			
 			echo $updater->download();
+		break;
+		
+		case( "download_development" ):
+			
+			echo $updater->download( true );
 		break;
 		
 		case( "extract" ):
@@ -758,16 +741,24 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 					});
 				},
 				
-				download: function() {
+				download: function( development=false ) {
+					
+					let data = {}
+					
+					if( development ) {
+						
+						data.action = 'download_development';
+					} else {
+						
+						data.action = 'download';
+					}
 					
 					return jQuery.ajax({
-							
+						
 						url: "update.php",
 						type: "GET",
 						dataType: 'html',
-						data: {
-							action: 'download',
-						},
+						data: data,
 						
 						success: function( result ) {
 							
@@ -861,6 +852,41 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						
 						progress.innerText = "Error, checking for updates failed.";
 					}
+				},
+				
+				update_development: async function() {
+					
+					progress.innerText = "An update was found.  Downloading update.";
+					let download = await this.download( true );
+					
+					if( download !== "true" ) {
+						
+						console.log( download );
+						progress.innerText = "Error downloading update.";
+						return;
+					}
+					
+					progress.innerText = "Extracting update.";
+					let extract = await this.extract();
+					
+					if( extract !== "true" ) {
+						
+						console.log( extract );
+						progress.innerText = "Error extracting update.";
+						return;
+					}
+					
+					progress.innerText = "Applying update.";
+					let apply = await this.apply();
+					
+					if( apply !== "true" ) {
+						
+						console.log( apply );
+						progress.innerText = "Error applying update.";
+						return;
+					}
+					
+					progress.innerText = "Update Finished.";
 				},
 			};
 		</script>

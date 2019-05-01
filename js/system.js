@@ -105,6 +105,60 @@
             codiad.settings.show();
         });
     });
+    
+    $(function() {
+		
+		codiad.system.init();
+	});
+	
+	codiad.system = {
+		
+		controller: 'components/system/controller.php',
+		session_id: '',
+		site_id: '',
+		
+		init: function() {
+			
+			let _this = this;
+			
+		},
+		
+		create_default_tables: function() {
+			
+			jQuery.ajax({
+					
+				url: this.controller,
+				type: "POST",
+				dataType: 'html',
+				data: {
+					action: 'create_default_tables'
+				},
+				success: function( data ) {
+					
+					let response = codiad.jsend.parse( data );
+					
+					if( response.status != 'error' ) {
+						
+						codiad.message.success( i18n( 'Created Default Tables' ) );
+					} else {
+						
+						codiad.message.error( i18n( 'Error Creating Default Tables' ) );
+					}
+					console.log( data );
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					
+					codiad.message.error( i18n( 'Error Creating Default Tables' ) );
+					console.log('jqXHR:');
+					console.log(jqXHR);
+					console.log('textStatus:');
+					console.log(textStatus);
+					console.log('errorThrown:');
+					console.log(errorThrown);
+				},
+			});
+		},
+	};
 
 })(this, jQuery);
 

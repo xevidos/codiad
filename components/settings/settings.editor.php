@@ -191,8 +191,8 @@
         <td>
         
         <select class="setting" data-setting="codiad.editor.autocomplete">
-            <option value="false" selected><?php i18n("No"); ?></option>
-            <option value="true"><?php i18n("Yes"); ?></option>
+            <option value="false" selected><?php i18n("Off"); ?></option>
+            <option value="true"><?php i18n("On"); ?></option>
         </select>
         
         </td>

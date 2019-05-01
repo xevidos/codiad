@@ -5,6 +5,8 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+
+$sql = null;
 Common::startSession();
 
 //////////////////////////////////////////////////////////////////
@@ -30,8 +32,7 @@ class Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public static function construct() {
-		
-		global $cookie_lifetime;
+
 		$path = str_replace( "index.php", "", $_SERVER['SCRIPT_FILENAME'] );
 		foreach ( array( "components", "plugins" ) as $folder ) {
 			
@@ -42,9 +43,9 @@ class Common {
 			}
 		}
 		
-		if( file_exists( $path . 'config.php' ) ) {
+		if( file_exists( __DIR__ . '/config.php' ) ) {
 			
-			require_once( $path . 'config.php' );
+			require_once( __DIR__ . '/config.php' );
 		}
 		
 		if( ! defined( 'BASE_PATH' ) ) {
@@ -92,7 +93,10 @@ class Common {
 			define( "LANGUAGE", "en" );
 		}
 		
+		require_once( COMPONENTS . "/update/class.update.php" );
 		require_once( COMPONENTS . "/sql/class.sql.php" );
+		global $sql;
+		$sql = sql::get_instance();
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -119,14 +123,12 @@ class Common {
 	//////////////////////////////////////////////////////////////////
 	public static function check_project_access( $project_path, $action ) {
 		
-		$sql = "SELECT * FROM `projects` WHERE `name`=? AND `path`=? AND ( `owner`=? OR `owner`='nobody' );";
-		$bind = "sss";
+		global $sql;
+		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
 		$bind_variables = array( $project_name, $project_path, $_SESSION["user"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
+		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
-			
-			$return = mysqli_fetch_assoc( $return );
+		if( ! empty( $return ) ) {
 			
 			try {
 				
@@ -153,18 +155,19 @@ class Common {
 	
 	public static function get_users( $return = "return", $exclude_current = false ) {
 		
-		$sql = "SELECT `username` FROM `users`";
+		global $sql;
+		$query = "SELECT username FROM users";
 		$bind = "";
 		$bind_variables = array();
 		
 		if( $exclude_current ) {
 			
-			$sql .= " WHERE `username`!=?";
+			$query .= " WHERE username!=?";
 			$bind .= "s";
 			array_push( $bind_variables, $_SESSION["user"] );
 		}
 		
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking users." ) );
+		$result = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking users." ) );
 		$user_list = array();
 		
 		foreach( $result as $row ) {
@@ -172,7 +175,7 @@ class Common {
 			array_push( $user_list, $row["username"] );
 		}
 		
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
 			switch( $return ) {
 				
@@ -193,35 +196,37 @@ class Common {
 		return( $return );
 	}
 	
+	public static function get_version() {
+		
+		return Update::VERSION;
+	}
+	
 	public static function is_admin() {
 		
-		$sql = "SELECT * FROM `users` WHERE `username`=? AND `access`=?;";
-		$bind = "ss";
+		global $sql;
+		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
 		$bind_variables = array( $_SESSION["user"], "admin" );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking user acess." ) );
-		
-		if( mysqli_num_rows( $return ) > 0 ) {
-			
-			return( true );
-		} else {
-			
-			return( false );
-		}
+		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
+		$admin = ( $return > 0 );
+		return $admin;
 	}
 	
 	public static function logout() {
 		
-		$sql = "UPDATE `users` SET `token`=? WHERE `username`=?;";
-		$bind = "ss";
-		$bind_variables = array( null, $_SESSION["user"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error updating user information." ) );
-		
-		try {
+		if( isset( $_SESSION["user"] ) ) {
 			
-			$json = json_decode( $return, true );
-			echo( $return );
-		} catch( exception $e ) {}
-		
+			global $sql;
+			$query = "UPDATE users SET token=? WHERE username=?;";
+			$bind_variables = array( null, $_SESSION["user"] );
+			$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error updating user information." ), 'fetchColumn' );
+			
+			if( ! $return > 0 ) {
+				
+				$json = json_decode( $return, true );
+				echo( $return );
+			}
+			
+		}
 		session_unset();
 		session_destroy();
 		session_start();
@@ -231,44 +236,37 @@ class Common {
 	// Search Users
 	//////////////////////////////////////////////////////////////////
 	
-	public function search_users( $username, $return = "return", $exclude_current = false ) {
+	public static function search_users( $username, $return = "return", $exclude_current = false ) {
 		
-		$sql = "SELECT `username` FROM `users` WHERE `username` LIKE ?";
-		$bind = "s";
+		global $sql;
+		$query = "SELECT username FROM users WHERE username LIKE ?";
 		$bind_variables = array( "%{$username}%" );
 		
 		if( $exclude_current ) {
 			
-			$sql .= " AND `username`!=?";
-			$bind .= "s";
+			$query .= " AND username != ?";
 			array_push( $bind_variables, $_SESSION["user"] );
 		}
 		
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error selecting user information." ) );
-		$user_list = array();
+		$result = $sql->query( $query, $bind_variables, array() );
 		
-		foreach( $result as $row ) {
-			
-			array_push( $user_list, $row["username"] );
-		}
-		
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
 			switch( $return ) {
 				
 				case( "exit" ):
 					
-					exit( formatJSEND( "success", $user_list ) );
+					exit( formatJSEND( "success", $result ) );
 				break;
 				
 				case( "json" ):
 					
-					$return = json_encode( $user_list );
+					$return = json_encode( $result );
 				break;
 				
 				case( "return" ):
 					
-					$return = $user_list;
+					$return = $result;
 				break;
 			}
 		} else {
@@ -302,12 +300,6 @@ class Common {
 	public static function start_session() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
@@ -362,12 +354,6 @@ class Common {
 	public static function startSession() {
 		
 		Common::construct();
-		global $cookie_lifetime;
-		
-		if( isset( $cookie_lifetime ) && $cookie_lifetime != "" ) {
-			
-			ini_set( "session.cookie_lifetime", $cookie_lifetime );
-		}
 		
 		//Set a Session Name
 		session_name( md5( BASE_PATH ) );
@@ -465,14 +451,18 @@ class Common {
 	public static function checkSession() {
 		
 		$pass = false;
-		$sql = "SELECT * FROM `users` WHERE `username`=? AND `token`=PASSWORD( ? );";
-		$bind = "ss";
-		$bind_variables = array( $_SESSION["user"], $_SESSION["token"] );
-		$return = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error checking access." ) );
 		
-		if( mysqli_num_rows( $return ) > 0 ) {
+		if( isset( $_SESSION["token"] ) && isset( $_SESSION["user"] ) ) {
 			
-			$pass = true;
+			global $sql;
+			$query = "SELECT COUNT( * ) FROM users WHERE username=? AND token=?;";
+			$bind_variables = array( $_SESSION["user"], sha1( $_SESSION["token"] ) );
+			$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking access." ), "fetchColumn" );
+			
+			if( $return > 0 ) {
+				
+				$pass = true;
+			}
 		}
 		
 		if( ! $pass ) {
@@ -553,7 +543,7 @@ class Common {
 		} else {
 			
 			// Error /////////////////////////////////////////////////
-			$jsend = '{"status":"error","message":"' . $data . '"' . $debug . '}';
+			$jsend = '{"status":"' . $status . '","message":"' . $data . '"' . $debug . '}';
 		}
 		// Return ////////////////////////////////////////////////
 		return $jsend;
@@ -574,15 +564,33 @@ class Common {
 	
 	public static function checkPath( $path ) {
 		
-		$sql = "SELECT * FROM `projects` WHERE LOCATE( `path`, ? ) > 0 LIMIT 1;";
-		$bind = "s";
-		$bind_variables = array( $path );
-		$result = sql::sql( $sql, $bind, $bind_variables, formatJSEND( "error", "Error fetching project information." ) );
+		global $sql;
+		//$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
+		//$bind_variables = array( $path );
+		//$result = $sql->query( $query, $bind_variables, array() )[0];
+		$result = $sql->select(
+			"projects",
+			array(),
+			array(
+				array(
+					"find",
+					"[path]",
+					$path,
+					array(
+						"more than",
+						0
+					)
+				),
+				array(
+					"limit",
+					1
+				)
+			)
+		);
 		
-		if( mysqli_num_rows( $result ) > 0 ) {
+		if( ! empty( $result ) ) {
 			
-			$result = mysqli_fetch_assoc( $result );
-			
+			$result = $result[0];
 			try {
 				
 				$users = json_decode( $result["access"] );
@@ -626,7 +634,7 @@ class Common {
 	
 	public static function isAbsPath( $path ) {
 		
-		return( $path[0] === '/' || $path[1] === ':' ) ? true : false;
+		return( ( isset( $path[0] ) && $path[0] === '/' ) || ( isset( $path[1] ) && $path[1] === ':' ) ) ? true : false;
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -643,7 +651,7 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
-function is_admin() { Common::is_admin(); }
+function is_admin() { return Common::is_admin(); }
 function debug($message) { Common::debug($message); }
 function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
 function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }
@@ -657,4 +665,5 @@ function isAvailable($func) { return Common::isAvailable($func); }
 function logout() { return Common::logout(); }
 function get_users( $return = "return", $exclude_current = false ) { return Common::get_users( $return, $exclude_current ); }
 function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
+function get_version() { return Common::get_version(); }
 ?>

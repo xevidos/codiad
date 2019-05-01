@@ -75,10 +75,6 @@ switch( $_GET['action'] ) {
 					foreach( $projects as $project => $data ) {
 						
 						$show = true;
-						if( $projects_assigned && ! in_array( $data['path'], $projects_assigned ) ) {
-							
-							$show = false;
-						}
 						if( $show ) {
 							
 							?>

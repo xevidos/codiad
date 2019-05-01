@@ -15,14 +15,15 @@
 	
 
     codiad.filemanager = {
-
+		
+		auto_reload: false,
         clipboard: '',
-        
         controller: 'components/filemanager/controller.php',
         dialog: 'components/filemanager/dialog.php',
         dialogUpload: 'components/filemanager/dialog_upload.php',
-
-        init: function() {
+		preview: null,
+		
+        init: async function() {
         	
         	this.noAudio = [
 				//Audio
@@ -58,6 +59,32 @@
 	        
             // Initialize node listener
             this.nodeListener();
+            this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
+            
+            console.log( this.auto_reload );
+            
+            amplify.subscribe( 'settings.save', async function() {
+            
+	            let option = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
+	            if( option != codiad.filemanager.auto_reload ) {
+	                
+	                //codiad.auto_save.reload_interval();
+	                window.location.reload( true );
+	            }
+			});
+            
+            /* Subscribe to know when a file become active. */
+			amplify.subscribe( 'active.onFocus', async function( path ) {
+				
+				let _this = codiad.filemanager;
+				let editor = codiad.editor.getActive();
+
+				if( _this.auto_reload && editor !== null ) {
+                   	
+                   codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
+               }
+			});
+            
             // Load uploader
             $.loadScript("components/filemanager/upload_scripts/jquery.ui.widget.js", true);
             $.loadScript("components/filemanager/upload_scripts/jquery.iframe-transport.js", true);
@@ -210,6 +237,7 @@
         	 * away from the context menu to warrant a close.
         	 */
         	$('#file-manager, #editor-region').on( 'mousemove', codiad.filemanager.contextCheckMouse );
+        	$('#context-menu, #editor-region').on( 'paste', codiad.editor.paste );
         	
             /* Notify listeners. */
             amplify.publish('context-menu.onShow', {e: e, path: path, type: type});
@@ -231,6 +259,7 @@
         	if( ( e.clientX > right || e.clientX < left ) || ( e.clientY > bottom || e.clientY < top ) ) {
         		
         		$('#file-manager, #editor-region').off( 'mousemove', codiad.filemanager.contextCheckMouse );
+        		$('#context-menu, #editor-region').off( 'paste', codiad.editor.paste );
         		codiad.filemanager.contextMenuHide();
         	}
     	},
@@ -267,8 +296,13 @@
         //////////////////////////////////////////////////////////////////
 
         getType: function(path) {
-            return $('#file-manager a[data-path="' + path + '"]')
-                .attr('data-type');
+        	
+        	if( path.match( /\\/g ) ) {
+        		
+        		path = path.replace( '\\', '\\\\' );
+        	}
+        	
+            return $('#file-manager a[data-path="' + path + '"]').attr('data-type');
         },
 
         //////////////////////////////////////////////////////////////////
@@ -393,14 +427,11 @@
             if (this.rescanCounter === 0) {
                 // Create array of open directories
                 node = $('#file-manager a[data-path="' + path + '"]');
-                node.parent()
-                    .find('a.open')
-                    .each(function() {
-                        _this.rescanChildren.push($(this)
-                            .attr('data-path'));
-                    });
+                node.parent().find('a.open').each(function() {
+                    _this.rescanChildren.push($(this).attr('data-path'));
+                });
             }
-
+            
             this.index(path, true);
         },
 
@@ -409,6 +440,10 @@
         //////////////////////////////////////////////////////////////////
 
         openFile: function(path, focus) {
+            
+            /* Notify listeners. */
+            amplify.publish('filemanager.onFileWillOpen', {path: path});
+            
             if (focus === undefined) {
                 focus = true;
             }
@@ -441,17 +476,58 @@
         //////////////////////////////////////////////////////////////////
 
         openInBrowser: function(path) {
+        	
+        	let _this = this;
+
             $.ajax({
                 url: this.controller + '?action=open_in_browser&path=' + encodeURIComponent(path),
                 success: function(data) {
                     var openIBResponse = codiad.jsend.parse(data);
                     if (openIBResponse != 'error') {
-                        window.open(openIBResponse.url, '_newtab');
+                    	
+                       _this.preview = window.open( openIBResponse.url, '_newtab' );
+                       
+                       let editor = codiad.editor.getActive();
+                       
+                       if( _this.auto_reload && editor !== null ) {
+	                       	
+	                       codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
+                       }
+                       
+                       
                     }
                 },
                 async: false
             });
         },
+        
+        refreshPreview: function( event ) {
+        	
+        	_this = codiad.filemanager;
+        	
+        	if( _this.preview == null ) {
+        		
+        		return;
+        	}
+        	
+        	try {
+        		
+        		if( ( typeof _this.preview.location.reload ) == "undefined" ) {
+        		
+	        		_this.preview = null;
+	        		codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+	        		return;
+	        	}
+        		_this.preview.location.reload( true );
+        	} catch( e ) {
+        		
+        		console.log( e );
+        		codiad.message.error( 'Please close your previously opened preview window.' );
+        		_this.preview = null;
+        		codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+        	}
+        },
+        
         openInModal: function(path) {
         	
         	let type = "";
@@ -518,24 +594,24 @@
         //////////////////////////////////////////////////////////////////
         // Save file
         //////////////////////////////////////////////////////////////////
-
+		
         saveFile: function(path, content, callbacks, save=true) {
             this.saveModifications(path, {content: content}, callbacks, save);
         },
-
-        savePatch: function(path, patch, mtime, callbacks) {
+		
+        savePatch: function(path, patch, mtime, callbacks, alerts) {
             if (patch.length > 0)
-                this.saveModifications(path, {patch: patch, mtime: mtime}, callbacks);
+                this.saveModifications(path, {patch: patch, mtime: mtime}, callbacks, alerts);
             else if (typeof callbacks.success === 'function'){
                 var context = callbacks.context || this;
                 callbacks.success.call(context, mtime);
             }
         },
-
+		
         //////////////////////////////////////////////////////////////////
         // Create Object
         //////////////////////////////////////////////////////////////////
-
+		
         createNode: function(path, type) {
             codiad.modal.load(250, this.dialog, {
                 action: 'create',
@@ -544,6 +620,7 @@
             });
             $('#modal-content form')
                 .live('submit', function(e) {
+                	let project = codiad.project.getCurrent();
                     e.preventDefault();
                     var shortName = $('#modal-content form input[name="object_name"]')
                         .val();
@@ -563,6 +640,9 @@
                             if(type == 'file') {
                                 codiad.filemanager.openFile(createPath, true);
                             }
+                            
+                            codiad.filemanager.rescan( project );
+                            
                             /* Notify listeners. */
                             amplify.publish('filemanager.onCreate', {createPath: createPath, path: path, shortName: shortName, type: type});
                         }
@@ -590,6 +670,7 @@
             } else if (path == this.clipboard) {
                 codiad.message.error(i18n('Cannot Paste Directory Into Itself'));
             } else {
+            	let project = codiad.project.getCurrent();
                 var shortName = _this.getShortName(_this.clipboard);
                 if ($('#file-manager a[data-path="' + path + '/' + shortName + '"]')
                     .length) { // Confirm overwrite?
@@ -609,19 +690,19 @@
                 } else { // No conflicts; proceed...
                     _this.processPasteNode(path,false);
                 }
+                
+                codiad.filemanager.rescan( project );
             }
         },
-
+		
         processPasteNode: function(path,duplicate) {
             var _this = this;
             var shortName = this.getShortName(this.clipboard);
             var type = this.getType(this.clipboard);
-            if(duplicate){
-                shortName = "copy_of_"+shortName;
-            }
+            
             $.get(this.controller + '?action=duplicate&path=' +
                 encodeURIComponent(this.clipboard) + '&destination=' +
-                encodeURIComponent(path + '/' + shortName), function(data) {
+                encodeURIComponent(path + '/' + shortName) + '&duplicate=' + encodeURIComponent( duplicate ), function(data) {
                     var pasteResponse = codiad.jsend.parse(data);
                     if (pasteResponse != 'error') {
                         _this.createObject(path, path + '/' + shortName, type);
@@ -631,11 +712,11 @@
                     }
                 });
         },
-
+		
         //////////////////////////////////////////////////////////////////
         // Rename
         //////////////////////////////////////////////////////////////////
-
+		
         renameNode: function(path) {
             var shortName = this.getShortName(path);
             var type = this.getType(path);
@@ -643,6 +724,7 @@
             codiad.modal.load(250, this.dialog, { action: 'rename', path: path, short_name: shortName, type: type});
             $('#modal-content form')
                 .live('submit', function(e) {
+                	let project = codiad.project.getCurrent();
                     e.preventDefault();
                     var newName = $('#modal-content form input[name="object_name"]')
                         .val();
@@ -655,9 +737,18 @@
                     var newPath = temp.join('/') + '/' + newName;
                     $.get(_this.controller, { action: 'modify', path: path, new_name: newName} , function(data) {
                         var renameResponse = codiad.jsend.parse(data);
+                        let renamedMessage = "";
                         if (renameResponse != 'error') {
-                            codiad.message.success(type.charAt(0)
-                                .toUpperCase() + type.slice(1) + ' Renamed');
+                        	
+                        	if( type == undefined ) {
+                        		
+                        		renamedMessage = 'Successfully Renamed'
+                        	} else {
+                        		
+                            	renamedMessage = type.charAt(0).toUpperCase() + type.slice(1) + ' Renamed'
+                        	}
+                        	
+                            codiad.message.success(renamedMessage);
                             var node = $('#file-manager a[data-path="' + path + '"]');
                             // Change pathing and name for node
                             node.attr('data-path', newPath)
@@ -674,6 +765,9 @@
                             // Change any active files
                             codiad.active.rename(path, newPath);
                             codiad.modal.unload();
+                            codiad.filemanager.rescan( project );
+                            /* Notify listeners. */
+                        	amplify.publish('filemanager.onRename', {path: path, newPath: newPath, project: project });
                         }
                     });
                 });
@@ -710,8 +804,8 @@
                     var deleteResponse = codiad.jsend.parse(data);
                     if (deleteResponse != 'error') {
                         var node = $('#file-manager a[data-path="' + path + '"]');
-                        node.parent('li')
-                            .remove();
+                        let parent_path = node.parent().parent().prev().attr('data-path');
+                        node.parent('li').remove();
                         // Close any active files
                         $('#active-files a')
                             .each(function() {
@@ -721,6 +815,8 @@
                                     codiad.active.remove(curPath);
                                 }
                             });
+                        /* Notify listeners. */
+                    	amplify.publish('filemanager.onDelete', {deletePath: path, path: parent_path });
                     }
                     codiad.modal.unload();
                 });
@@ -739,10 +835,7 @@
                 $.get(_this.controller + '?action=deleteInner&path=' + encodeURIComponent(path), function(data) {
                     var deleteResponse = codiad.jsend.parse(data);
                     if (deleteResponse != 'error') {
-                        var node = $('#file-manager a[data-path="' + path + '"]');
-						while(node.firstChild) {
-							node.removeChild(node.firstChild);
-						}
+                        var node = $('#file-manager a[data-path="' + path + '"]').parent('ul').remove();
 						
                         // Close any active files
                         $('#active-files a')
@@ -761,6 +854,9 @@
 	                        _this.rescanChildren.push($(this)
 	                            .attr('data-path'));
 	                    });
+	                    
+	                    /* Notify listeners. */
+                    	amplify.publish('filemanager.onDelete', {deletePath: path + "/*", path: path });
                     }
                     codiad.modal.unload();
                 });

@@ -1,6 +1,6 @@
 <?php
 
-require_once('common.php');
+require_once( 'common.php' );
 
 // Context Menu
 $context_menu = file_get_contents(COMPONENTS . "/filemanager/context_menu.json");
@@ -32,7 +32,6 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
 ?>
 <!doctype html>
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,7 +44,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
         if(file_exists(THEMES . "/". $theme . "/".$sheet)){
             echo('<link rel="stylesheet" href="themes/'.$theme.'/'.$sheet.'">');
         } else {
-            echo('<link rel="stylesheet" href="themes/default/'.$sheet.'">');
+            echo('<link rel="stylesheet" href="themes/default/'.$sheet.'?v=' . get_version() . '">');
         }
     }
     
@@ -55,7 +54,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
             echo('<link rel="stylesheet" href="themes/'.$theme.'/'.$component.'/screen.css">');
         } else {
             if(file_exists("themes/default/" . $component . "/screen.css")){
-                echo('<link rel="stylesheet" href="themes/default/'.$component.'/screen.css">');
+                echo('<link rel="stylesheet" href="themes/default/'.$component.'/screen.css?v=' . get_version() . '">');
             } else {
                 if(file_exists(COMPONENTS . "/" . $component . "/screen.css")){
                     echo('<link rel="stylesheet" href="components/'.$component.'/screen.css">');
@@ -121,25 +120,29 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
     if( ! isset( $_SESSION['user'] ) ) {
 
         $path = rtrim(str_replace("index.php", "", $_SERVER['SCRIPT_FILENAME']),"/");
-
-        $users = file_exists($path . "/data/users.php");
-        $projects = file_exists($path . "/data/projects.php");
+        $config = file_exists($path . "/config.php");
         $active = file_exists($path . "/data/active.php");
-
-        if(!$users && !$projects && !$active){
+		
+        if( !$config ) {
+        	
             // Installer
             require_once('components/install/view.php');
-        }else{
+        } else {
             // Login form
             ?>
-
+			
             <form id="login" method="post" style="position: fixed; width: 350px; top: 30%; left: 50%; margin-left: -175px; padding: 35px;">
 
-                <label><span class="icon-user login-icon"></span> <?php i18n("Username"); ?></label>
-                <input type="text" name="username" autofocus="autofocus" autocomplete="off">
+                <label>
+                	<span class="icon-user login-icon"></span> <?php i18n("Username"); ?>
+                	<input type="text" name="username" autofocus="autofocus" autocomplete="off">
+                </label>
 
-                <label><span class="icon-lock login-icon"></span> <?php i18n("Password"); ?></label>
-                <input type="password" name="password">
+                <label>
+                	<span class="icon-lock login-icon"></span> <?php i18n("Password"); ?>
+                	<input type="password" name="password">
+                	<span class="icon-eye in-field-icon-right hide_field">
+                </label>
                 
                 <div class="language-selector">
                     <label><span class="icon-picture login-icon"></span> <?php i18n("Theme"); ?></label>
@@ -176,6 +179,22 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
             </form>
 
             <script src="components/user/init.js"></script>
+            <script>
+            	$( ".hide_field" ).on( "click", function( e ) {
+            		
+            		let password = document.querySelector( "input[name='password']" );
+            		
+            		console.log( password, password.type );
+            		
+            		if( password.type == "password" ) {
+            			
+            			password.type = "text";
+            		} else {
+            			
+            			password.type = "password";
+            		}
+            	});
+            </script>
             <?php
 
         }
@@ -186,7 +205,7 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 
     } else {
 	
-		define( "USER_WORKSPACE", WORKSPACE . "/" . $_SESSION["user"] );
+		define( "USER_WORKSPACE", WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) ) );
 		
 		if( ! is_dir( USER_WORKSPACE ) ) {
 			
@@ -424,7 +443,6 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 	
 	<!-- Codiad System Variables -->
 	<script>
-		codiad.system = {};
 		codiad.system.site_id = `<?php echo $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];?>`;
 		codiad.system.session_id = `<?php echo SESSION_ID;?>`;
 	</script>

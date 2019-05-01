@@ -107,10 +107,54 @@ class Filemanager extends Common {
 			$get['destination'] = Filemanager::cleanPath( $get['destination'] );
 			if ( $this->isAbsPath( $get['path'] ) ) {
 				
+				$i = 1;
 				$this->destination = $get['destination'];
+				
+				do {
+					
+					if( is_dir( $this->destination ) ) {
+						
+						$this->destination = $get['destination'] . " $i";
+					} elseif( is_file( $this->destination ) ) {
+						
+						$path_parts = pathinfo( $this->destination );
+						
+						if( isset( $path_parts["extension"] ) ) {
+							
+							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $get['destination'] );
+						} else {
+							
+							$this->destination = $get['destination'] . " $i";
+						}
+					}
+					
+					$i++;
+				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
+				
 			} else {
 				
+				$i = 1;
 				$this->destination = $this->root . $get['destination'];
+				do {
+					
+					if( is_dir( $this->destination ) ) {
+						
+						$this->destination = $this->root . $get['destination'] . " $i";
+					} elseif( is_file( $this->destination ) ) {
+						
+						$path_parts = pathinfo( $this->destination );
+						
+						if( isset( $path_parts["extension"] ) ) {
+							
+							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $this->root . $get['destination'] );
+						} else {
+							
+							$this->destination = $this->root . $get['destination'] . " $i";
+						}
+					}
+					
+					$i++;
+				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
 			}
 		}
 	}
@@ -152,11 +196,11 @@ class Filemanager extends Common {
 					
 					if ( $data['type'] == 'directory' ) {
 						
-						$folders[] = array( "name"=>$data['name'], "type"=>$data['type'], "size"=>$data['size'] );
+						$folders[] = array( "name"=>htmlentities( $data['name'], ENT_QUOTES ), "type"=>$data['type'], "size"=>$data['size'] );
 					}
 					if ( $data['type'] == 'file' ) {
 						
-						$files[] = array( "name"=>$data['name'], "type"=>$data['type'], "size"=>$data['size'] );
+						$files[] = array( "name"=>htmlentities( $data['name'], ENT_QUOTES ), "type"=>$data['type'], "size"=>$data['size'] );
 					}
 				}
 				
@@ -482,6 +526,8 @@ class Filemanager extends Common {
 			$explode = explode( '/', $this->path );
 			array_pop( $explode );
 			$new_path = implode( "/", $explode ) . "/" . $this->new_name;
+			$new_path = $this->cleanPath( $new_path );
+			
 			if ( ! file_exists( $new_path ) ) {
 				
 				if ( rename( $this->path, $new_path ) ) {
@@ -663,7 +709,7 @@ class Filemanager extends Common {
 							"url"=>$add,
 							"thumbnail_url"=>$add,
 							"delete_url"=>$add,
-							"delete_type"=>"DELETE"
+							"delete_type"=>'DELETE'
 						);
 					}
 				}
@@ -709,21 +755,35 @@ class Filemanager extends Common {
 	
 	public static function cleanPath( $path ) {
 		
-		// replace backslash with slash
-		$path = str_replace( '\\', '/', $path );
-		
-		// allow only valid chars in paths$
-		$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
-		// maybe this is not needed anymore
-		// prevent Poison Null Byte injections
-		$path = str_replace( chr( 0 ), '', $path );
-		
-		// prevent go out of the workspace
+		// Prevent going out of the workspace
 		while ( strpos( $path, '../' ) !== false ) {
 			
 			$path = str_replace( '../', '', $path );
 		}
 		
+		if( Filemanager::isAbsPath( $path ) ) {
+			
+			$full_path = $path;
+		} else {
+			
+			$full_path = WORKSPACE . "/" . $path;
+		}
+		
+		/**
+		 * If a file with an invalid character exists and the user is
+		 * trying to rename or delete it, allow the actual file name.
+		 */
+		
+		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\ ]/', $path );
+		
+		if( $invalid_characters && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+			
+			exit( '{"status":"error","message":"Error, the filename contains invalid characters, please either rename or delete it."}' );
+		} elseif( $invalid_characters && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+		} else {
+			
+			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
+		}
 		return $path;
 	}
 }
