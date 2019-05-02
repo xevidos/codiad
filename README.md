@@ -70,7 +70,8 @@ Completed:
 * Updated for PHP 7.2
 
 
-Bugs:
+Known Bugs:
 
 * Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file.
 * Cursor is set to the wrong position if in split view.
+* On certain enviroments the update script pulls the old version of the sql class causing the update to fail.
