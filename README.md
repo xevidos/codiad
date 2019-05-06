@@ -9,11 +9,13 @@ Distributed under the MIT-Style License. See LICENSE.txt file for more informati
 Repositories:
 
 [GitLab](https://gitlab.com/xevidos/codiad)
+
 [GitHub](https://github.com/xevidos/codiad)
 
 Issues:
 
 [GitLab](https://gitlab.com/xevidos/codiad/issues)
+
 [GitHub](https://github.com/xevidos/codiad/issues)
 
 Features:
@@ -72,6 +74,7 @@ Completed:
 
 Known Bugs:
 
-* Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file.
-* Cursor is set to the wrong position if in split view.
-* On certain enviroments the update script pulls the old version of the sql class causing the update to fail.
+* Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file
+* Cursor is set to the wrong position if in split view
+* In certain enviroments the update script pulls the old version of the sql class causing the update to fail
+* The Server has new version of file alert causes auto save to stop when the user presses okay

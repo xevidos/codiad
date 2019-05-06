@@ -44,7 +44,7 @@
 			autosave: true,
 			toggle: true,
 		},
-		verbose: false,
+		verbose: true,
 		
 		init: async function() {
 			
@@ -110,6 +110,10 @@
 					 * try to close it, the program will throw an exception and
 					 * stop you from closing the file
 					 */
+					if( codiad.auto_save.verbose ) {
+						
+						console.log( "Error removing event listener", e );
+					}
 				}
 			});
 			
@@ -251,7 +255,13 @@
 				
 				window.clearInterval( codiad.autosave.auto_save_trigger );
 				window.clearInterval( this.auto_save_trigger );
-			} catch( error ) {}
+			} catch( error ) {
+				
+				if( codiad.auto_save.verbose ) {
+					
+					console.log( "Error clearing interval", error );
+				}
+			}
 			
 			if( codiad.auto_save.settings.autosave == true || codiad.auto_save.settings.autosave == "true" ) {
 				
