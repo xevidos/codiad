@@ -194,7 +194,7 @@
 				
 				//console.log( content, _this.content );
 			}
-			
+			/*
 			if( content == _this.content ) {
 				
 				let session = codiad.active.sessions[path];
@@ -215,7 +215,7 @@
 				return;
 			}
 			
-			/*
+			
 			
 			this code caused issues even though it is the proper way to save something.
 			Whenever in collaboration, the server constantly gave a wrong file version error.
@@ -228,8 +228,7 @@
 			
 			_this.content = content;
 			codiad.active.save;
-			//codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
-			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ) );
+			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
 			let session = codiad.active.sessions[path];
 			if( typeof session != 'undefined' ) {
 				
