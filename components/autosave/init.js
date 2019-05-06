@@ -192,7 +192,7 @@
 			
 			if( _this.verbose ) {
 				
-				console.log( content, _this.content );
+				//console.log( content, _this.content );
 			}
 			
 			if( content == _this.content ) {
