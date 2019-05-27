@@ -5,11 +5,14 @@
 //error_reporting(E_ALL);
 
 require_once('../../common.php');
+require_once('../settings/class.settings.php');
 require_once('./class.update.php');
 
-$user_settings_file = DATA . "/settings.php";
-$projects_file = DATA . "/projects.php";
-$users_file = DATA . "/users.php";
+
+
+$user_settings_file = BASE_PATH . "/data/settings.php";
+$projects_file = BASE_PATH . "/data/projects.php";
+$users_file = BASE_PATH . "/data/users.php";
 //checkSession();
 if ( ! checkAccess() ) {
 	echo "Error, you do not have access to update Codiad.";
@@ -102,8 +105,6 @@ class updater {
 			mkdir( $backup, 00755 );
 		}
 		
-		
-		
 		function copy_backup( $source, $dest ) {
 			
 			// Check for symlinks
@@ -173,8 +174,6 @@ class updater {
 	
 	function check_sql() {
 		
-		require_once('../../common.php');
-		require_once('../sql/class.sql.php');
 		$sql = new sql();
 		$connection = $sql->connect();
 		$result = $sql->create_default_tables();
@@ -211,9 +210,6 @@ class updater {
 	
 	function convert() {
 		
-		require_once('../sql/class.sql.php');
-		require_once('../settings/class.settings.php');
-		
 		$user_settings_file = DATA . "/settings.php";
 		$projects_file = DATA . "/projects.php";
 		$users_file = DATA . "/users.php";
@@ -235,18 +231,22 @@ class updater {
 		if( file_exists( $projects_file ) ) {
 			
 			$projects = getJSON( 'projects.php' );
-			foreach( $projects as $project => $data ) {
+			
+			if( is_array( $projects ) ) {
 				
-				$owner = 'nobody';
-				$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
-				$bind_variables = array( $data["name"], $data["path"], $owner );
-				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-				
-				if( $return > 0 ) {
-				} else {
+				foreach( $projects as $project => $data ) {
 					
-					$this->restore();
-					exit(formatJSEND( "error", "There was an error adding projects to database." ));
+					$owner = 'nobody';
+					$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
+					$bind_variables = array( $data["name"], $data["path"], $owner );
+					$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+					
+					if( $return > 0 ) {
+					} else {
+						
+						$this->restore();
+						exit( formatJSEND( "error", "There was an error adding projects to database." ) );
+					}
 				}
 			}
 			unlink( $projects_file );
@@ -255,28 +255,32 @@ class updater {
 		if( file_exists( $users_file ) ) {
 			
 			$users = getJSON( 'users.php' );
-			foreach( $users as $user ) {
+			
+			if( is_array( $users ) ) {
 				
-				if( $user["username"] === $_SESSION["user"] ) {
+				foreach( $users as $user ) {
 					
-					$access = "admin";
-				} else {
+					if( $user["username"] === $_SESSION["user"] ) {
+						
+						$access = "admin";
+					} else {
+						
+						$access = "user";
+					}
+					$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
+					$bind_variables = array( $user["username"], $user["password"], $access, null );
+					$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 					
-					$access = "user";
-				}
-				$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
-				$bind_variables = array( $user["username"], $user["password"], $access, null );
-				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-				
-				if( $return > 0 ) {
-					
-					$this->username = $user["username"];
-					$this->set_default_options();
-					//echo formatJSEND( "success", array( "username" => $user["username"] ) );
-				} else {
-					
-					$this->restore();
-					exit(formatJSEND( "error", "The Username is Already Taken" ));
+					if( $return > 0 ) {
+						
+						$this->username = $user["username"];
+						$this->set_default_options();
+						//echo formatJSEND( "success", array( "username" => $user["username"] ) );
+					} else {
+						
+						$this->restore();
+						exit(formatJSEND( "error", "The Username is Already Taken" ));
+					}
 				}
 			}
 			unlink( $users_file );
@@ -415,10 +419,10 @@ class updater {
 	
 	function remove_directory( $path ) {
 		
-		$files = glob($path . '/*');
-		foreach ($files as $file) {
-		
-			is_dir($file) ? $this->remove_directory($file) : unlink($file);
+		$files = glob( $path . '{,.}[!.,!..]*', GLOB_MARK|GLOB_BRACE );
+		foreach( $files as $file ) {
+			
+			is_dir( $file ) ? $this->remove_directory( $file ) : unlink( $file );
 		}
 		
 		if( is_dir( $path ) ) {
@@ -524,14 +528,27 @@ class updater {
 			
 			$this->copyr( $src, $dest );
 			$this->remove_directory( $src );
-			$this->convert();
-			$this->check_sql();
 			return( "true" );
 		} catch( Exception $e ) {
 			
 			$this->restore();
 			return( $e );
 		}
+	}
+	
+	public function update_database() {
+		
+		try {
+			
+			$this->convert();
+		} catch( Exception $e ) {
+			
+			//$this->restore();
+			return( $e );
+		}
+		
+		$this->check_sql();
+		return( "true" );
 	}
 	
 	public function update_option( $option, $value, $user_setting = null ) {
@@ -619,6 +636,11 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 			
 			echo $updater->update();
 		break;
+		
+		case( "update_database" ):
+			
+			echo $updater->update_database();
+		break;
 	}
 	
 	exit();
@@ -691,6 +713,35 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						dataType: 'html',
 						data: {
 							action: 'apply',
+						},
+						
+						success: function( result ) {
+							
+							return result;
+						},
+						
+						error: function( jqXHR, textStatus, errorThrown ) {
+							
+							console.log( 'jqXHR:' );
+							console.log( jqXHR );
+							console.log( 'textStatus:' );
+							console.log( textStatus);
+							console.log( 'errorThrown:' );
+							console.log( errorThrown );
+							return null;
+						}
+					});
+				},
+				
+				apply_database: function() {
+					
+					return jQuery.ajax({
+							
+						url: "update.php",
+						type: "GET",
+						dataType: 'html',
+						data: {
+							action: 'update_database',
 						},
 						
 						success: function( result ) {
@@ -809,6 +860,28 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 				
 				update: async function() {
 					
+					let GET = {};
+					let parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function( m, key, value) {
+						
+						GET[key] = value;
+					});
+					
+					if( Object.keys( GET ).includes( "step" ) && GET.step === "database_update" ) {
+						
+						progress.innerText = "Applying database update.";
+						let apply = await this.apply_database();
+						
+						if( apply !== "true" ) {
+							
+							console.log( apply );
+							progress.innerText = "Error applying update.";
+							return;
+						}
+						
+						progress.innerText = "Successfully completed update.  You may now return to Codiad.";
+						return;
+					}
+					
 					let result = await this.check_update();
 					
 					console.log( result );
@@ -834,7 +907,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 							return;
 						}
 						
-						progress.innerText = "Applying update.";
+						progress.innerText = "Applying filesystem update.";
 						let apply = await this.apply();
 						
 						if( apply !== "true" ) {
@@ -844,7 +917,12 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 							return;
 						}
 						
-						progress.innerText = "Update Finished.";
+						progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+						
+						setTimeout( function() {
+							
+							window.location.href = window.location.href + "?step=database_update"
+						}, 5000);
 					} else if( result === "false" ) {
 						
 						progress.innerText = "No update was found ...";
@@ -855,6 +933,28 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 				},
 				
 				update_development: async function() {
+					
+					let GET = {};
+					let parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function( m, key, value) {
+						
+						GET[key] = value;
+					});
+					
+					if( Object.keys( GET ).includes( "step" ) && GET.step === "database_update" ) {
+						
+						progress.innerText = "Applying database update.";
+						let apply = await this.apply_database();
+						
+						if( apply !== "true" ) {
+							
+							console.log( apply );
+							progress.innerText = "Error applying update.";
+							return;
+						}
+						
+						progress.innerText = "Successfully completed update.  You may now return to Codiad.";
+						return;
+					}
 					
 					progress.innerText = "An update was found.  Downloading update.";
 					let download = await this.download( true );
@@ -876,7 +976,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						return;
 					}
 					
-					progress.innerText = "Applying update.";
+					progress.innerText = "Applying filesystem update.";
 					let apply = await this.apply();
 					
 					if( apply !== "true" ) {
@@ -886,7 +986,12 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						return;
 					}
 					
-					progress.innerText = "Update Finished.";
+					progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+					
+					setTimeout( function() {
+						
+						window.location.href = window.location.href + "?step=database_update"
+					}, 5000);
 				},
 			};
 		</script>
