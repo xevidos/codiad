@@ -8,7 +8,7 @@ class sql {
 		
 		"MySQL" => "mysql",
 		"PostgresSQL" => "pgsql",
-		"SQLite" => "sqlite",
+		//"SQLite" => "sqlite",
 	);
 	
 	public $connection = null;
