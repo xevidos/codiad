@@ -543,7 +543,7 @@ class updater {
 			$this->convert();
 		} catch( Exception $e ) {
 			
-			//$this->restore();
+			$this->restore();
 			return( $e );
 		}
 		
@@ -696,6 +696,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 			const codiad = {};
 			codiad.update = {
 				
+				base_url: `<?php echo BASE_URL;?>`,
 				progress: null,
 				
 				init: function() {
@@ -878,7 +879,12 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 							return;
 						}
 						
-						progress.innerText = "Successfully completed update.  You may now return to Codiad.";
+						progress.innerText = "Successfully completed update.  Returning you to Codiad ...";
+						
+						setTimeout( function() {
+							
+							window.location.href = codiad.update.base_url;
+						}, 5000);
 						return;
 					}
 					
