@@ -883,7 +883,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						
 						setTimeout( function() {
 							
-							window.location.href = codiad.update.base_url;
+							window.location.href = `${location.protocol}//${codiad.update.base_url}`;
 						}, 5000);
 						return;
 					}
