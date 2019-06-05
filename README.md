@@ -39,13 +39,15 @@ Task List:
   
 * Add ability to login with LDAP
 * Add custom market
-* Add in new admin interface ( Check admin-portal branch for progress )
+* \- Add in new admin interface ( Check admin-portal branch for progress )
 	- Group Management
 	- Permissions Management
 	- Plugin Management
 	- Project Management
 	- System Settings
 	- User Management
+* Add Drag and Drop natively to filemanager
+* Add folder / filestructure upload ability
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
