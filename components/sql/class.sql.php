@@ -7,7 +7,7 @@ class sql {
 	const DB_TYPES = array(
 		
 		"MySQL" => "mysql",
-		"PostgresSQL" => "pgsql",
+		"PostgreSQL" => "pgsql",
 		//"SQLite" => "sqlite",
 	);
 	
