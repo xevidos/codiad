@@ -364,11 +364,14 @@
 					node.removeClass( 'open' );
 				});
 			} else {
+				
 				node.addClass( 'loading' );
 				$.get( this.controller + '?action=index&path=' + encodeURIComponent( path ), function( data ) {
+					
 					node.addClass( 'open' );
 					var objectsResponse = codiad.jsend.parse( data );
 					if( objectsResponse != 'error' ) {
+						
 						/* Notify listener */
 						_this.indexFiles = objectsResponse.index;
 						amplify.publish( "filemanager.onIndex", {
@@ -377,31 +380,38 @@
 						});
 						var files = _this.indexFiles;
 						if( files.length > 0 ) {
+							
 							if( node.parent().children( 'span' ).hasClass( 'plus' ) ) {
+								
 								node.parent().children( 'span' ).removeClass( 'plus' ).addClass( 'minus' );
 							}
 							var display = 'display:none;';
 							if( rescan ) {
+								
 								display = '';
 							}
 							var appendage = '<ul style="' + display + '">';
 							$.each( files, function( index ) {
+								
 								var ext = '';
 								var name = files[index].name.replace( path, '' );
 								var nodeClass = 'none';
 								name = name.split( '/' )
 								.join( ' ' );
 								if( files[index].type == 'file' ) {
+									
 									var ext = ' ext-' + name.split( '.' )
 									.pop();
 								}
 								if( files[index].type == 'directory' && files[index].size > 0 ) {
+									
 									nodeClass = 'plus';
 								}
 								appendage += '<li><span class="' + nodeClass + '"></span><a class="' + files[index].type + ext + '" data-type="' + files[index].type + '" data-path="' + files[index].name + '">' + name + '</a></li>';
 							});
 							appendage += '</ul>';
 							if( rescan ) {
+								
 								node.parent( 'li' )
 								.children( 'ul' )
 								.remove();
@@ -409,6 +419,7 @@
 							$( appendage )
 							.insertAfter( node );
 							if( !rescan ) {
+								
 								node.siblings( 'ul' )
 								.slideDown( 300 );
 							}
@@ -416,8 +427,10 @@
 					}
 					node.removeClass( 'loading' );
 					if( rescan && _this.rescanChildren.length > _this.rescanCounter ) {
+						
 						_this.rescan( _this.rescanChildren[_this.rescanCounter++] );
 					} else {
+						
 						_this.rescanChildren = [];
 						_this.rescanCounter = 0;
 					}
@@ -650,7 +663,6 @@
 			});
 			$( '#modal-content form' )
 			.live( 'submit', function( e ) {
-				let project = codiad.project.getCurrent();
 				e.preventDefault();
 				var shortName = $( '#modal-content form input[name="object_name"]' )
 				.val();
@@ -671,7 +683,7 @@
 							codiad.filemanager.openFile( createPath, true );
 						}
 						
-						codiad.filemanager.rescan( project );
+						codiad.filemanager.rescan( path );
 						
 						/* Notify listeners. */
 						amplify.publish( 'filemanager.onCreate', {
@@ -815,7 +827,10 @@
 						// Change any active files
 						codiad.active.rename( path, newPath );
 						codiad.modal.unload();
-						codiad.filemanager.rescan( project );
+						
+						let parent = path.split( '/' );
+						parent.pop();
+						codiad.filemanager.rescan( parent.join( '/' ) );
 						/* Notify listeners. */
 						amplify.publish( 'filemanager.onRename', {
 							path: path,
