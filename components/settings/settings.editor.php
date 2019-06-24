@@ -9,53 +9,32 @@
     
         <td width="50%"><?php i18n("Theme"); ?></td>
         <td>
-        
-        <select class="setting" data-setting="codiad.editor.theme">
-            <option value="ambiance">Ambiance</option>
-            <option value="chaos">Chaos</option>
-            <option value="chrome">Chrome</option>
-            <option value="clouds">Clouds</option>
-            <option value="clouds_midnight">Clouds - Midnight</option>
-            <option value="cobalt">Cobalt</option>
-            <option value="crimson_editor">Crimson Editor</option>
-            <option value="dawn">Dawn</option>
-            <option value="dreamweaver">Dreamweaver</option>
-            <option value="eclipse">Eclipse</option>
-            <option value="github">GitHub</option>
-            <option value="idle_fingers">Idle Fingers</option>
-            <option value="iplastic">IPlastic</option>
-            <option value="katzenmilch">Katzenmilch</option>
-            <option value="kuroir">Kuroir</option>
-            <option value="kr_theme">krTheme</option>
-            <option value="merbivore">Merbivore</option>
-            <option value="merbivore_soft">Merbivore Soft</option>
-            <option value="mono_industrial">Mono Industrial</option>
-            <option value="monokai">Monokai</option>
-            <option value="pastel_on_dark">Pastel On Dark</option>
-            <option value="solarized_dark">Solarized Dark</option>
-            <option value="solarized_light">Solarized Light</option>
-            <option value="sqlserver">SQL Server</option>
-            <option value="terminal">Terminal</option>
-            <option value="textmate">Textmate</option>
-            <option value="tomorrow">Tomorrow</option>
-            <option value="tomorrow_night">Tomorrow Night</option>
-            <option value="tomorrow_night_blue">Tomorrow Night Blue</option>
-            <option value="tomorrow_night_bright">Tomorrow Night Bright</option>
-            <option value="tomorrow_night_eighties">Tomorrow Night Eighties</option>
-            <option value="twilight" selected>Twilight</option>
-            <option value="vibrant_ink">Vibrant Ink</option>
-            <option value="xcode">XCode</option>
-        </select>
-        
+	        <select class="setting" data-setting="codiad.editor.theme">
+	            <?php
+	            	
+	            	$files = glob( COMPONENTS . "/editor/ace-editor/*.js" );
+	            	foreach( $files as $file ) {
+	            		
+	            		$name = pathinfo( $file, PATHINFO_FILENAME );
+	            		if( strpos( strtolower( $name ), strtolower( "theme-" ) ) !== false ) {
+	            			
+	            			$value = str_replace( "theme-", "", str_replace( ".js", "", $name ) );
+	            			$name = ucwords( str_replace( "_", " ", $value ) );
+	            			
+	            			?>
+	            			<option value="<?php echo $value;?>"><?php echo $name;?></option>
+	            			<?php
+	            		}
+	            	}
+	            ?>
+	        </select>
         </td>
-        
     </tr>
     <tr>
     
         <td><?php i18n("Font Size"); ?></td>
         <td>
-        
-        <select class="setting" data-setting="codiad.editor.fontSize">
+         <select class="setting" data-setting="codiad.editor.fontSize">
             <option value="10px">10px</option>
             <option value="11px">11px</option>
             <option value="12px">12px</option>
