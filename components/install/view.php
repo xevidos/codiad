@@ -170,7 +170,7 @@ if ( ! empty( $query ) ) {
 				"MBString"=>"required",
 				"MySQL"=>"",
 				"PGSQL"=>"",
-				"SQLite3"=>""
+				//"SQLite3"=>""
 				] as $dep=>$status) {
 				if (extension_loaded(strtolower($dep))) { ?>
 				<div class="success"><span class="icon-check"></span> <?=$dep?></div>

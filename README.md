@@ -9,11 +9,13 @@ Distributed under the MIT-Style License. See LICENSE.txt file for more informati
 Repositories:
 
 [GitLab](https://gitlab.com/xevidos/codiad)
+
 [GitHub](https://github.com/xevidos/codiad)
 
 Issues:
 
 [GitLab](https://gitlab.com/xevidos/codiad/issues)
+
 [GitHub](https://github.com/xevidos/codiad/issues)
 
 Features:
@@ -37,16 +39,19 @@ Task List:
   
 * Add ability to login with LDAP
 * Add custom market
-* Add in new admin interface ( Check admin-portal branch for progress )
+* \- Add in new admin interface ( Check admin-portal branch for progress )
 	- Group Management
 	- Permissions Management
 	- Plugin Management
 	- Project Management
 	- System Settings
 	- User Management
+* Add Drag and Drop natively to filemanager
+* Add folder / filestructure upload ability
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
+* Add permissions module ( more in depth permissions such as read/write, delete, etc )
 * Add support for more database systems ( MSSQL, Oracle, SQLite, Filesystem storage, etc )
 * Add in auto save timer that saves after the user stops typing instead of after every change
 * Clean up update script
@@ -70,7 +75,9 @@ Completed:
 * Updated for PHP 7.2
 
 
-Bugs:
+Known Bugs:
 
-* Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file.
-* Cursor is set to the wrong position if in split view.
+* Auto save does not save the most recent changes every once in a while requiring more information to be typed ( E.G. A couple spaces ) in order to show up in saved file
+* Cursor is set to the wrong position if in split view
+* In certain enviroments the update script pulls the old version of the sql class causing the update to fail
+* The Server has new version of file alert causes auto save to stop when the user presses okay

@@ -1,9 +1,5 @@
 <?php
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
-
 require_once( __DIR__ . "/../sql/class.sql.php" );
 require_once( __DIR__ . "/../settings/class.settings.php" );
 
@@ -129,11 +125,11 @@ date_default_timezone_set("' . $_POST['timezone'] . '");
 define("SITE_NAME", "' . $_POST['site_name'] . '");
 
 // Database Information
-define( "DBHOST", "' . $_POST['dbhost'] . '" );
-define( "DBNAME", "' . $_POST['dbname'] . '" );
-define( "DBUSER", "' . $_POST['dbuser'] . '" );
-define( "DBPASS", "' . $_POST['dbpass'] . '" );
-define( "DBTYPE", "' . $_POST['dbtype'] . '" );
+define( "DBHOST", \'' . addslashes( urldecode( $_POST['dbhost'] ) ) . '\' );
+define( "DBNAME", \'' . addslashes( urldecode( $_POST['dbname'] ) ) . '\' );
+define( "DBUSER", \'' . addslashes( urldecode( $_POST['dbuser'] ) ) . '\' );
+define( "DBPASS", \'' . addslashes( urldecode( $_POST['dbpass'] ) ) . '\' );
+define( "DBTYPE", \'' . addslashes( urldecode( $_POST['dbtype'] ) ) . '\' );
 
 //////////////////////////////////////////////////////////////////
 // ** DO NOT EDIT CONFIG BELOW **
