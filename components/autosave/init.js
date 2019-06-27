@@ -38,12 +38,13 @@
 		editor: null,
 		invalid_states: [ "", " ", null, undefined ],
 		path: curpath,
+		save_interval: null,
 		saving: false,
 		settings: {
 			autosave: true,
 			toggle: true,
 		},
-		verbose: false,
+		verbose: true,
 		
 		init: async function() {
 			
@@ -109,6 +110,10 @@
 					 * try to close it, the program will throw an exception and
 					 * stop you from closing the file
 					 */
+					if( codiad.auto_save.verbose ) {
+						
+						console.log( "Error removing event listener", e );
+					}
 				}
 			});
 			
@@ -128,6 +133,30 @@
 			});
 		},
 		
+		auto_save: function() {
+			
+			/**
+			 * When saving after every change, we encounter an issue where every
+			 * once in a while the last change or last few changes will not get
+			 * saved.  Due to this, I decided to instead only save after the user
+			 * has finished typing their changes.
+			 * 
+			 * On every change to the editor, we set a timeout of half a second
+			 * to see if the user is still typing.  If they are, we clear the 
+			 * timeout and set it again.  If they have stopped typing then the
+			 * timout is triggered after 500 miliseconds and the file is saved.
+			 */
+			
+			let _this = codiad.auto_save;
+			
+			if( _this.save_interval !== null ) {
+				
+				clearTimeout( _this.save_interval );
+				_this.save_interval = null;
+			}
+			_this.save_interval = setTimeout( _this.save, 500 );
+		},
+		
 		/**
 		* 
 		* This is where the core functionality goes, any call, references,
@@ -135,9 +164,15 @@
 		* 
 		*/
 		
-		auto_save: function() {
+		save: function() {
 			
 			let _this = codiad.auto_save;
+			
+			if( _this.saving ) {
+				
+				return;
+			}
+			
 			_this.saving = true;
 			let tabs = document.getElementsByClassName( "tab-item" );
 			let path = codiad.active.getPath();
@@ -157,9 +192,9 @@
 			
 			if( _this.verbose ) {
 				
-				console.log( content, _this.content );
+				//console.log( content, _this.content );
 			}
-			
+			/*
 			if( content == _this.content ) {
 				
 				let session = codiad.active.sessions[path];
@@ -180,7 +215,7 @@
 				return;
 			}
 			
-			/*
+			
 			
 			this code caused issues even though it is the proper way to save something.
 			Whenever in collaboration, the server constantly gave a wrong file version error.
@@ -210,13 +245,6 @@
 				}
 			}
 			_this.saving = false;
-			
-			setTimeout(function() {
-				
-				//Call the function again after one second so that if we missed the last change we resave the file.
-				let _this = codiad.auto_save;
-				_this.auto_save();
-			}, 1000);
 		},
 		
 		reload_interval: async function() {
@@ -226,7 +254,13 @@
 				
 				window.clearInterval( codiad.autosave.auto_save_trigger );
 				window.clearInterval( this.auto_save_trigger );
-			} catch( error ) {}
+			} catch( error ) {
+				
+				if( codiad.auto_save.verbose ) {
+					
+					console.log( "Error clearing interval", error );
+				}
+			}
 			
 			if( codiad.auto_save.settings.autosave == true || codiad.auto_save.settings.autosave == "true" ) {
 				

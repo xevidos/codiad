@@ -7,8 +7,8 @@ class sql {
 	const DB_TYPES = array(
 		
 		"MySQL" => "mysql",
-		"PostgresSQL" => "pgsql",
-		"SQLite" => "sqlite",
+		"PostgreSQL" => "pgsql",
+		//"SQLite" => "sqlite",
 	);
 	
 	public $connection = null;

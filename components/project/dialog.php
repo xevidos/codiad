@@ -107,6 +107,11 @@ switch( $_GET['action'] ) {
 									?>
 									<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
 									<?php
+								} elseif( $owner !== $_SESSION["user"] ) {
+									
+									?>
+									<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
+									<?php
 								} else {
 									
 									?>

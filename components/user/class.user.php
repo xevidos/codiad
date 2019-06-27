@@ -41,7 +41,6 @@ class User {
 	
 	public function __construct() {
 		
-		$this->actives = getJSON( 'active.php' );
 	}
 	
 	public function add_user() {

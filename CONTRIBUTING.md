@@ -22,22 +22,28 @@ Stick to the conventions defined in other components as closely as possible.
 In order to maintain a consistant code structure to the code across the application please follow the wordpress standard, or run any changes through [JSBeautifier] (http://jsbeautifier.org/) with the settings below.
 
 	{
-		"indent_size": "1",
+		"brace_style": "collapse",
+		"break_chained_methods": false,
+		"comma_first": false,
+		"e4x": false,
+		"end_with_newline": true,
 		"indent_char": "\t",
+		"indent_empty_lines": true,
+		"indent_inner_html": true,
+		"indent_scripts": "normal",
+		"indent_size": "1",
+		"jslint_happy": false,
+		"keep_array_indentation": true,
 		"max_preserve_newlines": "5",
 		"preserve_newlines": true,
-		"keep_array_indentation": true,
-		"break_chained_methods": false,
-		"indent_scripts": "normal",
-		"brace_style": "collapse",
+		"space_after_anon_function": false,
+		"space_after_named_function": false,
 		"space_before_conditional": false,
+		"space_in_empty_paren": false,
+		"space_in_paren": true,
 		"unescape_strings": false,
-		"jslint_happy": false,
-		"end_with_newline": true,
-		"wrap_line_length": "0",
-		"indent_inner_html": true,
-		"comma_first": false,
-		"e4x": false
+		"unindent_chained_methods": true,
+		"wrap_line_length": "0"
 	}
 
 If you have questions, please ask. Submit an issue or [contact us directly](mailto:support@telaaedifex.com). 
