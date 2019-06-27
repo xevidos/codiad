@@ -923,7 +923,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 							return;
 						}
 						
-						progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+						progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the database update.";
 						
 						setTimeout( function() {
 							
@@ -992,7 +992,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						return;
 					}
 					
-					progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+					progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the database update.";
 					
 					setTimeout( function() {
 						
