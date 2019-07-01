@@ -164,7 +164,7 @@ class Filemanager extends Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public function index() {
-	
+		
 		if ( file_exists( $this->path ) ) {
 			
 			$index = array();
@@ -450,7 +450,7 @@ class Filemanager extends Common {
 	
 	public function delete( $keep_parent = false ) {
 		
-		if( Common::checkPath( $path ) ) {
+		if( ! Permissions::has_delete( $this->path ) ) {
 			
 			$this->status = "error";
 			$this->message = "No access.";
@@ -530,7 +530,9 @@ class Filemanager extends Common {
 			
 			if ( ! file_exists( $new_path ) ) {
 				
-				if ( rename( $this->path, $new_path ) ) {
+				echo var_dump( Permissions::has_create( $this->path ) );
+				
+				if ( Permissions::has_create( $this->path ) && rename( $this->path, $new_path ) ) {
 					
 					//unlink($this->path);
 					$this->status = "success";
@@ -545,10 +547,10 @@ class Filemanager extends Common {
 				$this->message = "Path Already Exists";
 			}
 		} else {
-				
+			
 			// Change content
 			if ( $this->content || $this->patch ) {
-					
+				
 				if ( $this->content == ' ' ) {
 					
 					$this->content = ''; // Blank out file
@@ -560,7 +562,8 @@ class Filemanager extends Common {
 					$this->respond();
 					return;
 				}
-				if ( is_file( $this->path ) ) {
+				echo var_dump( Permissions::has_write( $this->path ) );
+				if ( is_file( $this->path ) && Permissions::has_write( $this->path ) ) {
 					
 					$serverMTime = filemtime( $this->path );
 					$fileContents = file_get_contents( $this->path );

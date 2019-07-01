@@ -32,8 +32,15 @@ if( $_GET['action'] == 'add_user' ) {
 		"undefined"
 	);
 	
-	if( ! in_array( $_GET['username'], $invalid_users ) ) {
+	if( ! isset( $_GET['access'] ) || in_array( $_GET['access'], $invalid_users ) || ! in_array( $_GET['access'], array_keys( Permissions::LEVELS ) ) ) {
 		
+		echo formatJSEND( "error", "No access set." );
+		return;
+	}
+	
+	if( isset( $_GET['username'] ) && ! in_array( $_GET['username'], $invalid_users ) ) {
+		
+		$Project->access = $_GET['access'];
 		$Project->user = $_GET['username'];
 	} else {
 		
@@ -110,7 +117,7 @@ if( $_GET['action'] == 'current' ) {
 
 if( $_GET['action'] == 'delete' ) {
 	
-	if( checkPath( $_GET['project_path'] ) ) {
+	if( isset( $_GET['project_path'] ) ) {
 		
 		$Project->path = $_GET['project_path'];
 		$Project->Delete();
@@ -184,7 +191,7 @@ if( $_GET['action'] == 'get_owner' ) {
 
 if( $_GET['action'] == 'open' ) {
 	
-	if( ! checkPath( $_GET['path'] ) ) {
+	if( isset( $_GET['path'] ) && ! Permissions::has_read( $_GET['path'] ) ) {
 		
 		die( formatJSEND( "error", "No Access to path " . $_GET['path'] ) );
 	}
@@ -233,7 +240,7 @@ if( $_GET['action'] == 'remove_user' ) {
 
 if( $_GET['action'] == 'rename' ) {
 	
-	if( ! checkPath( $_GET['project_path'] ) ) {
+	if( ! isset( $_GET['project_path'] ) || ! Permissions::has_owner( $_GET['project_path'] ) ) {
 		
 		die( formatJSEND( "error", "No Access" ) );
 	}

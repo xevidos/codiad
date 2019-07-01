@@ -5,6 +5,9 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $sql = null;
 Common::startSession();
@@ -93,6 +96,7 @@ class Common {
 			define( "LANGUAGE", "en" );
 		}
 		
+		require_once( COMPONENTS . "/permissions/class.permissions.php" );
 		require_once( COMPONENTS . "/update/class.update.php" );
 		require_once( COMPONENTS . "/sql/class.sql.php" );
 		global $sql;
@@ -564,47 +568,7 @@ class Common {
 	
 	public static function checkPath( $path ) {
 		
-		global $sql;
-		//$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
-		//$bind_variables = array( $path );
-		//$result = $sql->query( $query, $bind_variables, array() )[0];
-		$result = $sql->select(
-			"projects",
-			array(),
-			array(
-				array(
-					"find",
-					"[path]",
-					$path,
-					array(
-						"more than",
-						0
-					)
-				),
-				array(
-					"limit",
-					1
-				)
-			)
-		);
-		
-		if( ! empty( $result ) ) {
-			
-			$result = $result[0];
-			try {
-				
-				$users = json_decode( $result["access"] );
-			} catch( exception $e ) {
-				
-				$users = array();
-			}
-			
-			if( $result["owner"] == 'nobody' || $result["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
-				
-				return( true );
-			}
-		}
-		return( false );
+		return Permissions::has_manager( $path );
 	}
 	
 	

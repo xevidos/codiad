@@ -39,7 +39,8 @@ if (!isset($_SESSION['project'])) {
     // Security Check
     //////////////////////////////////////////////////////////////////
 
-if (!checkPath($_GET['path'])) {
+if ( ! Permissions::has_read( $_GET['path'] ) ) {
+	
     die('{"status":"error","message":"Invalid Path"}');
 }
 

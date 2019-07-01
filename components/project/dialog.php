@@ -233,7 +233,19 @@ switch( $_GET['action'] ) {
 				?>
 				<table id="access_list">
 				<?php
-				foreach( $access as $user ) {
+				
+				$is_assoc = ( array_keys( $access ) !== range( 0, count( $access ) - 1 ) );
+				if( ! $is_assoc ) {
+					
+					$temp = array();
+					foreach( $access as $user ) {
+						
+						$temp[$user] = "delete";
+					}
+					$access = $temp;
+				}
+				
+				foreach( $access as $user => $access_level ) {
 					
 					?>
 					<tr>
@@ -241,6 +253,21 @@ switch( $_GET['action'] ) {
 							<p><?php echo htmlentities( $user );?></p>
 						</td>
 						<td>
+							<select onchange="codiad.project.change_access( event );">
+								<?php
+								foreach( Permissions::LEVELS as $level => $id ) {
+									
+									if( $level == $access_level ) {
+										
+										$selected = "selected='selected'";
+									} else {
+										
+										$selected = "";
+									}
+									?><option value="<?php echo $level;?>" <?php echo $selected;?>><?php echo ucfirst( $level );?></option><?php
+								}
+								?>
+							</select>
 							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user );?>' );">Remove Access</button>
 						</td>
 					</tr>

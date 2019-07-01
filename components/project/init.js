@@ -53,26 +53,45 @@
 		
 		add_user: function() {
 			
-			var _this = this;
+			let _this = this;
 			
 			$( '#modal-content form' ).live( 'submit', function( e ) {
 			
 				e.preventDefault();
-				username = $( '#modal-content form select[name="user_list"]' ).val();
-				project_path = $( '#modal-content form input[name="project_path"]' ).val()
+				let username = $( '#modal-content form select[name="user_list"]' ).val();
+				let project_path = $( '#modal-content form input[name="project_path"]' ).val();
 				
-				$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( username ), function( data ) {
+				$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( username ) + '&access=delete', function( data ) {
 						
-						response = codiad.jsend.parse( data );
-						console.log( response );
-						if ( response != 'error' ) {
-							
-							codiad.project.manage_access( project_path );
-						}
+					response = codiad.jsend.parse( data );
+					console.log( response );
+					if ( response != 'error' ) {
+						
+						codiad.project.manage_access( project_path );
+					}
 				});
 			});
 		},
 		
+		change_access: function( e ) {
+			
+			let _this = codiad.project;
+			let username = $( '#modal-content form select[name="user_list"]' ).val();
+			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
+			let access = $( e.target ).children( "option:selected" ).val();
+			
+			console.log( access, username, project_path );
+			
+			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( username ) + '&access=' + encodeURIComponent( access ), function( data ) {
+				
+				let response = codiad.jsend.parse( data );
+				console.log( response );
+				if ( response != 'error' ) {
+					
+					codiad.project.manage_access( project_path );
+				}
+			});
+		},
 		
 		//////////////////////////////////////////////////////////////////
 		// Create Project

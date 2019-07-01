@@ -14,13 +14,14 @@ class Project extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
-	public $name         = '';
-	public $path         = '';
-	public $gitrepo      = false;
-	public $gitbranch    = '';
-	public $projects     = array();
-	public $no_return    = false;
-	public $assigned     = false;
+	public $access = 100;
+	public $name = '';
+	public $path = '';
+	public $gitrepo = false;
+	public $gitbranch = '';
+	public $projects = array();
+	public $no_return = false;
+	public $assigned = false;
 	public $command_exec = '';
 	public $public_project = false;
 	public $user = '';
@@ -70,21 +71,32 @@ class Project extends Common {
 		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
 		$result = $sql->query( $query, $bind_variables, array() )[0];
-
+		
 		if( ! empty( $result ) ) {
 			
 			$access = json_decode( $result["access"] );
 			
-			if( is_array( $access ) ) {
+			if( is_array( $access ) && ! empty( $access ) ) {
 				
-				if( ! in_array( $this->user, $access ) ) {
+				$is_assoc = ( array_keys( $access ) !== range( 0, count( $access ) - 1 ) );
+				
+				if( $is_assoc ) {
 					
-					array_push( $access, $this->user );
+					$access[$this->user] = $this->access;
+				} else {
+					
+					$new_access = array();
+					foreach( $access as $user ) {
+						
+						$new_access[$user] = Permission::LEVELS["delete"];
+					}
+					$access[$this->user] = $this->access;
+					$access = $new_access;
 				}
 			} else {
 				
 				$access = array(
-					$this->user
+					$this->user => $this->access
 				);
 			}
 			
@@ -361,7 +373,7 @@ class Project extends Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public function Create() {
-			
+		
 		if ( $this->name != '' && $this->path != '' ) {
 			
 			$this->path = $this->cleanPath();
