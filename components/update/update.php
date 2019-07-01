@@ -15,6 +15,7 @@ $projects_file = BASE_PATH . "/data/projects.php";
 $users_file = BASE_PATH . "/data/users.php";
 //checkSession();
 if ( ! checkAccess() ) {
+	
 	echo "Error, you do not have access to update Codiad.";
 	exit();
 }

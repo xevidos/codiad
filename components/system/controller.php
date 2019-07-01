@@ -19,6 +19,8 @@ if ( $_POST['action'] == 'create_default_tables' ) {
 		global $sql;
 		$result = $sql->create_default_tables();
 		
+		echo var_dump( $result );
+		
 		if( $result === true ) {
 			
 			exit( formatJSEND( "success", "Created tables." ) );

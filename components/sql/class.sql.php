@@ -1,6 +1,7 @@
 <?php
 
 require_once( __DIR__ . "/class.sql.conversions.php" );
+require_once( __DIR__ . "/../permissions/class.permissions.php" );
 
 class sql {
 	
@@ -35,8 +36,11 @@ class sql {
 			$dbtype = DBTYPE;
 			$username = DBUSER;
 			$password = DBPASS;
+			$options = array(
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+			);
 			
-			$this->connection = new PDO( "{$dbtype}:host={$host};dbname={$dbname}", $username, $password );
+			$this->connection = new PDO( "{$dbtype}:host={$host};dbname={$dbname}", $username, $password, $options );
 		}
 		
 		return( $this->connection );
@@ -65,6 +69,18 @@ class sql {
 						"focused" => array( "not null" ),
 					)
 				),
+				"access" => array(
+					"fields" => array(
+						"project" => "int",
+						"user" => "int",
+						"level" => "int",
+					),
+					"attributes" => array(
+						"id" => array( "not null" ),
+						"user" => array( "not null" ),
+						"level" => array( "not null" ),
+					)
+				),
 				"options" => array(
 					"fields" => array(
 						"id" => "int",
@@ -83,7 +99,6 @@ class sql {
 						"name" => "string",
 						"path" => "text",
 						"owner" => "string",
-						"access" => "string",
 					),
 					"attributes" => array(
 						
@@ -91,7 +106,6 @@ class sql {
 						"name" => array( "not null" ),
 						"path" => array( "not null", "unique" ),
 						"owner" => array( "not null", "unique" ),
-						"access" => array(),
 					)
 				),
 				"users" => array(
@@ -102,7 +116,7 @@ class sql {
 						"username" => "string",
 						"password" => "text",
 						"email" => "string",
-						"project" => "string",
+						"project" => "int",
 						"access" => "string",
 						"groups" => "string",
 						"token" => "string",
@@ -130,6 +144,85 @@ class sql {
 				),
 			)
 		);
+		
+		if( $result === true ) {
+			
+			$sql_conversions = new sql_conversions();
+			
+			try {
+				
+				$access_query = "INSERT INTO access( project, user, level ) VALUES ";
+				$projects = $this->query( "SELECT id, access FROM projects", array(), array(), "fetchAll", "exception" );
+				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
+				$delete = Permissions::LEVELS["delete"];
+				
+				foreach( $users as $row => $user ) {
+					
+					foreach( $projects as $row => $project ) {
+						
+						$access = json_decode( $project["access"], true );
+						if( ! is_array( $access ) || empty( $access ) ) {
+							
+							continue;
+						}
+						
+						foreach( $access as $granted_user ) {
+							
+							if( $granted_user == $user["username"] ) {
+								
+								$access_query .= "( {$project["id"]}, {$user["id"]}, $delete ),";
+							}
+						}
+					}
+				}
+				
+				if( $access_query !== "INSERT INTO access( project, user, level ) " ) {
+					
+					$result = $this->query( substr( $access_query, 0, -1 ), array(), 0, "rowCount", "exception" );
+				}
+				$result = $this->query( "ALTER TABLE projects DROP COLUMN access", array(), 0, "rowCount" );
+			} catch( Exception $error ) {
+				
+				//The access field is not there.
+				//echo var_export( $error->getMessage(), $access_query );
+			}
+			
+			try {
+				
+				$update_query = "";
+				$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
+				$result = $this->query( "SELECT project FROM users", array(), array(), "fetchAll", "exception" );
+				$convert = false;
+				$delete = Permissions::LEVELS["delete"];
+				
+				foreach( $result as $row => $user ) {
+					
+					if( ! is_numeric( $user["project"] ) ) {
+						
+						$convert = true;
+					}
+					
+					foreach( $projects as $row => $project ) {
+						
+						if( $project["path"] == $user["project"] ) {
+							
+							$update_query .= "UPDATE users SET project={$project["id"]};";
+						}
+					}
+				}
+				
+				if( $convert ) {
+					
+					//change project to users table
+					$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
+					$result = $this->query( "ALTER TABLE users ADD COLUMN project " . $sql_conversions->data_types["int"][DBTYPE], array(), array(), "rowCount", "exception" );
+					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+				}
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+			}
+		}
 		
 		return $result;
 	}
@@ -169,18 +262,15 @@ class sql {
 		);
 		*/
 		
-		$query = $this->conversions->tables( $table );
-		$connection = $this->connect();
-		$result = $connection->exec( $query );
-		$error = $connection->errorInfo();
-		//echo var_dump( $query, $result, $connection->errorInfo() ) . "<br>";
-
-		if ( $result === false || ! $error[0] == "00000" ) {
+		try { 
 			
-			return $error;
-		} else {
-			
+			$query = $this->conversions->tables( $table );
+			$connection = $this->connect();
+			$result = $connection->exec( $query );
 			return true;
+		} catch( exception $error ) {
+			
+			return $error->getMessage();
 		}
 	}
 	
@@ -227,53 +317,58 @@ class sql {
 		
 		$query = $this->conversions->update( $table, $fields, $where );
 		//echo var_dump( $query ) . "<br>";
+		//return $query;
 	}
 	
-	public function query( $query, $bind_variables, $default, $action='fetchAll', $show_errors=false ) {
+	public function query( $query, $bind_variables, $default, $action='fetchAll', $errors="default" ) {
 		
-		$connection = $this->connect();
-		$statement = $connection->prepare( $query );
-		$statement->execute( $bind_variables );
-		 
-		switch( $action ) {
-			
-			case( 'rowCount' ):
-				
-				$return = $statement->rowCount();
-			break;
-			
-			case( 'fetchAll' ):
-				
-				$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
-			break;
-			
-			case( 'fetchColumn' ):
-				
-				$return = $statement->fetchColumn();
-			break;
-			
-			default:
-				
-				$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
-			break;
-		}
+		/**
+		 * Errors:
+		 * default - this value could be anything such as true or foobar
+		 * message
+		 * exception
+		 */
 		
-		$error = $statement->errorInfo();
-		
-		if( ! $error[0] == "00000" ) {
+		try {
 			
-			echo var_export( $error );
-			echo var_export( $return );
+			$connection = $this->connect();
+			$statement = $connection->prepare( $query );
+			$statement->execute( $bind_variables );
+			
+			switch( $action ) {
+				
+				case( 'rowCount' ):
+					
+					$return = $statement->rowCount();
+				break;
+				
+				case( 'fetchAll' ):
+					
+					$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+				break;
+				
+				case( 'fetchColumn' ):
+					
+					$return = $statement->fetchColumn();
+				break;
+				
+				default:
+					
+					$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+				break;
+			}
+		} catch( exception $error ) {
+			
 			$return = $default;
-		}
-		
-		if( $show_errors ) {
 			
-			$return = json_encode( $error );
+			if( $errors == "message" ) {
+				
+				$return = json_encode( array( $error->getMessage() ) );
+			} elseif( $errors == "exception" ) {
+				
+				throw $error;
+			}
 		}
-		
-		//echo var_dump( $error, $return );
-		
 		$this->close();
 		return( $return );
 	}

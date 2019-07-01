@@ -243,23 +243,26 @@ class User {
 		
 		if( ! empty( $return ) ) {
 			
+			$user = $return[0];
 			$pass = true;
 			$token = mb_strtoupper( strval( bin2hex( openssl_random_pseudo_bytes( 16 ) ) ) );
 			$_SESSION['id'] = SESSION_ID;
 			$_SESSION['user'] = $this->username;
+			$_SESSION['user_id'] = $user["id"];
 			$_SESSION['token'] = $token;
 			$_SESSION['lang'] = $this->lang;
 			$_SESSION['theme'] = $this->theme;
 			$_SESSION["login_session"] = true;
-			$user = $return[0];
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
 			$bind_variables = array( sha1( $token ), $this->username );
 			$return = $sql->query( $query, $bind_variables, 0, 'rowCount' );
+			$projects = $sql->query( "SELECT path FROM projects WHERE id = ?", array( $user["project"] ), array(), 'rowCount' );
 			
-			if( isset( $user['project'] ) && $user['project'] != '' ) {
+			if( isset( $user['project'] ) && $user['project'] != '' && ! empty( $projects ) ) {
 				
-				$_SESSION['project'] = $user['project'];
+				$_SESSION['project'] = $projects[0]["path"];
+				$_SESSION['project_id'] = $user['project'];
 			}
 			
 			$this->checkDuplicateSessions( $this->username );

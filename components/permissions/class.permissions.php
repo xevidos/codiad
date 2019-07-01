@@ -57,25 +57,19 @@ class Permissions {
 				),
 				array(
 					"limit",
-					1
+					1 
 				)
 			)
 		);*/
 		
 		$query = "SELECT * FROM projects WHERE path=? LIMIT 1;";
 		$bind_variables = array( $_SESSION["project"] );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
+		$result = $sql->query( $query, $bind_variables, array() );
 		
 		if( ! empty( $result ) ) {
 			
 			$result = $result[0];
-			try {
-				
-				$users = json_decode( $result["access"], true );
-			} catch( exception $e ) {
-				
-				$users = array();
-			}
+			$users = $sql->query( "SELECT * FOM access WHERE project = ? AND user = ? LIMIT 1", array( $result["id"], $_SESSION["user_id"] ), array() );
 			
 			if( $result["owner"] == 'nobody' ) {
 				
@@ -83,25 +77,13 @@ class Permissions {
 			} elseif( $result["owner"] == $_SESSION["user"] ) {
 				
 				$pass = true;
-			} elseif( in_array( $_SESSION["user"], array_keys( $users ) ) && ! empty( $users ) ) {
+			} elseif( ! empty( $users ) ) {
 				
 				//Only allow the owner to delete the root dir / project
 				if( $path == $result["path"] && self::LEVELS[$level] == self::LEVELS["delete"] ) {
 					
 					$level = "owner";
 				}
-				
-				$is_assoc = ( array_keys( $users ) !== range( 0, count( $users ) - 1 ) );
-				
-				if( $is_assoc ) {
-					
-					$users_access = $users[$_SESSION["user"]];
-				} else {
-					
-					$users_access = self::LEVELS["delete"];
-				}
-				
-				echo var_dump( $path, $result, $users_access, $level, ( self::LEVELS[$level] >= $users_access ), self::LEVELS[$level] + " is more than or equal to {$users_access}" );
 				
 				if( self::LEVELS[$level] >= $users_access ) {
 					

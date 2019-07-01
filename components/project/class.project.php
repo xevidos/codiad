@@ -201,8 +201,17 @@ class Project extends Common {
 			$project = $this->path;
 		}
 		global $sql;
-		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
-		$bind_variables = array( $project, $_SESSION["user"] );
+		$query = "
+			SELECT * FROM projects
+			WHERE path = ? 
+			AND (
+				owner=?
+				OR owner='nobody'
+				OR id IN ( SELECT project FROM access WHERE user = ? )
+			) ORDER BY name;";
+		$bind_variables = array( $project, $_SESSION["user"], $_SESSION["user_id"] );
+		//$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
+		//$bind_variables = array( $project, $_SESSION["user"] );
 		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
 		if( ! empty( $return ) ) {
@@ -218,8 +227,12 @@ class Project extends Common {
 	public function get_projects() {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE owner=? OR owner='nobody' OR access LIKE ? ORDER BY name;";
-		$bind_variables = array( $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
+		$query = "
+			SELECT * FROM projects
+			WHERE owner=?
+			OR owner='nobody'
+			OR path IN ( SELECT path FROM access WHERE user = ? );";
+		$bind_variables = array( $_SESSION["user"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		
 		if( empty( $return ) ) {
@@ -349,8 +362,15 @@ class Project extends Common {
 	public function Open() {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' OR access LIKE ? );";
-		$bind_variables = array( $this->path, $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
+		$query = "
+			SELECT * FROM projects
+			WHERE path = ? 
+			AND (
+				owner=?
+				OR owner='nobody'
+				OR id IN ( SELECT project FROM access WHERE user = ? )
+			) ORDER BY name;";
+		$bind_variables = array( $this->path, $_SESSION["user"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() )[0];
 		
 		if( ! empty( $return ) ) {
@@ -360,6 +380,7 @@ class Project extends Common {
 			$sql->query( $query, $bind_variables, 0, "rowCount" );
 			$this->name = $return['name'];
 			$_SESSION['project'] = $return['path'];
+			$_SESSION['project_id'] = $return['id'];
 			
 			echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
 		} else {
