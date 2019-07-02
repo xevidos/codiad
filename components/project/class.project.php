@@ -14,7 +14,7 @@ class Project extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
-	public $access = 100;
+	public $access = Permissions::LEVELS["read"];
 	public $name = '';
 	public $path = '';
 	public $gitrepo = false;
@@ -68,53 +68,50 @@ class Project extends Common {
 	public function add_user() {
 		
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
+		$query = "SELECT * FROM projects WHERE path=? AND owner=? LIMIT 1";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
+		$project = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
-		if( ! empty( $result ) ) {
+		if( empty( $project ) ) {
 			
-			$access = json_decode( $result["access"] );
+			exit( formatJSEND( "error", "Error fetching projects." ) );
+		}
+		
+		$user_id = get_user_id( $this->user );
+		
+		if( $user_id === false ) {
 			
-			if( is_array( $access ) && ! empty( $access ) ) {
-				
-				$is_assoc = ( array_keys( $access ) !== range( 0, count( $access ) - 1 ) );
-				
-				if( $is_assoc ) {
-					
-					$access[$this->user] = $this->access;
-				} else {
-					
-					$new_access = array();
-					foreach( $access as $user ) {
-						
-						$new_access[$user] = Permission::LEVELS["delete"];
-					}
-					$access[$this->user] = $this->access;
-					$access = $new_access;
-				}
-			} else {
-				
-				$access = array(
-					$this->user => $this->access
-				);
-			}
+			exit( formatJSEND( "error", "Error fetching user information." ) );
+		}
+		
+		$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ?", array( $project["id"], $user_id ), array(), "fetch" );
+		
+		if( ! empty( $user ) ) {
 			
-			$access = json_encode( $access );
-			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
-			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			$query = "UPDATE access SET level=? WHERE project=? AND user=?;";
+			$bind_variables = array( $this->access, $project["id"], $user_id );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result > 0 ) {
-			
-				echo( formatJSEND( "success", "Successfully added {$this->user}." ) );
+				
+				echo formatJSEND( "success", "Successfully updated {$this->user}." );
 			} else {
 				
 				echo formatJSEND( "error", "Error setting access for project." );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Error fetching projects." );
+			$query = "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );";
+			$bind_variables = array( $project["id"], $user_id, $this->access );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result > 0 ) {
+				
+				echo formatJSEND( "success", "Successfully added {$this->user}." );
+			} else {
+				
+				echo formatJSEND( "error", "Error setting access for project." );
+			}
 		}
 	}
 	
@@ -127,7 +124,7 @@ class Project extends Common {
 		global $sql;
 		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
+		$result = $sql->query( $query, $bind_variables, array(), "fetch" );
 		$return = false;
 		
 		if( ! empty( $result ) ) {
@@ -150,25 +147,12 @@ class Project extends Common {
 		return( $return );
 	}
 	
-	public function get_access( $path = null ) {
+	public function get_access( $project_id = null ) {
 		
-		if( $path === null ) {
-			
-			$path = $this->path;
-		}
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=?";
-		$bind_variables = array( $path );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
-		
-		if( ! empty( $return ) ) {
-			
-			$return = $return["access"];
-		} else {
-			
-			$return = formatJSEND( "error", "Error fetching project info." );
-		}
-		
+		$query = "SELECT * FROM access WHERE project=?";
+		$bind_variables = array( $project_id );
+		$return = $sql->query( $query, $bind_variables, array() );
 		return( $return );
 	}
 	
@@ -181,7 +165,7 @@ class Project extends Common {
 		global $sql;
 		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
@@ -200,10 +184,11 @@ class Project extends Common {
 			
 			$project = $this->path;
 		}
+		
 		global $sql;
 		$query = "
 			SELECT * FROM projects
-			WHERE path = ? 
+			WHERE path = ?
 			AND (
 				owner=?
 				OR owner='nobody'
@@ -212,7 +197,7 @@ class Project extends Common {
 		$bind_variables = array( $project, $_SESSION["user"], $_SESSION["user_id"] );
 		//$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
 		//$bind_variables = array( $project, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
@@ -231,7 +216,7 @@ class Project extends Common {
 			SELECT * FROM projects
 			WHERE owner=?
 			OR owner='nobody'
-			OR path IN ( SELECT path FROM access WHERE user = ? );";
+			OR id IN ( SELECT project FROM access WHERE user = ? );";
 		$bind_variables = array( $_SESSION["user"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		
@@ -246,42 +231,24 @@ class Project extends Common {
 	public function remove_user() {
 		
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
-		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
-
-		if( ! empty( $result ) ) {
+		
+		$user_id = get_user_id( $this->user );
+		
+		if( $user_id === false ) {
 			
-			$access = json_decode( $result["access"] );
+			return formatJSEND( "error", "Error fetching user information." );
+		}
+		
+		$query = "DELETE FROM access WHERE project=? AND user=?;";
+		$bind_variables = array( $this->project_id, $user_id );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		
+		if( $return > 0 ) {
 			
-			if( is_array( $access ) ) {
-				
-				$key = array_search( $this->user, $access );
-					
-				if ( $key !== false ) {
-					
-					unset( $access[$key] );
-				} else {
-					
-					echo( formatJSEND( "error", "{$this->user} is not in the access list." ) );
-				}
-			}
-			
-			$access = json_encode( $access );
-			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
-			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-			
-			if( $return > 0 ) {
-			
-				echo( formatJSEND( "success", "Successfully removed {$this->user}." ) );
-			} else {
-				
-				echo formatJSEND( "error", "Error setting access for project." );
-			}
+			echo( formatJSEND( "success", "Successfully removed {$this->user}." ) );
 		} else {
 			
-			echo formatJSEND( "error", "Error fetching projects." );
+			echo( formatJSEND( "error", "{$this->user} is not in the access list." ) );
 		}
 	}
 	

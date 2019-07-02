@@ -15,6 +15,7 @@ class Filemanager extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
+	public $access = 0;
 	public $root          = "";
 	public $project       = "";
 	public $rel_path      = "";
@@ -351,8 +352,8 @@ class Filemanager extends Common {
 		
 		if ( is_file( $this->path ) ) {
 			
-			$output = file_get_contents($this->path);
-		
+			$output = file_get_contents( $this->path );
+			
 			if ( extension_loaded( 'mbstring' ) ) {
 				
 				if ( ! mb_check_encoding( $output, 'UTF-8' ) ) {
@@ -371,6 +372,8 @@ class Filemanager extends Common {
 			$this->data = '"content":' . json_encode( $output );
 			$mtime = filemtime( $this->path );
 			$this->data .= ', "mtime":'.$mtime;
+			$this->data .= ', "access":'. $this->access;
+			$this->data .= ', "read_only":'. ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) );
 		} else {
 			
 			$this->status = "error";
@@ -562,60 +565,66 @@ class Filemanager extends Common {
 					$this->respond();
 					return;
 				}
-				echo var_dump( Permissions::has_write( $this->path ) );
-				if ( is_file( $this->path ) && Permissions::has_write( $this->path ) ) {
+				
+				if ( is_file( $this->path ) ) {
 					
-					$serverMTime = filemtime( $this->path );
-					$fileContents = file_get_contents( $this->path );
-					
-					if ( $this->patch && $this->mtime != $serverMTime ) {
+					if( Permissions::has_write( $this->path ) ) {
 						
-						$this->status = "error";
-						$this->message = "Client is out of sync";
-						//DEBUG : file_put_contents($this->path.".conflict", "SERVER MTIME :".$serverMTime.", CLIENT MTIME :".$this->mtime);
-						$this->respond();
-						return;
-					} elseif ( strlen( trim( $this->patch ) ) == 0 && ! $this->content ) {
+						$serverMTime = filemtime( $this->path );
+						$fileContents = file_get_contents( $this->path );
 						
-						// Do nothing if the patch is empty and there is no content
-						$this->status = "success";
-						$this->data = '"mtime":' . $serverMTime;
-						$this->respond();
-						return;
-					}
-					
-					if ( $file = fopen( $this->path, 'w' ) ) {
-						
-						if ( $this->patch ) {
-							
-							$dmp = new diff_match_patch();
-							$p = $dmp->patch_apply( $dmp->patch_fromText( $this->patch ), $fileContents );
-							$this->content = $p[0];
-							//DEBUG : file_put_contents($this->path.".orig",$fileContents );
-							//DEBUG : file_put_contents($this->path.".patch", $this->patch);
-						}
-						
-						if ( fwrite( $file, $this->content ) === false ) {
+						if ( $this->patch && $this->mtime != $serverMTime ) {
 							
 							$this->status = "error";
-							$this->message = "could not write to file";
-						} else {
+							$this->message = "Client is out of sync";
+							//DEBUG : file_put_contents($this->path.".conflict", "SERVER MTIME :".$serverMTime.", CLIENT MTIME :".$this->mtime);
+							$this->respond();
+							return;
+						} elseif ( strlen( trim( $this->patch ) ) == 0 && ! $this->content ) {
 							
-							// Unless stat cache is cleared the pre-cached mtime will be
-							// returned instead of new modification time after editing
-							// the file.
-							clearstatcache();
-							$this->data = '"mtime":'.filemtime( $this->path );
+							// Do nothing if the patch is empty and there is no content
 							$this->status = "success";
+							$this->data = '"mtime":' . $serverMTime;
+							$this->respond();
+							return;
 						}
 						
-						fclose( $file );
+						if ( $file = fopen( $this->path, 'w' ) ) {
+							
+							if ( $this->patch ) {
+								
+								$dmp = new diff_match_patch();
+								$p = $dmp->patch_apply( $dmp->patch_fromText( $this->patch ), $fileContents );
+								$this->content = $p[0];
+								//DEBUG : file_put_contents($this->path.".orig",$fileContents );
+								//DEBUG : file_put_contents($this->path.".patch", $this->patch);
+							}
+							
+							if ( fwrite( $file, $this->content ) === false ) {
+								
+								$this->status = "error";
+								$this->message = "could not write to file";
+							} else {
+								
+								// Unless stat cache is cleared the pre-cached mtime will be
+								// returned instead of new modification time after editing
+								// the file.
+								clearstatcache();
+								$this->data = '"mtime":'.filemtime( $this->path );
+								$this->status = "success";
+							}
+							
+							fclose( $file );
+						} else {
+							
+							$this->status = "error";
+							$this->message = "Cannot Write to File";
+						}
 					} else {
 						
 						$this->status = "error";
-						$this->message = "Cannot Write to File";
+						$this->message = "Write access is denied.";
 					}
-					
 				} else {
 					
 					$this->status = "error";

@@ -459,35 +459,41 @@
 		// Open File
 		//////////////////////////////////////////////////////////////////
 		
-		openFile: function( path, focus ) {
+		openFile: function( path, focus=true ) {
 			
 			/* Notify listeners. */
 			amplify.publish( 'filemanager.onFileWillOpen', {
 				path: path
 			});
 			
-			if( focus === undefined ) {
-				focus = true;
-			}
 			var node = $( '#file-manager a[data-path="' + path + '"]' );
 			var ext = this.getExtension( path );
+			
 			if( $.inArray( ext.toLowerCase(), this.noOpen ) < 0 ) {
+				
 				node.addClass( 'loading' );
 				$.get( this.controller + '?action=open&path=' + encodeURIComponent( path ), function( data ) {
+					
 					var openResponse = codiad.jsend.parse( data );
 					if( openResponse != 'error' ) {
+						
 						node.removeClass( 'loading' );
-						codiad.active.open( path, openResponse.content, openResponse.mtime, false, focus );
+						codiad.active.open( path, openResponse.content, openResponse.mtime, false, focus, openResponse.read_only );
 					}
 				});
 			} else {
-				if( !codiad.project.isAbsPath( path ) ) {
+				
+				if( ! codiad.project.isAbsPath( path ) ) {
+					
 					if( $.inArray( ext.toLowerCase(), this.noBrowser ) < 0 ) {
+						
 						this.download( path );
 					} else {
+						
 						this.openInModal( path );
 					}
 				} else {
+					
 					codiad.message.error( i18n( 'Unable to open file in Browser while using absolute path.' ) );
 				}
 			}
@@ -583,21 +589,26 @@
 				path: path
 			});
 		},
-		saveModifications: function( path, data, callbacks, save = true ) {
+		saveModifications: function( path, data, callbacks, messages = true ) {
 			
 			callbacks = callbacks || {};
 			let _this = this, action;
 			var notifySaveErr = function() {
+				
 				codiad.message.error( i18n( 'File could not be saved' ) );
 				if( typeof callbacks.error === 'function' ) {
+					
 					var context = callbacks.context || _this;
 					callbacks.error.apply( context, [data] );
 				}
 			}
+			
 			$.post( this.controller + '?action=modify&path=' + encodeURIComponent( path ), data, function( resp ) {
+				
+				console.log( resp );
 				resp = $.parseJSON( resp );
 				if( resp.status == 'success' ) {
-					if( save === true ) {
+					if( messages === true ) {
 						codiad.message.success( i18n( 'File saved' ) );
 					}
 					if( typeof callbacks.success === 'function' ) {
@@ -621,8 +632,11 @@
 							session.serverMTime = null;
 							session.untainted = null;
 						}
-					} else codiad.message.error( i18n( 'File could not be saved' ) );
+					//} else codiad.message.error( i18n( 'File could not be saved' ) );
+					} else codiad.message.error( i18n( resp.message ) );
+					
 					if( typeof callbacks.error === 'function' ) {
+						
 						var context = callbacks.context || _this;
 						callbacks.error.apply( context, [resp.data] );
 					}
@@ -633,10 +647,10 @@
 		// Save file
 		//////////////////////////////////////////////////////////////////
 		
-		saveFile: function( path, content, callbacks, save = true ) {
+		saveFile: function( path, content, callbacks, messages = true ) {
 			this.saveModifications( path, {
 				content: content
-			}, callbacks, save );
+			}, callbacks, messages );
 		},
 		
 		savePatch: function( path, patch, mtime, callbacks, alerts ) {

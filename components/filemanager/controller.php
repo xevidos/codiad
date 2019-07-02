@@ -39,9 +39,11 @@ if (!isset($_SESSION['project'])) {
     // Security Check
     //////////////////////////////////////////////////////////////////
 
-if ( ! Permissions::has_read( $_GET['path'] ) ) {
+$access = Permissions::get_access( $_GET['path'] );
+
+if ( ! Permissions::check_access( "read", $access ) ) {
 	
-    die('{"status":"error","message":"Invalid Path"}');
+    die( '{"status":"error","message":"Invalid access to ' . $_GET['path'] . '."}' );
 }
 
     //////////////////////////////////////////////////////////////////
@@ -56,6 +58,7 @@ if ( ! Permissions::has_read( $_GET['path'] ) ) {
 
     $Filemanager = new Filemanager($_GET, $_POST, $_FILES);
     $Filemanager->project = @$_SESSION['project']['path'];
+    $Filemanager->access = $access;
 
 switch ($action) {
     case 'index':

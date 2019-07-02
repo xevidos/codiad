@@ -204,11 +204,12 @@ switch( $_GET['action'] ) {
 		// Get projects data
 		$path = $_GET['path'];
 		$project = $Project->get_project( $path );
-		$access = json_decode( $project["access"], true );
+		$access = $Project->get_access( $project["id"] );
 		$users = get_users( "return", true );
 		?>
-		<form>
-			<input type="hidden" name="project_path" value="<?php echo( $path );?>">
+		<form onSubmit="event.preventDefault();">
+			<input type="hidden" name="project_path" value="<?php echo $path;?>">
+			<input type="hidden" name="project_id" value="<?php echo $project["id"];?>">
 			<label><span class="icon-pencil"></span><?php i18n( "Add Users" );?></label>
 			<input id="search_users" type="text" onkeyup="codiad.project.search_users();" />
 			<select id="user_list" name="user_list">
@@ -216,14 +217,14 @@ switch( $_GET['action'] ) {
 				foreach( $users as $user ) {
 					
 					?>
-					<option value="<?php echo htmlentities( $user );?>"><?php echo htmlentities( $user );?></option>
+					<option value="<?php echo htmlentities( $user["username"] );?>"><?php echo htmlentities( $user["username"] );?></option>
 					<?php
 				}
 				?>
 			</select>
 			<button class="btn-left" onclick="codiad.project.add_user();">Add User</button>
 			<?php
-			if( $access == null ) {
+			if( $access == null || empty( $access ) ) {
 				
 				?>
 				<p>No users have been given access.</p>
@@ -234,30 +235,30 @@ switch( $_GET['action'] ) {
 				<table id="access_list">
 				<?php
 				
-				$is_assoc = ( array_keys( $access ) !== range( 0, count( $access ) - 1 ) );
-				if( ! $is_assoc ) {
-					
-					$temp = array();
-					foreach( $access as $user ) {
-						
-						$temp[$user] = "delete";
-					}
-					$access = $temp;
-				}
+				$user = null;
 				
-				foreach( $access as $user => $access_level ) {
+				foreach( $access as $row => $user_permissions ) {
+					
+					foreach( $users as $row => $current_user ) {
+						
+						if( $current_user["id"] == $user_permissions["user"] ) {
+							
+							$user = $current_user;
+							break;
+						}
+					}
 					
 					?>
 					<tr>
 						<td>
-							<p><?php echo htmlentities( $user );?></p>
+							<p><?php echo htmlentities( $user["username"] );?></p>
 						</td>
 						<td>
 							<select onchange="codiad.project.change_access( event );">
 								<?php
 								foreach( Permissions::LEVELS as $level => $id ) {
 									
-									if( $level == $access_level ) {
+									if( $id == $user_permissions["level"] ) {
 										
 										$selected = "selected='selected'";
 									} else {
@@ -268,7 +269,7 @@ switch( $_GET['action'] ) {
 								}
 								?>
 							</select>
-							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user );?>' );">Remove Access</button>
+							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user["username"] );?>' );">Remove Access</button>
 						</td>
 					</tr>
 					<?php

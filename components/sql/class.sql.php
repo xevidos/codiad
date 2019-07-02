@@ -342,6 +342,11 @@ class sql {
 					$return = $statement->rowCount();
 				break;
 				
+				case( 'fetch' ):
+					
+					$return = $statement->fetch( \PDO::FETCH_ASSOC );
+				break;
+				
 				case( 'fetchAll' ):
 					
 					$return = $statement->fetchAll( \PDO::FETCH_ASSOC );

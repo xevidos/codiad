@@ -51,12 +51,8 @@
 			return !!this.sessions[path];
 		},
 		
-		open: function( path, content, mtime, inBackground, focus ) {
+		open: function( path, content, mtime, inBackground, focus, read_only=false ) {
 			
-			//if( this. ) {
-			
-			
-			//}
 			/* Notify listeners. */
 			amplify.publish( 'active.onFileWillOpen', {
 				path: path,
@@ -64,12 +60,14 @@
 			});
 			
 			if( focus === undefined ) {
+				
 				focus = true;
 			}
 			
 			var _this = this;
 			
 			if( this.isOpen( path ) ) {
+				
 				if( focus ) this.focus( path );
 				return;
 			}
@@ -98,6 +96,8 @@
 				session.serverMTime = mtime;
 				_this.sessions[path] = session;
 				session.untainted = content.slice( 0 );
+				session.read_only = read_only;
+				
 				if( !inBackground && focus ) {
 					codiad.editor.setSession( session );
 				}
@@ -275,6 +275,7 @@
 			
 			// Open saved-state active files on load
 			$.get( _this.controller + '?action=list', function( data ) {
+				console.log( data );
 				var listResponse = codiad.jsend.parse( data );
 				if( listResponse !== null ) {
 					$.each( listResponse, function( index, data ) {

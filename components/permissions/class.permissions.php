@@ -5,17 +5,22 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 class Permissions {
 	
 	const LEVELS = array(
 		
-		"admin" => 0,
-		"owner" => 1,
-		"manager" => 2,
-		"delete" => 3,
+		"none" => 0,
+		"read" => 1,
+		"write" => 2,
 		"create" => 4,
-		"write" => 5,
-		"read" => 6,
+		"delete" => 8,
+		"manager" => 16,
+		"owner" => 32,
+		"admin" => 64,
 	);
 	
 	function __construct() {
@@ -23,75 +28,106 @@ class Permissions {
 		
 	}
 	
-	public static function check_path( $level, $path ) {
+	public static function check_access( $level, $user_level ) {
 		
-		$project_path = $_SESSION["project"];
-		$project_path = rtrim( $project_path, '/' ) . '/';
+		if( ! is_integer( $level ) ) {
+			
+			if( in_array( $level, array_keys( self::LEVELS ) ) ) {
+				
+				$level = self::LEVELS[$level];
+			} else {
+				
+				exit( formatJSEND( "error", "Access Level does not exist." ) );
+			}
+		}
+		
+		return ( $user_level >= $level );
+	}
+	
+	public static function check_path( $level, $path ) {
 		
 		if( ! in_array( $level, array_keys( self::LEVELS ) ) ) {
 			
-			exit( Common::formatJSEND( "error", "Access Level does not exist." ) );
+			exit( formatJSEND( "error", "Access Level does not exist." ) );
 		}
 		
-		if( strpos( $path, $project_path ) === 0 ) {
+		$pass = false;
+		$user_level = self::get_access( $path );
+		
+		if( $user_level >= self::LEVELS[$level] ) {
 			
-			exit( Common::formatJSEND( "error", "Error with path." ) );
+			$pass = true;
 		}
+		return( $pass );
+	}
+	
+	public static function get_access( $path ) {
 		
 		global $sql;
-		$pass = false;
-		//$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
-		//$bind_variables = array( $path );
-		//$result = $sql->query( $query, $bind_variables, array() )[0];
-		/*$result = $sql->select(
-			"projects",
-			array(),
-			array(
-				array(
-					"find",
-					$path,
-					array(
-						"more than",
-						0
-					)
-				),
-				array(
-					"limit",
-					1 
-				)
-			)
-		);*/
+		$full_path = Common::isAbsPath( $path ) ? $path : WORKSPACE . "/{$path}";
+		$access = 0;
+		//$query = "SELECT id, path, owner FROM projects WHERE path LIKE ?;";
+		//$bind_variables = array( "{$path}%" );
+		$query = "SELECT id, path, owner FROM projects;";
+		$bind_variables = array();
+		$projects = $sql->query( $query, $bind_variables, array() );
 		
-		$query = "SELECT * FROM projects WHERE path=? LIMIT 1;";
-		$bind_variables = array( $_SESSION["project"] );
-		$result = $sql->query( $query, $bind_variables, array() );
-		
-		if( ! empty( $result ) ) {
+		if( ! empty( $projects ) ) {
 			
-			$result = $result[0];
-			$users = $sql->query( "SELECT * FOM access WHERE project = ? AND user = ? LIMIT 1", array( $result["id"], $_SESSION["user_id"] ), array() );
-			
-			if( $result["owner"] == 'nobody' ) {
+			foreach( $projects as $row => $data ) {
 				
-				$pass = true;
-			} elseif( $result["owner"] == $_SESSION["user"] ) {
+				$full_project_path = Common::isAbsPath( $data["path"] ) ? $data["path"] : WORKSPACE . "/{$data["path"]}";
+				$path_postition = strpos( $full_path, $full_project_path );
 				
-				$pass = true;
-			} elseif( ! empty( $users ) ) {
-				
-				//Only allow the owner to delete the root dir / project
-				if( $path == $result["path"] && self::LEVELS[$level] == self::LEVELS["delete"] ) {
+				if( $path_postition === false ) {
 					
-					$level = "owner";
+					continue;
 				}
 				
-				if( self::LEVELS[$level] >= $users_access ) {
+				if( $data["owner"] == 'nobody' ) {
 					
-					$pass = true;
+					$access = self::LEVELS["owner"];
+				} elseif( $data["owner"] == $_SESSION["user"] ) {
+					
+					$access = self::LEVELS["owner"];
+				} else {
+					
+					$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1", array( $data["id"], $_SESSION["user_id"] ), array(), "fetch" );
+					
+					if( ! empty( $user ) ) {
+						
+						$access = $user["level"];
+					}
+				}
+				
+				//echo var_dump( $full_path, $full_project_path, $path_postition, $user["level"], $pass );
+				if( $access > 0 ) {
+					
+					break;
 				}
 			}
 		}
-		return( $pass );
+		return $access;
+	}
+	
+	public static function get_level( $i ) {
+		
+		$level = 0;
+		if( is_integer( $i ) ) {
+			
+			$level = array_search( $i, self::LEVELS );
+		} else {
+			
+			if( in_array( $i, array_keys( self::LEVELS ) ) ) {
+				
+				$level = self::LEVELS[$i];
+			} else {
+				
+				exit( formatJSEND( "error", "Access Level does not exist." ) );
+			}
+		}
+		
+		return $level;
 	}
 	
 	public static function has_owner( $path ) {

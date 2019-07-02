@@ -157,10 +157,25 @@ class Common {
 		self::return( $return, $action );
 	}
 	
+	public static function get_user_id( $username ) {
+		
+		global $sql;
+		$user_id = false;
+		$query = "SELECT id FROM users WHERE username = ? LIMIT 1;";
+		$bind_variables = array( $username );
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
+		
+		if( ! empty( $return ) ) {
+			
+			$user_id = $return["id"];
+		}
+		return $user_id;
+	}
+	
 	public static function get_users( $return = "return", $exclude_current = false ) {
 		
 		global $sql;
-		$query = "SELECT username FROM users";
+		$query = "SELECT * FROM users";
 		$bind = "";
 		$bind_variables = array();
 		
@@ -172,25 +187,19 @@ class Common {
 		}
 		
 		$result = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking users." ) );
-		$user_list = array();
-		
-		foreach( $result as $row ) {
-			
-			array_push( $user_list, $row["username"] );
-		}
-		
+
 		if( ! empty( $result ) ) {
 			
 			switch( $return ) {
 				
 				case( "json" ):
 					
-					$return = json_encode( $user_list );
+					$return = json_encode( $result );
 				break;
 				
 				case( "return" ):
 					
-					$return = $user_list;
+					$return = $result;
 				break;
 			}
 		} else {
@@ -615,19 +624,20 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
-function is_admin() { return Common::is_admin(); }
-function debug($message) { Common::debug($message); }
-function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
-function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }
-function checkSession(){ Common::checkSession(); }
-function getJSON($file,$namespace=""){ return Common::getJSON($file,$namespace); }
-function saveJSON($file,$data,$namespace=""){ Common::saveJSON($file,$data,$namespace); }
-function formatJSEND($status,$data=false){ return Common::formatJSEND($status,$data); }
 function checkAccess() { return Common::checkAccess(); }
-function checkPath($path) { return Common::checkPath($path); }
-function isAvailable($func) { return Common::isAvailable($func); }
-function logout() { return Common::logout(); }
+function checkPath( $path ) { return Common::checkPath($path); }
+function checkSession() { Common::checkSession(); }
+function debug( $message ) { Common::debug( $message ); }
+function formatJSEND( $status, $data=false ){ return Common::formatJSEND($status,$data); }
+function get_i18n( $key, $args = array() ) { return Common::get_i18n($key, $args); }
+function get_user_id( $username ) { return Common::get_user_id( $username ); }
 function get_users( $return = "return", $exclude_current = false ) { return Common::get_users( $return, $exclude_current ); }
-function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
 function get_version() { return Common::get_version(); }
+function getJSON( $file,$namespace=""){ return Common::getJSON( $file, $namespace ); }
+function i18n( $key, $args = array() ) { echo Common::i18n( $key, $args ); }
+function is_admin() { return Common::is_admin(); }
+function isAvailable( $func ) { return Common::isAvailable( $func ); }
+function logout() { return Common::logout(); }
+function saveJSON( $file, $data, $namespace="" ){ Common::saveJSON( $file, $data, $namespace ); }
+function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
 ?>
