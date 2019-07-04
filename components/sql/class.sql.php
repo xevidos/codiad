@@ -222,6 +222,25 @@ class sql {
 				
 				//echo var_dump( $error->getMessage() );
 			}
+			
+			if( DBTYPE === "mysql" || DBTYPE === "pgsql" ) {
+				
+				try {
+					
+					$projects = $this->query( "ALTER TABLE projects DROP CONSTRAINT path1500owner255;", array(), 0, "rowCount", "exception" );
+				} catch( Exception $error ) {
+					
+					//echo var_dump( $error->getMessage() );
+				}
+				
+				try {
+					
+					$projects = $this->query( "ALTER TABLE active DROP CONSTRAINT username255path1500;", array(), 0, "rowCount", "exception" );
+				} catch( Exception $error ) {
+					
+					//echo var_dump( $error->getMessage() );
+				}
+			}
 		}
 		
 		return $result;

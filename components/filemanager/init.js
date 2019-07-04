@@ -884,6 +884,9 @@
 			.live( 'submit', function( e ) {
 				e.preventDefault();
 				$.get( _this.controller + '?action=delete&path=' + encodeURIComponent( path ), function( data ) {
+					
+					console.log( data );
+					
 					var deleteResponse = codiad.jsend.parse( data );
 					if( deleteResponse != 'error' ) {
 						var node = $( '#file-manager a[data-path="' + path + '"]' );

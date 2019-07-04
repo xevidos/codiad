@@ -191,7 +191,7 @@ if( $_GET['action'] == 'get_owner' ) {
 
 if( $_GET['action'] == 'open' ) {
 	
-	if( isset( $_GET['path'] ) && Permissions::has_read( $_GET['path'] ) ) {
+	if( ! isset( $_GET['path'] ) || ! Permissions::has_read( $_GET['path'] ) ) {
 		
 		die( formatJSEND( "error", "No Access to path " . $_GET['path'] ) );
 	}

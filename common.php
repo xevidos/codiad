@@ -107,56 +107,6 @@ class Common {
 	// New Methods
 	//////////////////////////////////////////////////////////////////
 	
-	
-	
-	//////////////////////////////////////////////////////////////////
-	// Check access to application
-	//////////////////////////////////////////////////////////////////
-	
-	public static function check_access( $action = "return" ) {
-		
-		/*if( ! self::check_session() ) {
-			
-			session_destroy();
-			self::return( formatJSEND( "error", "Error fetching project information." ), "exit" );
-		}*/
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Check access to a project
-	//////////////////////////////////////////////////////////////////
-	public static function check_project_access( $project_path, $action ) {
-		
-		global $sql;
-		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
-		$bind_variables = array( $project_name, $project_path, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
-		
-		if( ! empty( $return ) ) {
-			
-			try {
-				
-				$users = json_decode( $return["access"] );
-			} catch( exception $e ) {
-				
-				$users = array();
-			}
-			
-			if( $return["owner"] == 'nobody' || $return["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
-				
-				$return = true;
-			} else {
-				
-				$return = false;
-			}
-		} else {
-			
-			$return = false;
-		}
-		
-		self::return( $return, $action );
-	}
-	
 	public static function get_user_id( $username ) {
 		
 		global $sql;

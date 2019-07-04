@@ -79,7 +79,7 @@
 			
 			console.log( access, username, project_path, project_id );
 			
-			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&username=' + encodeURIComponent( username ) + '&access=' + encodeURIComponent( access ), function( data ) {
+			$.get( _this.controller + '?action=add_user&path=' + encodeURIComponent( project_path ) + '&id=' + encodeURIComponent( project_id ) + '&username=' + encodeURIComponent( username ) + '&access=' + encodeURIComponent( access ), function( data ) {
 				
 				let response = codiad.jsend.parse( data );
 				console.log( response );

@@ -350,6 +350,8 @@ class Filemanager extends Common {
 	
 	public function open() {
 		
+		$response = array();
+		
 		if ( is_file( $this->path ) ) {
 			
 			$output = file_get_contents( $this->path );
@@ -368,19 +370,22 @@ class Filemanager extends Common {
 				}
 			}
 			
-			$this->status = "success";
-			$this->data = '"content":' . json_encode( $output );
 			$mtime = filemtime( $this->path );
-			$this->data .= ', "mtime":'.$mtime;
-			$this->data .= ', "access":'. $this->access;
-			$this->data .= ', "read_only":'. ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) );
+			$response["status"] = "success";
+			$response["data"] = array(
+				"content" => $output,
+				"mtime" => $mtime,
+				"access" => $this->access,
+				"read_only" => ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) ),
+			);
 		} else {
 			
-			$this->status = "error";
-			$this->message = "Not A File :" . $this->path;
+			$response = array(
+				"status" => "error",
+				"message" => "Not A File :" . $this->path,
+			);
 		}
-		
-		$this->respond();
+		exit( json_encode( $response ) );
 	}
 		
 		//////////////////////////////////////////////////////////////////
@@ -388,7 +393,7 @@ class Filemanager extends Common {
 		//////////////////////////////////////////////////////////////////
 		
 	public function openinbrowser() {
-			
+		
 		$protocol = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] != 'off' ) || $_SERVER['SERVER_PORT'] == 443 ) ? "https://" : "http://";
 		$domainName = $_SERVER['HTTP_HOST'];
 		$url =  $protocol . WSURL . '/' . $this->rel_path;
@@ -402,49 +407,64 @@ class Filemanager extends Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public function create() {
-	
-		// Create file
-		if ( $this->type == "file" ) {
+		
+		$response = array();
+		if( Permissions::has_create( $this->path ) ) {
 			
-			if ( ! file_exists( $this->path ) ) {
+			// Create file
+			if ( $this->type == "file" ) {
 				
-				if ( $file = fopen( $this->path, 'w' ) ) {
+				if ( ! file_exists( $this->path ) ) {
 					
-					// Write content
-					if ( $this->content ) {
+					if ( $file = fopen( $this->path, 'w' ) ) {
 						
-						fwrite( $file, $this->content );
+						// Write content
+						if ( $this->content ) {
+							
+							fwrite( $file, $this->content );
+						}
+						fclose( $file );
+						$response["data"] = array(
+							"content" => $this->content,
+							"mtime" => filemtime( $this->path ),
+							"access" => $this->access,
+							"read_only" => ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) ),
+						);
+						$this->status = "success";
+					} else {
+						
+						$this->status = "error";
+						$this->message = "Cannot Create File";
 					}
-					$this->data = '"mtime":' . filemtime( $this->path );
-					fclose( $file );
+				} else {
+					
+					$this->status = "error";
+					$this->message = "File Already Exists";
+				}
+			}
+			
+			// Create directory
+			if ( $this->type == "directory" ) {
+				
+				if ( ! is_dir( $this->path ) ) {
+					
+					mkdir( $this->path );
 					$this->status = "success";
 				} else {
 					
 					$this->status = "error";
-					$this->message = "Cannot Create File";
+					$this->message = "Directory Already Exists";
 				}
-			} else {
-				
-				$this->status = "error";
-				$this->message = "File Already Exists";
 			}
-		}
-		
-		// Create directory
-		if ( $this->type == "directory" ) {
+		} else {
 			
-			if ( ! is_dir( $this->path ) ) {
-				
-				mkdir( $this->path );
-				$this->status = "success";
-			} else {
-				
-				$this->status = "error";
-				$this->message = "Directory Already Exists";
-			}
+			$this->status = "error";
+			$this->message = "No create access.";
 		}
 		
-		$this->respond();
+		$response["status"] = $this->status;
+		$response["message"] = $this->message;
+		exit( json_encode( $response ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -453,67 +473,70 @@ class Filemanager extends Common {
 	
 	public function delete( $keep_parent = false ) {
 		
-		if( ! Permissions::has_delete( $this->path ) ) {
-			
-			$this->status = "error";
-			$this->message = "No access.";
-			$this->respond();
-			return;
-		}
+		$response = array();
 		
-		function rrmdir( $path, $follow, $keep_parent = false ) {
+		if( Permissions::has_delete( $this->path ) ) {
 			
-			if ( is_file( $path ) ) {
-			
-				unlink( $path );
-			} else {
-			
-				$files = array_diff( scandir( $path ), array( '.', '..' ) );
-				foreach ( $files as $file ) {
-					
-					if ( is_link( $path . "/" . $file ) ) {
-						
-						if ( $follow ) {
-							
-							rrmdir( $path . "/" . $file, $follow, false);
-						}
-						unlink( $path . "/" . $file );
-					} elseif ( is_dir( $path . "/" . $file ) ) {
-						
-						rrmdir( $path . "/" . $file, $follow, false );
-					} else {
-						
-						unlink( $path . "/" . $file );
-					}
-				}
-				if( $keep_parent === false ) {
-					
-					rmdir( $path );
-					return;
+			function rrmdir( $path, $follow, $keep_parent = false ) {
+				
+				if ( is_file( $path ) ) {
+				
+					unlink( $path );
 				} else {
 				
-					return;
+					$files = array_diff( scandir( $path ), array( '.', '..' ) );
+					foreach ( $files as $file ) {
+						
+						if ( is_link( $path . "/" . $file ) ) {
+							
+							if ( $follow ) {
+								
+								rrmdir( $path . "/" . $file, $follow, false);
+							}
+							unlink( $path . "/" . $file );
+						} elseif ( is_dir( $path . "/" . $file ) ) {
+							
+							rrmdir( $path . "/" . $file, $follow, false );
+						} else {
+							
+							unlink( $path . "/" . $file );
+						}
+					}
+					if( $keep_parent === false ) {
+						
+						rmdir( $path );
+						return;
+					} else {
+					
+						return;
+					}
 				}
 			}
-		}
-		
-		if ( file_exists( $this->path ) ) {
 			
-			if ( isset( $_GET['follow'] ) ) {
-			
-				rrmdir( $this->path, true, $keep_parent );
+			if ( file_exists( $this->path ) ) {
+				
+				if ( isset( $_GET['follow'] ) ) {
+				
+					rrmdir( $this->path, true, $keep_parent );
+				} else {
+				
+					rrmdir( $this->path, false, $keep_parent );
+				}
+				
+				$this->status = "success";
 			} else {
-			
-				rrmdir( $this->path, false, $keep_parent );
+				
+				$this->status = "error";
+				$this->message = "Path Does Not Exist ";
 			}
-			
-			$this->status = "success";
 		} else {
 			
 			$this->status = "error";
-			$this->message = "Path Does Not Exist ";
+			$this->message = "No delete access.";
 		}
-		$this->respond();
+		$response["status"] = $this->status;
+		$response["message"] = $this->message;
+		exit( json_encode( $response ) );
 	}
 	
 	

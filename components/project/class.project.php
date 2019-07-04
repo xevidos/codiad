@@ -115,6 +115,28 @@ class Project extends Common {
 		}
 	}
 	
+	public function check_duplicate( $full_path ) {
+		
+		$pass = true;
+		$query = "SELECT id, path, owner FROM projects;";
+		$result = $sql->query( $query, array(), array(), "fetchAll" );
+		
+		if( ! empty( $result ) ) {
+			
+			foreach( $result as $row => $project ) {
+				
+				$full_project_path = Common::isAbsPath( $project["path"] ) ? $project["path"] : WORKSPACE . "/{$project["path"]}";
+				
+				if( ! ( strpos( $full_path, $full_project_path ) === FALSE ) ) {
+					
+					$pass = false;
+					break;
+				}
+			}
+		}
+		return $pass;
+	}
+	
 	public function check_owner( $path = null, $exclude_public = false ) {
 		
 		if( $path === null ) {
@@ -336,9 +358,9 @@ class Project extends Common {
 				owner=?
 				OR owner='nobody'
 				OR id IN ( SELECT project FROM access WHERE user = ? )
-			) ORDER BY name;";
+			) ORDER BY name LIMIT 1;";
 		$bind_variables = array( $this->path, $_SESSION["user"], $_SESSION["user_id"] );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
@@ -375,17 +397,16 @@ class Project extends Common {
 				if( ! $this->public_project && ! $this->isAbsPath( $this->path ) ) {
 					
 					$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+					$this->path =  $_SESSION["user"] . '/' . $this->path;
+				}
+				
+				$pass = $this->check_duplicate();
+				if ( $pass ) {
 					
 					if( ! is_dir( $user_path ) ) {
 						
 						mkdir( $user_path, 0755, true );
 					}
-					
-					$this->path =  $_SESSION["user"] . '/' . $this->path;
-				}
-				
-				$pass = $this->checkDuplicate();
-				if ( $pass ) {
 					
 					if ( ! $this->isAbsPath( $this->path ) ) {
 						
@@ -407,7 +428,7 @@ class Project extends Common {
 									$allowed = true;
 								}
 							}
-							if ( ! $allowed) {
+							if ( ! $allowed ) {
 								
 								die( formatJSEND( "error", "Absolute Path Only Allowed for " . WHITEPATHS ) );
 							}
@@ -443,18 +464,18 @@ class Project extends Common {
 						$this->ExecuteCMD();
 					}
 					
-					echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
+					exit( formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) ) );
 				} else {
 					
-					echo formatJSEND( "error", "A Project With the Same Name or Path Exists" );
+					exit( formatJSEND( "error", "A Project With the Same Name or Path Exists" ) );
 				}
 			} else {
 				
-				echo formatJSEND( "error", "Project Name/Folder not allowed" );
+				exit( formatJSEND( "error", "Project Name/Folder not allowed" ) );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Project Name/Folder is empty" );
+			exit( formatJSEND( "error", "Project Name/Folder is empty" ) );
 		}
 	}
 	
@@ -495,35 +516,24 @@ class Project extends Common {
 	
 	public function Delete() {
 		
-		global $sql;
-		$query = "DELETE FROM projects WHERE path=? AND ( owner=? OR owner='nobody' );";
-		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-		
-		if( $return > 0 ) {
+		if( Permissions::has_owner( $this->path ) ) {
 			
-			echo( formatJSEND( "success", "Successfully deleted $project_name" ) );
+			global $sql;
+			$query = "DELETE FROM projects WHERE path=?";
+			$bind_variables = array( $this->path, $_SESSION["user"] );
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $return > 0 ) {
+				
+				exit( formatJSEND( "success", "Successfully deleted project." ) );
+			} else {
+				
+				exit( formatJSEND( "error", "Error deleting project" ) );
+			}
 		} else {
 			
-			echo formatJSEND( "error", "Error deleting project $project_name" );
+			exit( formatJSEND( "error", "You do not have permission to delete this project" ) );
 		}
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Check Duplicate
-	//////////////////////////////////////////////////////////////////
-	
-	public function CheckDuplicate() {
-		
-		$pass = true;
-		foreach ( $this->projects as $project => $data ) {
-			
-			if ( $data['name'] == $this->name || $data['path'] == $this->path ) {
-				
-				$pass = false;
-			}
-		}
-		return $pass;
 	}
 	
 	//////////////////////////////////////////////////////////////////

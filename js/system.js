@@ -126,7 +126,7 @@
 		create_default_tables: function() {
 			
 			jQuery.ajax({
-					
+				
 				url: this.controller,
 				type: "POST",
 				dataType: 'html',
@@ -137,12 +137,9 @@
 					
 					let response = codiad.jsend.parse( data );
 					
-					if( response.status != 'error' ) {
+					if( response != 'error' ) {
 						
 						codiad.message.success( i18n( 'Created Default Tables' ) );
-					} else {
-						
-						codiad.message.error( i18n( 'Error Creating Default Tables' ) );
 					}
 					console.log( data );
 				},
