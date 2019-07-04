@@ -532,7 +532,7 @@ class Filemanager extends Common {
 		} else {
 			
 			$this->status = "error";
-			$this->message = "No delete access.";
+			$this->message = "You do not have permission to delete this file.";
 		}
 		$response["status"] = $this->status;
 		$response["message"] = $this->message;
@@ -646,7 +646,7 @@ class Filemanager extends Common {
 					} else {
 						
 						$this->status = "error";
-						$this->message = "Write access is denied.";
+						$this->message = "You do not have write permission to this file.";
 					}
 				} else {
 					
