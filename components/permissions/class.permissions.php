@@ -39,6 +39,12 @@ class Permissions {
 				
 				exit( formatJSEND( "error", "Access Level does not exist." ) );
 			}
+		} else {
+			
+			if( ! in_array( $level, self::LEVELS ) ) {
+				
+				exit( formatJSEND( "error", "Access Level does not exist." ) );
+			}
 		}
 		
 		return ( $user_level >= $level );
@@ -46,19 +52,11 @@ class Permissions {
 	
 	public static function check_path( $level, $path ) {
 		
-		if( ! in_array( $level, array_keys( self::LEVELS ) ) ) {
-			
-			exit( formatJSEND( "error", "Access Level does not exist." ) );
-		}
-		
-		$pass = false;
 		$user_level = self::get_access( $path );
 		
-		if( $user_level >= self::LEVELS[$level] ) {
-			
-			$pass = true;
-		}
-		return( $pass );
+		echo var_dump( $level, $user_level, $path );
+		
+		return self::check_access( $level, $user_level );
 	}
 	
 	public static function get_access( $path ) {
@@ -100,7 +98,7 @@ class Permissions {
 					}
 				}
 				
-				//echo var_dump( $full_path, $full_project_path, $path_postition, $user["level"], $pass );
+				//echo var_dump( $full_path, $full_project_path, $path_postition, $user["level"], $data["owner"], $_SESSION["user"] );
 				if( $access > 0 ) {
 					
 					break;

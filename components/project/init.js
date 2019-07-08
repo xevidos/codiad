@@ -249,6 +249,12 @@
 			codiad.modal.load( 500, this.dialog + '?action=list' );
 		},
 		
+		list_all: function() {
+			
+			$( '#modal-content form' ).die( 'submit' ); // Prevent form bubbling
+			codiad.modal.load( 500, this.dialog + '?action=list&all=true' );
+		},
+		
 		/**
 		 * Turn the access array into a table.
 		 */

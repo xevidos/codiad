@@ -117,6 +117,7 @@ class Project extends Common {
 	
 	public function check_duplicate( $full_path ) {
 		
+		global $sql;
 		$pass = true;
 		$query = "SELECT id, path, owner FROM projects;";
 		$result = $sql->query( $query, array(), array(), "fetchAll" );
@@ -228,6 +229,26 @@ class Project extends Common {
 			$return = formatJSEND( "error", "Error fetching projects." );
 		}
 		
+		return( $return );
+	}
+	
+	public function get_all_projects() {
+		
+		if( is_admin() ) {
+			
+			global $sql;
+			$query = "SELECT * FROM projects";
+			$bind_variables = array();
+			$return = $sql->query( $query, $bind_variables, array() );
+			
+			if( empty( $return ) ) {
+				
+				$return = formatJSEND( "error", "Error fetching projects." );
+			}
+		} else {
+			
+			$return = formatJSEND( "error", "Only admins are allowed to view all projects." );
+		}
 		return( $return );
 	}
 	
@@ -394,13 +415,14 @@ class Project extends Common {
 			}
 			if ( $this->path != '' ) {
 				
-				if( ! $this->public_project && ! $this->isAbsPath( $this->path ) ) {
+				$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+				
+				if( ! $this->isAbsPath( $this->path ) ) {
 					
-					$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
 					$this->path =  $_SESSION["user"] . '/' . $this->path;
 				}
 				
-				$pass = $this->check_duplicate();
+				$pass = $this->check_duplicate( $this->path );
 				if ( $pass ) {
 					
 					if( ! is_dir( $user_path ) ) {
@@ -410,7 +432,10 @@ class Project extends Common {
 					
 					if ( ! $this->isAbsPath( $this->path ) ) {
 						
-						mkdir( WORKSPACE . '/' . $this->path );
+						if( ! is_dir( WORKSPACE . '/' . $this->path ) ) {
+							
+							mkdir( WORKSPACE . '/' . $this->path );
+						}
 					} else {
 						
 						if( ! is_admin() ) {
@@ -520,7 +545,7 @@ class Project extends Common {
 			
 			global $sql;
 			$query = "DELETE FROM projects WHERE path=?";
-			$bind_variables = array( $this->path, $_SESSION["user"] );
+			$bind_variables = array( $this->path );
 			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $return > 0 ) {

@@ -56,7 +56,12 @@ switch( $_GET['action'] ) {
 	case 'list':
 		
 		//Get projects data
-		$projects = $Project->get_projects();
+		if( isset( $_GET["all"] ) ) {
+			
+			$projects = $Project->get_all_projects();
+		} else {
+			$projects = $Project->get_projects();
+		}
 		?>
 		<label><?php i18n("Project List"); ?></label>
 		<div id="project-list">
@@ -72,56 +77,63 @@ switch( $_GET['action'] ) {
 			<div class="project-wrapper">
 				<table width="100%" style="word-wrap: break-word;word-break: break-all;">
 					<?php
-					foreach( $projects as $project => $data ) {
+					if( is_array( $projects ) ) {
 						
-						$show = true;
-						if( $show ) {
+						foreach( $projects as $project => $data ) {
 							
-							?>
-							<tr>
-								<td width="70"><a onclick="codiad.project.open('<?php echo( $data['path'] );?>');" class="icon-folder bigger-icon"></a></td>
-								<td width="150"><?php echo($data['name']);?></td>
-								<td width="250"><?php echo($data['path']);?></td>
-								<?php
-								$owner = $Project->get_owner( $data['path'] );
-								if( $owner == 'nobody' ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} elseif( $owner !== $_SESSION["user"] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be managed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} else {
-									
-									?>
-									<td width="70"><a onclick="codiad.project.manage_access( '<?php echo( $data['path'] );?>' );" class="icon-lock bigger-icon"></a></td>
-									<?php
-								}
+							$show = true;
+							if( $show ) {
+								
 								?>
+								<tr>
+									<td width="70"><a onclick="codiad.project.open('<?php echo( $data['path'] );?>');" class="icon-folder bigger-icon"></a></td>
+									<td width="150"><?php echo($data['name']);?></td>
+									<td width="250"><?php echo($data['path']);?></td>
+									<?php
+									$owner = $Project->get_owner( $data['path'] );
+									if( $owner == 'nobody' ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} elseif( $owner !== $_SESSION["user"] ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be managed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} else {
+										
+										?>
+										<td width="70"><a onclick="codiad.project.manage_access( '<?php echo( $data['path'] );?>' );" class="icon-lock bigger-icon"></a></td>
+										<?php
+									}
+									?>
+									<?php
+									if( $_SESSION['project'] == $data['path'] ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} elseif( $owner !== $_SESSION["user"] && $owner !== 'nobody' ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} else {
+										
+										?>
+										<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']);?>','<?php echo($data['path']);?>');" class="icon-cancel-circled bigger-icon"></a></td>
+										<?php
+									}
+									?>
+								</tr>
 								<?php
-								if( $_SESSION['project'] == $data['path'] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} elseif( $owner !== $_SESSION["user"] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} else {
-									
-									?>
-									<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']);?>','<?php echo($data['path']);?>');" class="icon-cancel-circled bigger-icon"></a></td>
-									<?php
-								}
-								?>
-							</tr>
-							<?php
+							}
 						}
+					} else {
+						
+						$error = json_decode( $projects, true );
+						echo $error["message"];
 					}
 					?>
 				</table>
