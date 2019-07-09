@@ -53,9 +53,6 @@ class Permissions {
 	public static function check_path( $level, $path ) {
 		
 		$user_level = self::get_access( $path );
-		
-		echo var_dump( $level, $user_level, $path );
-		
 		return self::check_access( $level, $user_level );
 	}
 	

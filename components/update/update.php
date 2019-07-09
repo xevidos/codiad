@@ -177,7 +177,7 @@ class updater {
 		
 		$sql = new sql();
 		$connection = $sql->connect();
-		$result = $sql->create_default_tables();
+		$result = $sql->recreate_default_tables();
 		$upgrade_function = str_replace( ".", "_", $this->update::VERSION );
 		
 		if( is_callable( array( $this, $upgrade_function ) ) ) {
@@ -595,96 +595,6 @@ class updater {
 		if( file_exists( $user_settings_file ) || file_exists( $projects_file ) || file_exists( $users_file ) ) {
 			
 			$return = "true";
-		}
-	}
-	
-	function v_2_9_6() {
-		
-		//This function should run to upgrade our database version from less than 2.9.6
-		$sql_conversions = new sql_conversions();
-		
-		try {
-			
-			$access_query = "INSERT INTO access( project, user, level ) VALUES ";
-			$projects = $this->query( "SELECT id, access FROM projects", array(), array(), "fetchAll", "exception" );
-			$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
-			$delete = Permissions::LEVELS["delete"];
-			
-			foreach( $users as $row => $user ) {
-				
-				foreach( $projects as $row => $project ) {
-					
-					$access = json_decode( $project["access"], true );
-					if( ! is_array( $access ) || empty( $access ) ) {
-						
-						continue;
-					}
-					
-					foreach( $access as $granted_user ) {
-						
-						if( $granted_user == $user["username"] ) {
-							
-							$access_query .= "( {$project["id"]}, {$user["id"]}, $delete ),";
-						}
-					}
-				}
-			}
-			
-			if( $access_query !== "INSERT INTO access( project, user, level ) " ) {
-				
-				$result = $this->query( substr( $access_query, 0, -1 ), array(), 0, "rowCount", "exception" );
-			}
-			$result = $this->query( "ALTER TABLE projects DROP COLUMN access", array(), 0, "rowCount" );
-		} catch( Exception $error ) {
-			
-			//The access field is not there.
-			//echo var_export( $error->getMessage(), $access_query );
-		}
-		
-		try {
-			
-			$update_query = "";
-			$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
-			$result = $this->query( "SELECT project FROM users", array(), array(), "fetchAll", "exception" );
-			$convert = false;
-			$delete = Permissions::LEVELS["delete"];
-			
-			foreach( $projects as $row => $project ) {
-				
-				if( $project["path"] == $user["project"] ) {
-					
-					$update_query .= "UPDATE users SET project={$project["id"]};";
-				}
-			}
-			
-			if( $convert ) {
-				
-				//change project to users table
-				$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
-				$result = $this->query( "ALTER TABLE users ADD COLUMN project " . $sql_conversions->data_types["int"][DBTYPE], array(), array(), "rowCount", "exception" );
-				$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
-			}
-		} catch( Exception $error ) {
-			
-			//echo var_dump( $error->getMessage() );
-		}
-		
-		$constraint = ( DBTYPE == "mysql" ) ? "INDEX" : "CONSTRAINT";
-		
-		try {
-			
-			$projects = $this->query( "ALTER TABLE projects DROP $constraint path1500owner255;", array(), 0, "rowCount", "exception" );
-		} catch( Exception $error ) {
-			
-			//echo var_dump( $error->getMessage() );
-		}
-		
-		try {
-			
-			$projects = $this->query( "ALTER TABLE active DROP $constraint username255path1500;", array(), 0, "rowCount", "exception" );
-		} catch( Exception $error ) {
-			
-			//echo var_dump( $error->getMessage() );
 		}
 	}
 }

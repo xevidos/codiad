@@ -135,12 +135,6 @@
 				},
 				success: function( data ) {
 					
-					let response = codiad.jsend.parse( data );
-					
-					if( response != 'error' ) {
-						
-						codiad.message.success( i18n( 'Created Default Tables' ) );
-					}
 					console.log( data );
 				},
 				error: function(jqXHR, textStatus, errorThrown) {

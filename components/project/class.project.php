@@ -226,7 +226,7 @@ class Project extends Common {
 			
 		} else {
 			
-			$return = formatJSEND( "error", "Error fetching projects." );
+			$return = formatJSEND( "error", "No projects found." );
 		}
 		
 		return( $return );
@@ -243,7 +243,7 @@ class Project extends Common {
 			
 			if( empty( $return ) ) {
 				
-				$return = formatJSEND( "error", "Error fetching projects." );
+				$return = formatJSEND( "error", "No projects found." );
 			}
 		} else {
 			
@@ -265,7 +265,7 @@ class Project extends Common {
 		
 		if( empty( $return ) ) {
 			
-			$return = formatJSEND( "error", "Error fetching projects." );
+			$return = formatJSEND( "error", "No projects found." );
 		}
 		
 		return( $return );

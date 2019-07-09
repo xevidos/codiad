@@ -73,7 +73,7 @@ if( $_GET['action'] == 'add_user' ) {
 //////////////////////////////////////////////////////////////////
 
 if( $_GET['action'] == 'create' ) {
-		
+	
 	$Project->name = $_GET['project_name'];
 	
 	if( $_GET['public_project'] == 'true' ) {

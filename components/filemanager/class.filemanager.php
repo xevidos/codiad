@@ -434,7 +434,7 @@ class Filemanager extends Common {
 					} else {
 						
 						$this->status = "error";
-						$this->message = "Cannot Create File";
+						$this->message = "Cannot Create File at " . $this->path;
 					}
 				} else {
 					
@@ -555,8 +555,6 @@ class Filemanager extends Common {
 			$new_path = $this->cleanPath( $new_path );
 			
 			if ( ! file_exists( $new_path ) ) {
-				
-				echo var_dump( Permissions::has_create( $this->path ) );
 				
 				if ( Permissions::has_create( $this->path ) && rename( $this->path, $new_path ) ) {
 					
@@ -817,7 +815,7 @@ class Filemanager extends Common {
 		} elseif( $invalid_characters && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 		} else {
 			
-			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
+			$path = preg_replace( '/[^A-Za-z0-9\-\._@\/\ ]/', '', $path );
 		}
 		return $path;
 	}

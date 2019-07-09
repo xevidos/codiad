@@ -53,10 +53,10 @@ class User {
 		if( $return > 0 ) {
 			
 			$this->set_default_options();
-			echo formatJSEND( "success", array( "username" => $this->username ) );
+			exit( formatJSEND( "success", array( "username" => $this->username ) ) );
 		} else {
 			
-			echo formatJSEND( "error", "The Username is Already Taken" );
+			exit( formatJSEND( "error", "The Username is Already Taken" ) );
 		}
 	}
 	

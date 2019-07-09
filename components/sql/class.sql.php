@@ -54,7 +54,7 @@ class sql {
 	
 	public function create_default_tables() {
 		
-		$result = $this->create_tables(
+		$create_tables = $this->create_tables(
 			array(
 				"active" => array(
 					"fields" => array(
@@ -64,8 +64,8 @@ class sql {
 						"focused" => "string"
 					),
 					"attributes" => array(
-						"username" => array( "not null", "unique" ),
-						"path" => array( "not null", "unique" ),
+						"username" => array( "not null" ),
+						"path" => array( "not null" ),
 						"focused" => array( "not null" ),
 					)
 				),
@@ -118,7 +118,6 @@ class sql {
 						"email" => "string",
 						"project" => "int",
 						"access" => "string",
-						"groups" => "string",
 						"token" => "string",
 					),
 					"attributes" => array(
@@ -144,106 +143,12 @@ class sql {
 				),
 			)
 		);
-		
-		if( $result === true ) {
-			
-			$sql_conversions = new sql_conversions();
-			
-			try {
-				
-				$access_query = "INSERT INTO access( project, user, level ) VALUES ";
-				$projects = $this->query( "SELECT id, access FROM projects", array(), array(), "fetchAll", "exception" );
-				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
-				$delete = Permissions::LEVELS["delete"];
-				
-				foreach( $users as $row => $user ) {
-					
-					foreach( $projects as $row => $project ) {
-						
-						$access = json_decode( $project["access"], true );
-						if( ! is_array( $access ) || empty( $access ) ) {
-							
-							continue;
-						}
-						
-						foreach( $access as $granted_user ) {
-							
-							if( $granted_user == $user["username"] ) {
-								
-								$access_query .= "( {$project["id"]}, {$user["id"]}, $delete ),";
-							}
-						}
-					}
-				}
-				
-				if( $access_query !== "INSERT INTO access( project, user, level ) " ) {
-					
-					$result = $this->query( substr( $access_query, 0, -1 ), array(), 0, "rowCount", "exception" );
-				}
-				$result = $this->query( "ALTER TABLE projects DROP COLUMN access", array(), 0, "rowCount" );
-			} catch( Exception $error ) {
-				
-				//The access field is not there.
-				//echo var_export( $error->getMessage(), $access_query );
-			}
-			
-			try {
-				
-				$update_query = "";
-				$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
-				$result = $this->query( "SELECT project FROM users", array(), array(), "fetchAll", "exception" );
-				$convert = false;
-				$delete = Permissions::LEVELS["delete"];
-				
-				foreach( $result as $row => $user ) {
-					
-					if( ! is_numeric( $user["project"] ) ) {
-						
-						$convert = true;
-					}
-					
-					foreach( $projects as $row => $project ) {
-						
-						if( $project["path"] == $user["project"] ) {
-							
-							$update_query .= "UPDATE users SET project={$project["id"]};";
-						}
-					}
-				}
-				
-				if( $convert ) {
-					
-					//change project to users table
-					$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
-					$result = $this->query( "ALTER TABLE users ADD COLUMN project " . $sql_conversions->data_types["int"][DBTYPE], array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
-				}
-			} catch( Exception $error ) {
-				
-				//echo var_dump( $error->getMessage() );
-			}
-			
-			if( DBTYPE === "mysql" || DBTYPE === "pgsql" ) {
-				
-				try {
-					
-					$projects = $this->query( "ALTER TABLE projects DROP CONSTRAINT path1500owner255;", array(), 0, "rowCount", "exception" );
-				} catch( Exception $error ) {
-					
-					//echo var_dump( $error->getMessage() );
-				}
-				
-				try {
-					
-					$projects = $this->query( "ALTER TABLE active DROP CONSTRAINT username255path1500;", array(), 0, "rowCount", "exception" );
-				} catch( Exception $error ) {
-					
-					//echo var_dump( $error->getMessage() );
-				}
-			}
-		}
-		
-		return $result;
+		$structure_updates = $this->update_table_structure();
+		$result = array(
+			"create_tables" => $create_tables,
+			"structure_updates" => $structure_updates
+		);
+		exit( json_encode( $result, JSON_PRETTY_PRINT ) );
 	}
 	
 	public function create_tables( $table ) {
@@ -337,6 +242,141 @@ class sql {
 		$query = $this->conversions->update( $table, $fields, $where );
 		//echo var_dump( $query ) . "<br>";
 		//return $query;
+	}
+	
+	public function update_table_structure() {
+		
+		$status_updates = array();
+		$sql_conversions = new sql_conversions();
+		
+		try {
+			
+			$access_query = "INSERT INTO access( project, user, level ) VALUES ";
+			$projects = $this->query( "SELECT id, access FROM projects", array(), array(), "fetchAll", "exception" );
+			$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
+			$delete = Permissions::LEVELS["delete"];
+			
+			foreach( $users as $row => $user ) {
+				
+				foreach( $projects as $row => $project ) {
+					
+					$access = json_decode( $project["access"], true );
+					if( ! is_array( $access ) || empty( $access ) ) {
+						
+						continue;
+					}
+					
+					foreach( $access as $granted_user ) {
+						
+						if( $granted_user == $user["username"] ) {
+							
+							$access_query .= "( {$project["id"]}, {$user["id"]}, $delete ),";
+						}
+					}
+				}
+			}
+			
+			if( $access_query !== "INSERT INTO access( project, user, level ) VALUES " ) {
+				
+				$result = $this->query( substr( $access_query, 0, -1 ), array(), 0, "rowCount", "exception" );
+			}
+			$result = $this->query( "ALTER TABLE projects DROP COLUMN access", array(), 0, "rowCount" );
+			$status_updates["access_column"] = "Cached data and removed access column.";
+		} catch( Exception $error ) {
+			
+			//The access field is not there.
+			//echo var_export( $error->getMessage(), $access_query );
+			$status_updates["access_column"] = array(
+				"error_message" => $error->getMessage(),
+				"dev_message" => "No access column to convert."
+			);
+		}
+		
+		try {
+			
+			$update_query = "";
+			$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
+			$result = $this->query( "SELECT project FROM users", array(), array(), "fetchAll", "exception" );
+			$convert = false;
+			$delete = Permissions::LEVELS["delete"];
+			
+			foreach( $result as $row => $user ) {
+				
+				if( ! is_numeric( $user["project"] ) ) {
+					
+					$convert = true;
+				}
+				
+				foreach( $projects as $row => $project ) {
+					
+					if( $project["path"] == $user["project"] ) {
+						
+						$update_query .= "UPDATE users SET project={$project["id"]};";
+					}
+				}
+			}
+			
+			if( $convert && strlen( $update_query ) > 0 ) {
+				
+				//change project to users table
+				$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
+				$result = $this->query( "ALTER TABLE users ADD COLUMN project " . $sql_conversions->data_types["int"][DBTYPE], array(), array(), "rowCount", "exception" );
+				$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+			} else {
+				
+				$status_updates["users_current_project"] = array( "dev_message" => "Users current project column to project_id conversion not needed." );
+			}
+		} catch( Exception $error ) {
+			
+			//echo var_dump( $error->getMessage() );
+			$status_updates["users_current_project"] = array(
+				"error_message" => $error->getMessage(),
+				"dev_message" => "Users current project column to project_id conversion failed."
+			);
+		}
+		
+		try {
+			
+			$result = $this->query( "ALTER TABLE users DROP COLUMN groups", array(), array(), "rowCount", "exception" );
+			$status_updates["users_groups_column"] = array( "dev_message" => "Removal of the groups column from the users table succeeded." );
+		} catch( Exception $error ) {
+			
+			//echo var_dump( $error->getMessage() );
+			$status_updates["users_groups_column"] = array(
+				"error_message" => $error->getMessage(),
+				"dev_message" => "Removal of the groups column from the users table failed.  This usually means there was never one to begin with"
+			);
+		}
+		
+		if( DBTYPE === "mysql" || DBTYPE === "pgsql" ) {
+			
+			$constraint = ( DBTYPE === "mysql" ) ? "INDEX" : "CONSTRAINT";
+			
+			try {
+				
+				$projects = $this->query( "ALTER TABLE projects DROP $constraint path1500owner255;", array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+				$status_updates["path_owner_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Removal of path1500owner255 constraint in the projects table failed.  This usually means there was never one to begin with"
+				);
+			}
+			
+			try {
+				
+				$projects = $this->query( "ALTER TABLE active DROP $constraint username255path1500;", array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+				$status_updates["username_path_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Removal of username255path1500 constraint in the active table failed.  This usually means there was never one to begin with"
+				);
+			}
+		}
+		return $status_updates;
 	}
 	
 	public function query( $query, $bind_variables, $default, $action='fetchAll', $errors="default" ) {
