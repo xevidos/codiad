@@ -14,9 +14,7 @@ require_once('class.filemanager.php');
 
 checkSession();
 
-?>
-<form>
-<?php
+?><form><?php
 
 switch( $_GET['action'] ) {
 
@@ -80,23 +78,25 @@ switch( $_GET['action'] ) {
 	case 'preview':
 		?>
 		<label><?php i18n("Inline Preview"); ?></label>
-		<div><br><br><img src="<?php echo(str_replace(BASE_PATH . "/", "", WORKSPACE) . "/" . $_GET['path']); ?>"><br><br></div>
-		<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
-		<?php
-	break;
-	
-	//////////////////////////////////////////////////////////////////
-	// Preview
-	//////////////////////////////////////////////////////////////////
-	case 'music_preview':
-		?>
-		<label><?php i18n("Inline Preview"); ?></label>
-		<div><br><br>
-		<audio controls>
-		<source src="<?php echo(str_replace(BASE_PATH . "/", "", WORKSPACE) . "/" . $_GET['path']); ?>">
-		</audio>
-		<br><br></div>
-		<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Close"); ?></button>
+		<div>
+			<?php
+			
+			$source = str_replace( BASE_PATH . "/", "", WORKSPACE ) . "/" . $_GET['path'];
+			$type = mime_content_type( $source );
+			
+			if( strpos( "audio", $type ) !== false ) {
+				
+				?><audio controls><source src="<?php echo $source;?>"></audio><?php
+			} elseif( strpos( "image", $type ) !== false ) {
+				
+				?><img src="<?php echo $source;?>"><?php
+			} else {
+				
+				?><p>Error, unknown file type.</p><?php
+			}
+			?>
+		</div>
+		<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Close");?></button>
 		<?php
 	break;
 	
@@ -106,7 +106,6 @@ switch( $_GET['action'] ) {
 	case 'overwrite':
 		?>
 		<input type="hidden" name="path" value="<?php echo($_GET['path']); ?>">
-		
 		<label><?php i18n("Would you like to overwrite or duplicate the following:"); ?></label>
 		<pre>
 			<?php
@@ -168,5 +167,4 @@ switch( $_GET['action'] ) {
 
 }
 
-?>
-</form>
+?></form>
