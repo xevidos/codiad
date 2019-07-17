@@ -23,7 +23,7 @@ $response = array(
 	"status" => "none",
 );
 
-if (!empty($_GET['action'])) {
+if( ! empty($_GET['action'] ) ) {
 	
 	$action = $_GET['action'];
 } else {
@@ -39,7 +39,7 @@ if (!empty($_GET['action'])) {
 // Ensure Project Has Been Loaded
 //////////////////////////////////////////////////////////////////
 
-if ( ! isset( $_SESSION['project'] ) ) {
+if( ! isset( $_SESSION['project'] ) ) {
 	
 	$_GET['action'] = 'get_current';
 	$_GET['no_return'] = 'true';
@@ -60,10 +60,12 @@ if( isset( $_GET["path"] ) ) {
 // Security Check
 //////////////////////////////////////////////////////////////////
 
-if ( ! checkPath( $path ) ) {
+$access = Permissions::get_access( $_GET['path'] );
+
+if ( ! Permissions::check_access( "read", $access ) ) {
 	
 	$response["status"] = "error";
-	$response["message"] = "Invalid Path";
+	$response["message"] = "Invalid access to path";
 	exit( json_encode( $response ) );
 }
 

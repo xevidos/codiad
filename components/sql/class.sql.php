@@ -388,6 +388,17 @@ class sql {
 		 * exception
 		 */
 		
+		if( is_array( $query ) ) {
+			
+			if( in_array( DBTYPE, array_keys( $query ) ) ) {
+				
+				$query = $query[DBTYPE];
+			} else {
+				
+				$query = $query["*"];
+			}
+		}
+		
 		try {
 			
 			$connection = $this->connect();
