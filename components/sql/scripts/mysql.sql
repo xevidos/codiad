@@ -3,10 +3,20 @@
 --
 
 CREATE TABLE IF NOT EXISTS `active` (
-  `username` varchar(255) NOT NULL,
+  `user` int NOT NULL,
   `path` text NOT NULL,
   `position` varchar(255) DEFAULT NULL,
   `focused` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `access`
+--
+
+CREATE TABLE IF NOT EXISTS `access` (
+  `user` int NOT NULL,
+  `project` int NOT NULL,
+  `level` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -16,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `active` (
 --
 
 CREATE TABLE IF NOT EXISTS `options` (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+  `id` int PRIMARY KEY AUTO_INCREMENT NOT NULL,
   `name` varchar(255) UNIQUE NOT NULL,
   `value` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -28,11 +38,10 @@ CREATE TABLE IF NOT EXISTS `options` (
 --
 
 CREATE TABLE IF NOT EXISTS `projects` (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+  `id` int PRIMARY KEY AUTO_INCREMENT NOT NULL,
   `name` varchar(255) NOT NULL,
   `path` text NOT NULL,
-  `owner` varchar(255) NOT NULL,
-  `access` varchar(255) DEFAULT NULL
+  `owner` int NOT NULL,
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -43,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
 --
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+  `id` int PRIMARY KEY AUTO_INCREMENT NOT NULL,
   `first_name` varchar(255) DEFAULT NULL,
   `last_name` varchar(255) DEFAULT NULL,
   `username` varchar(255) NOT NULL,
@@ -62,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 CREATE TABLE IF NOT EXISTS `user_options` (
-  `id` int(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
+  `id` int PRIMARY KEY AUTO_INCREMENT NOT NULL,
   `name` varchar(255) NOT NULL,
   `user` int NOT NULL,
   `value` text NOT NULL,
