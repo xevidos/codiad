@@ -350,11 +350,14 @@ class sql {
 		
 		if( DBTYPE === "mysql" || DBTYPE === "pgsql" ) {
 			
-			$constraint = ( DBTYPE === "mysql" ) ? "INDEX" : "CONSTRAINT";
+			//$constraint = ( DBTYPE === "mysql" ) ? "INDEX" : "CONSTRAINT";
 			
 			try {
 				
-				$projects = $this->query( "ALTER TABLE projects DROP $constraint path1500owner255;", array(), 0, "rowCount", "exception" );
+				$projects = $this->query( array(
+					"mysql" => "ALTER TABLE projects DROP INDEX path1500owner255;",
+					"pgsql" => "ALTER TABLE projects DROP CONSTRAINT path1500owner255;",
+				), array(), 0, "rowCount", "exception" );
 			} catch( Exception $error ) {
 				
 				//echo var_dump( $error->getMessage() );
@@ -366,7 +369,10 @@ class sql {
 			
 			try {
 				
-				$projects = $this->query( "ALTER TABLE active DROP $constraint username255path1500;", array(), 0, "rowCount", "exception" );
+				$projects = $this->query( array(
+					"mysql" => "ALTER TABLE active DROP INDEX username255path1500;",
+					"pgsql" => "ALTER TABLE active DROP CONSTRAINT username255path1500;",
+				), array(), 0, "rowCount", "exception" );
 			} catch( Exception $error ) {
 				
 				//echo var_dump( $error->getMessage() );
@@ -395,7 +401,22 @@ class sql {
 				$query = $query[DBTYPE];
 			} else {
 				
-				$query = $query["*"];
+				if( isset( $query["*"] ) ) {
+					
+					$query = $query["*"];
+				} else {
+					
+					$return = $default;
+					
+					if( $errors == "message" ) {
+						
+						$return = json_encode( array( "error" => "No query specified for database type." ) );
+					} elseif( $errors == "exception" ) {
+						
+						throw new Error( "No query specified for database type." );
+					}
+					return $return;
+				}
 			}
 		}
 		
