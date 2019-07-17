@@ -60,8 +60,6 @@
 				this.nodeListener();
 			this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
 			
-			console.log( this.auto_reload );
-			
 			amplify.subscribe( 'settings.save', async function() {
 				
 				let option = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
@@ -731,7 +729,6 @@
 			} else if( path == this.clipboard ) {
 				codiad.message.error( i18n( 'Cannot Paste Directory Into Itself' ) );
 			} else {
-				let project = codiad.project.getCurrent();
 				var shortName = _this.getShortName( _this.clipboard );
 				if( $( '#file-manager a[data-path="' + path + '/' + shortName + '"]' )
 				.length ) { // Confirm overwrite?
@@ -745,15 +742,13 @@
 						var duplicate = false;
 						if( $( '#modal-content form select[name="or_action"]' ).val() == 1 ) {
 							duplicate = true;
-							console.log( 'Dup!' );
+							//console.log( 'Dup!' );
 						}
 						_this.processPasteNode( path, duplicate );
 					});
 				} else { // No conflicts; proceed...
 					_this.processPasteNode( path, false );
 				}
-				
-				codiad.filemanager.rescan( project );
 			}
 		},
 		
@@ -776,6 +771,7 @@
 							shortName: shortName,
 							duplicate: duplicate
 						});
+						codiad.filemanager.rescan( path );
 					}
 				});
 		},
@@ -808,9 +804,9 @@
 				}
 				var newPath = temp.join( '/' ) + '/' + newName;
 				$.get( _this.controller, {
-					action: 'modify',
+					action: 'rename',
 					path: path,
-					new_name: newName
+					destination: newPath
 				}, function( data ) {
 					var renameResponse = codiad.jsend.parse( data );
 					let renamedMessage = "";

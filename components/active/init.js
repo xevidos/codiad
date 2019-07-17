@@ -1014,14 +1014,17 @@
 		
 		uploadPositions: function() {
 			
-			$.ajax( {
-				type: 'POST',
-				url: codiad.active.controller + '?action=save_positions',
-				data: {
-					positions: ( JSON.stringify( codiad.active.positions ) )
-				},
-				success: function( data ) {},
-			});
+			if( Object.keys( codiad.active.positions ).length > 0 ) {
+				
+				$.ajax( {
+					type: 'POST',
+					url: codiad.active.controller + '?action=save_positions',
+					data: {
+						positions: ( JSON.stringify( codiad.active.positions ) )
+					},
+					success: function( data ) {},
+				});
+			}
 		},
 		
 		savePosition: function() {

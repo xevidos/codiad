@@ -15,30 +15,6 @@ class Filemanager extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
-	public $access = 0;
-	public $root          = "";
-	public $project       = "";
-	public $rel_path      = "";
-	public $path          = "";
-	public $patch         = "";
-	public $type          = "";
-	public $new_name      = "";
-	public $content       = "";
-	public $destination   = "";
-	public $upload        = "";
-	public $controller    = "";
-	public $upload_json   = "";
-	public $search_string = "";
-	
-	public $search_file_type = "";
-	public $query         = "";
-	public $foptions     = "";
-	
-	// JSEND Return Contents
-	public $status        = "";
-	public $data          = "";
-	public $message       = "";
-	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
 	//////////////////////////////////////////////////////////////////
@@ -49,214 +25,221 @@ class Filemanager extends Common {
 	// Construct
 	//////////////////////////////////////////////////////////////////
 	
-	public function __construct( $get, $post, $files ) {
-		$this->rel_path = Filemanager::cleanPath($get['path']);
+	public function __construct() {}
+	
+	//////////////////////////////////////////////////////////////////
+	// Clean a path
+	//////////////////////////////////////////////////////////////////
+	
+	public static function cleanPath( $path ) {
 		
-		if ( $this->rel_path != "/ ") {
+		// Prevent going out of the workspace
+		while ( strpos( $path, '../' ) !== false ) {
 			
-			$this->rel_path .= "/";
+			$path = str_replace( '../', '', $path );
 		}
-		if ( ! empty( $get['query'] ) ) {
-			$this->query = $get['query'];
-		}
-		if ( ! empty($get['options'] ) ) {
-			$this->foptions = $get['options'];
-		}
-		$this->root = $get['root'];
-		if ( $this->isAbsPath( $get['path'] ) ) {
+		
+		if( self::isAbsPath( $path ) ) {
 			
-			$this->path = Filemanager::cleanPath($get['path']);
+			$full_path = $path;
 		} else {
 			
-			$this->root .= '/';
-			$this->path = $this->root . Filemanager::cleanPath( $get['path'] );
-		}
-		// Search
-		if ( ! empty( $post['search_string'] ) ) {
-			$this->search_string = ($post['search_string']);
-		}
-		if ( ! empty( $post['search_file_type'] ) ) {
-			$this->search_file_type = ($post['search_file_type']);
-		}
-		// Create
-		if ( ! empty($get['type'] ) ) {
-			
-			$this->type = $get['type'];
-		}
-		// Modify\Create
-		if ( ! empty( $get['new_name'] ) ) {
-			
-			$this->new_name = $get['new_name'];
+			$full_path = WORKSPACE . "/" . $path;
 		}
 		
-		foreach ( array( 'content', 'mtime', 'patch' ) as $key ) {
+		/**
+		 * If a file with an invalid character exists and the user is
+		 * trying to rename or delete it, allow the actual file name.
+		 */
+		
+		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\ ]/', $path );
+		
+		if( $invalid_characters && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 			
-			if ( ! empty( $post[$key] ) ) {
+			exit( formatJSEND( "error", "Error, the filename contains invalid characters, please either rename or delete it." ) );
+		} elseif( $invalid_characters && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
+		} else {
+			
+			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
+		}
+		return $path;
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// CREATE (Creates a new file or directory)
+	//////////////////////////////////////////////////////////////////
+	
+	public function create( $path, $type, $content = "" ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		$path = self::formatPath( $path );
+		
+		// Create file
+		if( $type == "file" ) {
+			
+			if ( ! file_exists( $path ) ) {
 				
-				if ( get_magic_quotes_gpc() ) {
+				if ( $file = fopen( $path, 'w' ) ) {
 					
-					$this->$key = stripslashes( $post[$key] );
+					// Write content
+					if ( $content ) {
+						
+						fwrite( $file, $content );
+					}
+					fclose( $file );
+					
+					$response["status"] = "success";
+					$response["mtime"] = filemtime( $path );
 				} else {
 					
-					$this->$key = $post[$key];
+					$response["status"] = "error";
+					$response["message"] = "Cannot Create File";
 				}
-			}
-		}
-		// Duplicate
-		if ( ! empty( $get['destination'] ) ) {
-			
-			$get['destination'] = Filemanager::cleanPath( $get['destination'] );
-			if ( $this->isAbsPath( $get['path'] ) ) {
-				
-				$i = 1;
-				$this->destination = $get['destination'];
-				
-				do {
-					
-					if( is_dir( $this->destination ) ) {
-						
-						$this->destination = $get['destination'] . " $i";
-					} elseif( is_file( $this->destination ) ) {
-						
-						$path_parts = pathinfo( $this->destination );
-						
-						if( isset( $path_parts["extension"] ) ) {
-							
-							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $get['destination'] );
-						} else {
-							
-							$this->destination = $get['destination'] . " $i";
-						}
-					}
-					
-					$i++;
-				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
-				
 			} else {
 				
-				$i = 1;
-				$this->destination = $this->root . $get['destination'];
-				do {
-					
-					if( is_dir( $this->destination ) ) {
-						
-						$this->destination = $this->root . $get['destination'] . " $i";
-					} elseif( is_file( $this->destination ) ) {
-						
-						$path_parts = pathinfo( $this->destination );
-						
-						if( isset( $path_parts["extension"] ) ) {
-							
-							$this->destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $this->root . $get['destination'] );
-						} else {
-							
-							$this->destination = $this->root . $get['destination'] . " $i";
-						}
-					}
-					
-					$i++;
-				} while( ( is_file( $this->destination ) || is_dir( $this->destination ) ) );
+				$response["status"] = "error";
+				$response["message"] = "File Already Exists";
+			}
+		} elseif( $type == "directory" ) {
+			
+			if ( ! is_dir( $path ) ) {
+				
+				mkdir( $path );
+				$response["status"] = "success";
+			} else {
+				
+				$response["status"] = "error";
+				$response["message"] = "Directory Already Exists";
 			}
 		}
+		return $response;
 	}
 	
 	//////////////////////////////////////////////////////////////////
-	// INDEX (Returns list of files and directories)
+	// DELETE (Deletes a file or directory (+contents or only contents))
 	//////////////////////////////////////////////////////////////////
 	
-	public function index() {
+	public function delete( $path, $follow, $keep_parent = false ) {
 		
-		if ( file_exists( $this->path ) ) {
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		
+		if( ! Common::checkPath( $path ) ) {
 			
-			$index = array();
-			if ( is_dir( $this->path ) && $handle = opendir( $this->path ) ) {
-					
-				while (false !== ( $object = readdir( $handle ) ) ) {
-					
-					if ($object != "." && $object != ".." && $object != $this->controller) {
-						if ( is_dir( $this->path.'/'.$object ) ) {
-							
-							$type = "directory";
-							$size = count( glob( $this->path . '/' . $object . '/*' ) );
-						} else {
-							
-							$type = "file";
-							$size = @filesize( $this->path.'/' . $object );
-						}
-						$index[] = array(
-							"name"=>$this->rel_path . $object,
-							"type"=>$type,
-							"size"=>$size
-						);
-					}
-				}
+			$response["status"] = "error";
+			$response["message"] = "No access.";
+		} else {
 			
-				$folders = array();
-				$files = array();
-				foreach ($index as $item => $data) {
-					
-					if ( $data['type'] == 'directory' ) {
-						
-						$folders[] = array( "name"=>htmlentities( $data['name'], ENT_QUOTES ), "type"=>$data['type'], "size"=>$data['size'] );
-					}
-					if ( $data['type'] == 'file' ) {
-						
-						$files[] = array( "name"=>htmlentities( $data['name'], ENT_QUOTES ), "type"=>$data['type'], "size"=>$data['size'] );
-					}
-				}
+			$path = self::formatPath( $path );
+			if ( file_exists( $path ) ) {
 				
-				function sorter($a, $b, $key = 'name') {
-					
-					return strnatcmp( $a[$key], $b[$key] );
-				}
-				
-				usort( $folders, "sorter" );
-				usort( $files, "sorter" );
-				
-				$output = array_merge( $folders, $files );
-				
-				$this->status = "success";
-				$this->data = '"index":' . json_encode( $output );
+				self::recursive_delete( $path, $follow, $keep_parent );
+				$response["status"] = "success";
 			} else {
 				
-				$this->status = "error";
-				$this->message = "Not A Directory";
+				$response["status"] = "error";
+				$response["message"] = "Path Does Not Exist ";
+			}
+		}
+		return $response;
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// DUPLICATE (Creates a duplicate of the object - (cut/copy/paste)
+	//////////////////////////////////////////////////////////////////
+	
+	public function duplicate( $source, $destination ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		
+		$source = self::formatPath( $source );
+		$destination = self::formatPath( $destination );
+		$new_destination = $destination;
+		$path_parts = pathinfo( $destination );
+		$i = 1;
+		
+		do {
+			
+			if( is_dir( $new_destination ) ) {
+				
+				$new_destination = rtrim( $destination, "/" ) . " $i/";
+			} elseif( is_file( $new_destination ) ) {
+				
+				if( isset( $path_parts["extension"] ) ) {
+					
+					$new_destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $destination );
+				} else {
+					
+					$new_destination = $destination . " $i";
+				}
+			}
+			$i++;
+		} while( ( is_file( $new_destination ) || is_dir( $new_destination ) ) );
+		
+		if( file_exists( $source ) ) {
+			
+			if( is_file( $source ) ) {
+				
+				copy( $source, $new_destination );
+				$response["status"] = "success";
+			} else {
+				
+				self::recursive_copy( $source, $new_destination );
+				$response["status"] = "success";
 			}
 		} else {
-			$this->status = "error";
-			$this->message = "Path Does Not Exist";
+			
+			$response["status"] = "error";
+			$response["message"] = "Invalid Source";
 		}
-		
-		$this->respond();
+		return $response;
 	}
 	
-	public function find() {
-			
+	public function find( $path, $query, $options = array() ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		$current_path = getcwd();
+		$path = self::formatPath( $path );
+		
 		if ( ! function_exists( 'shell_exec' ) ) {
 			
-			$this->status = "error";
-			$this->message = "Shell_exec() Command Not Enabled.";
+			$response["status"] = "error";
+			$response["message"] = "Shell_exec() Command Not Enabled.";
 		} else {
 			
-			chdir( $this->path );
-			$input = str_replace( '"', '', $this->query );
+			chdir( $path );
+			$input = str_replace( '"', '', $query );
 			$cmd = 'find -L ';
 			$strategy = '';
-			if ( $this->foptions && $this->foptions['strategy'] ) {
+			if ( ! empty( $options ) && isset( $options["strategy"] ) ) {
 				
-				$strategy = $this->foptions['strategy'];
+				$strategy = $options["strategy"];
 			}
+			
 			switch ( $strategy ) {
 				
 				case 'substring':
-					$cmd = "$cmd -iname ".escapeshellarg( '*' . $input . '*' );
+					
+					$cmd = "$cmd -iname " . escapeshellarg( '*' . $input . '*' );
 				break;
 				case 'regexp':
-					$cmd = "$cmd -regex ".escapeshellarg( $input );
+					
+					$cmd = "$cmd -regex " . escapeshellarg( $input );
 				break;
 				case 'left_prefix':
 				default:
-					$cmd = "$cmd -iname ".escapeshellarg( $input . '*');
+					$cmd = "$cmd -iname " . escapeshellarg( $input . '*');
 				break;
 			}
 			$cmd = "$cmd  -printf \"%h/%f %y\n\"";
@@ -279,7 +262,7 @@ class Filemanager extends Common {
 				}
 				if ( strlen( $fname ) != 0 ) {
 					
-					$fname = $this->rel_path . substr( $fname, 2 );
+					$fname = $path . substr( $fname, 2 );
 					$f = array( 'path' => $fname, 'type' => $ftype );
 					array_push( $output_arr, $f );
 				}
@@ -287,74 +270,243 @@ class Filemanager extends Common {
 			
 			if ( count( $output_arr ) == 0 ) {
 				
-				$this->status = "error";
-				$this->message = "No Results Returned";
+				$response["status"] = "error";
+				$response["message"] = "No Results Returned";
 			} else {
-				$this->status = "success";
-				$this->data = '"index":' . json_encode( $output_arr );
+				$response["status"] = "success";
+				$response["index"] = $output_arr;
 			}
 		}
-		$this->respond();
+		return $response;
+	}
+	
+	public static function formatPath( $path ) {
+		
+		if( self::isAbsPath( $path ) ) {
+			
+			$path = self::cleanPath( $path );
+		} else {
+			
+			$path = WORKSPACE . "/" . self::cleanPath( $path );
+		}
+		
+		if( is_dir( $path ) ) {
+			
+			$path = rtrim( $path, '/' ) . '/';
+		}
+		return( $path );
 	}
 	
 	//////////////////////////////////////////////////////////////////
-	// SEARCH
+	// INDEX (Returns list of files and directories)
 	//////////////////////////////////////////////////////////////////
 	
-	public function search() {
+	public function index( $path ) {
 		
-		if ( ! function_exists( 'shell_exec' ) ) {
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		$relative_path = rtrim( self::cleanPath( $path ), '/' ) . '/';
+		$path = self::formatPath( $path );
+		
+		if( file_exists( $path ) ) {
 			
-			$this->status = "error";
-			$this->message = "Shell_exec() Command Not Enabled.";
-		} else {
+			$index = array();
+			
+			if( is_dir( $path ) && $handle = opendir( $path ) ) {
 				
-			if ( $_GET['type'] == 1 ) {
-				
-				$this->path = WORKSPACE;
-			}
-			$return = array();
-			$input = str_replace( '"', '', $this->search_string );
-			$cmd = 'find -L ' . escapeshellarg( $this->path ) . ' -iregex  '.escapeshellarg( '.*' . $this->search_file_type ) . ' -type f | xargs grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
-			$output = shell_exec( $cmd );
-			$output_arr = explode( "\n", $output );
-			foreach ( $output_arr as $line ) {
-				
-				$data = explode( ":", $line );
-				$da = array();
-				if ( count( $data ) > 2 ) {
+				while( false !== ( $object = readdir( $handle ) ) ) {
 					
-					$da['line'] = $data[1];
-					$da['file'] = str_replace( $this->path, '', $data[0] );
-					$da['result'] = str_replace( $this->root, '', $data[0] );
-					$da['string'] = str_replace( $data[0] . ":" . $data[1] . ':', '', $line );
-					$return[] = $da;
+					if( $object != "." && $object != ".." && $object != $this->controller ) {
+						
+						if ( is_dir( $path . '/' . $object ) ) {
+							
+							$type = "directory";
+							$size = count( glob( $path . '/' . $object . '/*' ) );
+						} else {
+							
+							$type = "file";
+							$size = @filesize( $path . '/' . $object );
+						}
+						$index[] = array(
+							
+							"name" => $relative_path . $object,
+							"type" => $type,
+							"size" => $size
+						);
+					}
 				}
-			}
-			if ( count( $return ) == 0 ) {
+			
+				$folders = array();
+				$files = array();
+				foreach( $index as $item => $data ) {
+					
+					if ( $data['type'] == 'directory' ) {
+						
+						$folders[] = array( "name" => htmlentities( $data['name'], ENT_QUOTES ), "type" => $data['type'], "size" => $data['size'] );
+					}
+					if ( $data['type'] == 'file' ) {
+						
+						$files[] = array( "name" => htmlentities( $data['name'], ENT_QUOTES ), "type" => $data['type'], "size" => $data['size'] );
+					}
+				}
 				
-				$this->status = "error";
-				$this->message = "No Results Returned";
+				function sorter( $a, $b, $key = 'name' ) {
+					
+					return strnatcmp( $a[$key], $b[$key] );
+				}
+				
+				usort( $folders, "sorter" );
+				usort( $files, "sorter" );
+				
+				$output = array_merge( $folders, $files );
+				
+				$response["status"] = "success";
+				$response["data"] = array( "index" => $output );
 			} else {
 				
-				$this->status = "success";
-				$this->data = '"index":' . json_encode( $return );
+				$response["status"] = "error";
+				$response["message"] = "Not A Directory";
 			}
+		} else {
+			
+			$response["status"] = "error";
+			$response["message"] = "Path Does Not Exist";
 		}
-		$this->respond();
+		return $response;
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// MODIFY (Modifies a file name/contents or directory name)
+	//////////////////////////////////////////////////////////////////
+	
+	public function modify( $path, $content, $patch=false, $mtime=0 ) {
+		
+		// Change content
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		$path = self::formatPath( $path );
+		
+		if( $content == ' ' ) {
+			
+			$content = ''; // Blank out file
+		}
+		
+		if( $patch && ! $mtime ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "mtime parameter not found";
+			return $response;
+		}
+		
+		if( is_file( $path ) ) {
+			
+			$serverMTime = filemtime( $path );
+			$fileContents = file_get_contents( $path );
+			
+			if( $patch && $mtime != $serverMTime ) {
+				
+				$response["status"] = "error";
+				$response["message"] = "Client is out of sync";
+				//DEBUG : file_put_contents($this->path.".conflict", "SERVER MTIME :".$serverMTime.", CLIENT MTIME :".$this->mtime);
+				return $response;
+			} elseif( strlen( trim( $patch ) ) == 0 && ! $content ) {
+				
+				// Do nothing if the patch is empty and there is no content
+				$response["status"] = "success";
+				$response["data"] = array(
+					"mtime" => $serverMTime
+				);
+				return $response;
+			}
+			
+			if( $file = fopen( $path, 'w' ) ) {
+				
+				if( $patch ) {
+					
+					$dmp = new diff_match_patch();
+					$p = $dmp->patch_apply( $dmp->patch_fromText( $patch ), $fileContents );
+					$content = $p[0];
+					//DEBUG : file_put_contents($this->path.".orig",$fileContents );
+					//DEBUG : file_put_contents($this->path.".patch", $this->patch);
+				}
+				
+				if( fwrite( $file, $content ) === false ) {
+					
+					$response["status"] = "error";
+					$response["message"] = "could not write to file";
+				} else {
+					
+					// Unless stat cache is cleared the pre-cached mtime will be
+					// returned instead of new modification time after editing
+					// the file.
+					clearstatcache();
+					$response["status"] = "success";
+					$response["data"] = array(
+						"mtime" => filemtime( $path )
+					);
+				}
+				fclose( $file );
+			} else {
+				
+				$response["status"] = "error";
+				$response["message"] = "Cannot Write to File";
+			}
+			
+		} else {
+			
+			$response["status"] = "error";
+			$response["message"] = "Not A File";
+		}
+		return $response;
+	}
+	
+	public function move( $path, $new_path ) {
+		
+		$response = array(
+			"status" => "none",
+		);
+		$path = self::formatPath( $path );
+		$new_path = self::formatPath( $new_path );
+		
+		if ( ! file_exists( $new_path ) ) {
+			
+			if( rename( $path, $new_path ) ) {
+				
+				$response["status"] = "success";
+			} else {
+				
+				$response["status"] = "error";
+				$response["message"] = "Could Not Rename";
+			}
+		} else {
+			
+			$response["status"] = "error";
+			$response["message"] = "Path Already Exists";
+		}
+		return $response;
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// OPEN (Returns the contents of a file)
 	//////////////////////////////////////////////////////////////////
 	
-	public function open() {
+	public function open( $path ) {
 		
-		$response = array();
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
 		
-		if ( is_file( $this->path ) ) {
+		$relative_path = self::cleanPath( $path );
+		$path = self::formatPath( $path );
+		
+		if ( is_file( $path ) ) {
 			
-			$output = file_get_contents( $this->path );
+			$output = file_get_contents( $path );
 			
 			if ( extension_loaded( 'mbstring' ) ) {
 				
@@ -370,453 +522,185 @@ class Filemanager extends Common {
 				}
 			}
 			
-			$mtime = filemtime( $this->path );
 			$response["status"] = "success";
 			$response["data"] = array(
 				"content" => $output,
-				"mtime" => $mtime,
-				"access" => $this->access,
-				"read_only" => ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) ),
+				"mtime" => filemtime( $path ),
 			);
 		} else {
 			
-			$response = array(
-				"status" => "error",
-				"message" => "Not A File :" . $this->path,
-			);
+			$response["status"] = "error";
+			$response["message"] = "Error, {$path} is not a file.";
 		}
-		exit( json_encode( $response ) );
+		return $response;
 	}
-		
-		//////////////////////////////////////////////////////////////////
-		// OPEN IN BROWSER (Return URL)
-		//////////////////////////////////////////////////////////////////
-		
-	public function openinbrowser() {
+	
+	//////////////////////////////////////////////////////////////////
+	// OPEN IN BROWSER (Return URL)
+	//////////////////////////////////////////////////////////////////
+	
+	public function openinbrowser( $path ) {
 		
 		$protocol = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] != 'off' ) || $_SERVER['SERVER_PORT'] == 443 ) ? "https://" : "http://";
 		$domainName = $_SERVER['HTTP_HOST'];
-		$url =  $protocol . WSURL . '/' . $this->rel_path;
-		$this->status = "success";
-		$this->data = '"url":' . json_encode( rtrim( $url, "/" ) );
-		$this->respond();
+		$url = $protocol . WSURL . '/' . self::cleanPath( $path );
+		$response = array(
+			"status" => "success",
+			"data" => rtrim( $url, "/" ),
+		);
+		return $response;
 	}
 	
-	//////////////////////////////////////////////////////////////////
-	// CREATE (Creates a new file or directory)
-	//////////////////////////////////////////////////////////////////
-	
-	public function create() {
+	static function recursive_copy( $source, $destination ) {
 		
-		$response = array();
-		if( Permissions::has_create( $this->path ) ) {
+		$dir = opendir( $source );
+		@mkdir( $source );
+		
+		if( is_dir( $source ) ) {
 			
-			// Create file
-			if ( $this->type == "file" ) {
-				
-				if ( ! file_exists( $this->path ) ) {
-					
-					if ( $file = fopen( $this->path, 'w' ) ) {
-						
-						// Write content
-						if ( $this->content ) {
-							
-							fwrite( $file, $this->content );
-						}
-						fclose( $file );
-						$response["data"] = array(
-							"content" => $this->content,
-							"mtime" => filemtime( $this->path ),
-							"access" => $this->access,
-							"read_only" => ( Permissions::check_access( "read", $this->access ) && ! Permissions::check_access( "write", $this->access ) ),
-						);
-						$this->status = "success";
-					} else {
-						
-						$this->status = "error";
-						$this->message = "Cannot Create File at " . $this->path;
-					}
-				} else {
-					
-					$this->status = "error";
-					$this->message = "File Already Exists";
-				}
-			}
-			
-			// Create directory
-			if ( $this->type == "directory" ) {
-				
-				if ( ! is_dir( $this->path ) ) {
-					
-					mkdir( $this->path );
-					$this->status = "success";
-				} else {
-					
-					$this->status = "error";
-					$this->message = "Directory Already Exists";
-				}
-			}
+			@mkdir( $destination );
 		} else {
 			
-			$this->status = "error";
-			$this->message = "No create access.";
+			return;
 		}
 		
-		$response["status"] = $this->status;
-		$response["message"] = $this->message;
-		exit( json_encode( $response ) );
+		while ( false !== ( $file = readdir( $dir ) ) ) {
+			
+			if ( ( $file != '.' ) && ( $file != '..' ) ) {
+				
+				if ( is_dir( $source . '/' . $file ) ) {
+					
+					self::recurse_copy( $source . '/' . $file, $destination . '/' . $file );
+				} else {
+					
+					copy( $source . '/' . $file, $destination . '/' . $file );
+				}
+			}
+		}
+		closedir( $dir );
 	}
 	
-	//////////////////////////////////////////////////////////////////
-	// DELETE (Deletes a file or directory (+contents or only contents))
-	//////////////////////////////////////////////////////////////////
-	
-	public function delete( $keep_parent = false ) {
+	static function recursive_delete( $path, $follow, $keep_parent = false ) {
 		
-		$response = array();
-		
-		if( Permissions::has_delete( $this->path ) ) {
+		if ( is_file( $path ) ) {
 			
-			function rrmdir( $path, $follow, $keep_parent = false ) {
-				
-				if ( is_file( $path ) ) {
-				
-					unlink( $path );
-				} else {
-				
-					$files = array_diff( scandir( $path ), array( '.', '..' ) );
-					foreach ( $files as $file ) {
-						
-						if ( is_link( $path . "/" . $file ) ) {
-							
-							if ( $follow ) {
-								
-								rrmdir( $path . "/" . $file, $follow, false);
-							}
-							unlink( $path . "/" . $file );
-						} elseif ( is_dir( $path . "/" . $file ) ) {
-							
-							rrmdir( $path . "/" . $file, $follow, false );
-						} else {
-							
-							unlink( $path . "/" . $file );
-						}
-					}
-					if( $keep_parent === false ) {
-						
-						rmdir( $path );
-						return;
-					} else {
-					
-						return;
-					}
-				}
-			}
-			
-			if ( file_exists( $this->path ) ) {
-				
-				if ( isset( $_GET['follow'] ) ) {
-				
-					rrmdir( $this->path, true, $keep_parent );
-				} else {
-				
-					rrmdir( $this->path, false, $keep_parent );
-				}
-				
-				$this->status = "success";
-			} else {
-				
-				$this->status = "error";
-				$this->message = "Path Does Not Exist ";
-			}
+			unlink( $path );
 		} else {
 			
-			$this->status = "error";
-			$this->message = "You do not have permission to delete this file.";
-		}
-		$response["status"] = $this->status;
-		$response["message"] = $this->message;
-		exit( json_encode( $response ) );
-	}
-	
-	
-	//////////////////////////////////////////////////////////////////
-	// MODIFY (Modifies a file name/contents or directory name)
-	//////////////////////////////////////////////////////////////////
-	
-	public function modify() {
-		
-		// Change name
-		if ( $this->new_name ) {
-			
-			$explode = explode( '/', $this->path );
-			array_pop( $explode );
-			$new_path = implode( "/", $explode ) . "/" . $this->new_name;
-			$new_path = $this->cleanPath( $new_path );
-			
-			if ( ! file_exists( $new_path ) ) {
+			$files = array_diff( scandir( $path ), array( '.', '..' ) );
+			foreach ( $files as $file ) {
 				
-				if ( Permissions::has_create( $this->path ) && rename( $this->path, $new_path ) ) {
+				if ( is_link( $path . "/" . $file ) ) {
 					
-					//unlink($this->path);
-					$this->status = "success";
+					if ( $follow ) {
+						
+						self::recursive_delete( $path . "/" . $file, $follow, false);
+					}
+					unlink( $path . "/" . $file );
+				} elseif ( is_dir( $path . "/" . $file ) ) {
+					
+					self::recursive_delete( $path . "/" . $file, $follow, false );
 				} else {
 					
-					$this->status = "error";
-					$this->message = "Could Not Rename";
+					unlink( $path . "/" . $file );
 				}
+			}
+			if( $keep_parent === false ) {
+				
+				rmdir( $path );
+				return;
 			} else {
 				
-				$this->status = "error";
-				$this->message = "Path Already Exists";
+				return;
 			}
+		}
+	}
+	
+	//////////////////////////////////////////////////////////////////
+	// SEARCH
+	//////////////////////////////////////////////////////////////////
+	
+	public function search( $path, $query, $options ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		if ( ! function_exists( 'shell_exec' ) ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "Shell_exec() Command Not Enabled.";
 		} else {
 			
-			// Change content
-			if ( $this->content || $this->patch ) {
+			$return = array();
+			$input = str_replace( '"', '', $query );
+			$cmd = 'find -L ' . escapeshellarg( $path ) . ' -iregex  '.escapeshellarg( '.*' . $options["filetype"] ) . ' -type f | xargs grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
+			$output = shell_exec( $cmd );
+			$output_arr = explode( "\n", $output );
+			foreach ( $output_arr as $line ) {
 				
-				if ( $this->content == ' ' ) {
+				$data = explode( ":", $line );
+				$da = array();
+				if ( count( $data ) > 2 ) {
 					
-					$this->content = ''; // Blank out file
+					$da['line'] = $data[1];
+					$da['file'] = str_replace( $path, '', $data[0] );
+					$da['result'] = str_replace( $path, '', $data[0] );
+					$da['string'] = str_replace( $data[0] . ":" . $data[1] . ':', '', $line );
+					$return[] = $da;
 				}
-				if ( $this->patch && ! $this->mtime ) {
-					
-					$this->status = "error";
-					$this->message = "mtime parameter not found";
-					$this->respond();
-					return;
-				}
+			}
+			if ( count( $return ) == 0 ) {
 				
-				if ( is_file( $this->path ) ) {
-					
-					if( Permissions::has_write( $this->path ) ) {
-						
-						$serverMTime = filemtime( $this->path );
-						$fileContents = file_get_contents( $this->path );
-						
-						if ( $this->patch && $this->mtime != $serverMTime ) {
-							
-							$this->status = "error";
-							$this->message = "Client is out of sync";
-							//DEBUG : file_put_contents($this->path.".conflict", "SERVER MTIME :".$serverMTime.", CLIENT MTIME :".$this->mtime);
-							$this->respond();
-							return;
-						} elseif ( strlen( trim( $this->patch ) ) == 0 && ! $this->content ) {
-							
-							// Do nothing if the patch is empty and there is no content
-							$this->status = "success";
-							$this->data = '"mtime":' . $serverMTime;
-							$this->respond();
-							return;
-						}
-						
-						if ( $file = fopen( $this->path, 'w' ) ) {
-							
-							if ( $this->patch ) {
-								
-								$dmp = new diff_match_patch();
-								$p = $dmp->patch_apply( $dmp->patch_fromText( $this->patch ), $fileContents );
-								$this->content = $p[0];
-								//DEBUG : file_put_contents($this->path.".orig",$fileContents );
-								//DEBUG : file_put_contents($this->path.".patch", $this->patch);
-							}
-							
-							if ( fwrite( $file, $this->content ) === false ) {
-								
-								$this->status = "error";
-								$this->message = "could not write to file";
-							} else {
-								
-								// Unless stat cache is cleared the pre-cached mtime will be
-								// returned instead of new modification time after editing
-								// the file.
-								clearstatcache();
-								$this->data = '"mtime":'.filemtime( $this->path );
-								$this->status = "success";
-							}
-							
-							fclose( $file );
-						} else {
-							
-							$this->status = "error";
-							$this->message = "Cannot Write to File";
-						}
-					} else {
-						
-						$this->status = "error";
-						$this->message = "You do not have write permission to this file.";
-					}
-				} else {
-					
-					$this->status = "error";
-					$this->message = "Not A File";
-				}
+				$response["status"] = "error";
+				$response["message"] = "No Results Returned";
 			} else {
 				
-				$file = fopen( $this->path, 'w' );
-				fclose( $file );
-				$this->data = '"mtime":' . filemtime ($this->path);
-				$this->status = "success";
+				$response["status"] = "success";
+				$response["index"] = $return;
 			}
 		}
-		
-		$this->respond();
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// DUPLICATE (Creates a duplicate of the object - (cut/copy/paste)
-	//////////////////////////////////////////////////////////////////
-	
-	public function duplicate() {
-	
-		if ( ! file_exists( $this->path ) ) {
-			
-			$this->status = "error";
-			$this->message = "Invalid Source";
-		}
-		
-		function recurse_copy( $src, $dst ) {
-			
-			$dir = opendir( $src );
-			@mkdir( $dst );
-			while ( false !== ( $file = readdir( $dir ) ) ) {
-				
-				if (( $file != '.' ) && ( $file != '..' )) {
-					
-					if ( is_dir( $src . '/' . $file ) ) {
-						
-						recurse_copy( $src . '/' . $file, $dst . '/' . $file );
-					} else {
-						
-						copy( $src . '/' . $file, $dst . '/' . $file );
-					}
-				}
-			}
-			closedir($dir);
-		}
-		
-		if ( $this->status != "error" ) {
-			
-			if ( is_file( $this->path ) ) {
-				
-				copy( $this->path, $this->destination );
-				$this->status = "success";
-			} else {
-				
-				recurse_copy( $this->path, $this->destination );
-				if ( ! $this->response ) {
-					
-					$this->status = "success";
-				}
-			}
-		}
-		$this->respond();
+		return $response;
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// UPLOAD (Handles uploads to the specified directory)
 	//////////////////////////////////////////////////////////////////
 	
-	public function upload() {
-	
+	public function upload( $path ) {
+		
 		// Check that the path is a directory
-		if ( is_file( $this->path ) ) {
+		$response = array(
+			"status" => "none",
+			"message" => "",
+			"files" => array(),
+		);
+		if ( is_file( $path ) ) {
 			
-			$this->status = "error";
-			$this->message = "Path Not A Directory";
+			$response["status"] = "error";
+			$response["message"] = "Path Not A Directory";
 		} else {
 			
-			// Handle upload
-			$info = array();
 			foreach( $_FILES['upload']['name'] as $key => $value ) {
 				
 				if ( ! empty( $value ) ) {
 					
 					$filename = $value;
-					$add = $this->path."/$filename";
-					if ( @move_uploaded_file( $_FILES['upload']['tmp_name'][$key], $add ) ) {
+					$filepath = $path . "/$filename";
+					if ( @move_uploaded_file( $_FILES['upload']['tmp_name'][$key], $filepath ) ) {
 						
 						$info[] = array(
-							"name"=>$value,
-							"size"=>filesize($add),
-							"url"=>$add,
-							"thumbnail_url"=>$add,
-							"delete_url"=>$add,
-							"delete_type"=>'DELETE'
+							"name" => $filename,
+							"size" => filesize( $filepath ),
+							"url" => $filepath,
+							"thumbnail_url" => $filepath,
+							"delete_url" => $filepath,
+							"delete_type" => 'DELETE'
 						);
 					}
 				}
 			}
-			$this->upload_json = json_encode( $info );
 		}
-		$this->respond();
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// RESPOND (Outputs data in JSON [JSEND] format)
-	//////////////////////////////////////////////////////////////////
-	
-	public function respond() {
-	
-		// Success ///////////////////////////////////////////////
-		if ( $this->status=="success" ) {
-				
-			if ( $this->data ) {
-				
-				$json = '{"status":"success","data":{' . $this->data . '}}';
-			} else {
-				$json = '{"status":"success","data":null}';
-			}
-			
-			// Upload JSON ///////////////////////////////////////////
-		} elseif ( $this->upload_json != '' ) {
-			
-			$json = $this->upload_json;
-			// Error /////////////////////////////////////////////////
-		} else {
-			
-			$json = '{"status":"error","message":"'.$this->message.'"}';
-		}
-		
-		// Output ////////////////////////////////////////////////
-		echo( $json );
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Clean a path
-	//////////////////////////////////////////////////////////////////
-	
-	public static function cleanPath( $path ) {
-		
-		// Prevent going out of the workspace
-		while ( strpos( $path, '../' ) !== false ) {
-			
-			$path = str_replace( '../', '', $path );
-		}
-		
-		if( Filemanager::isAbsPath( $path ) ) {
-			
-			$full_path = $path;
-		} else {
-			
-			$full_path = WORKSPACE . "/" . $path;
-		}
-		
-		/**
-		 * If a file with an invalid character exists and the user is
-		 * trying to rename or delete it, allow the actual file name.
-		 */
-		
-		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\ ]/', $path );
-		
-		if( $invalid_characters && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
-			
-			exit( '{"status":"error","message":"Error, the filename contains invalid characters, please either rename or delete it."}' );
-		} elseif( $invalid_characters && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
-		} else {
-			
-			$path = preg_replace( '/[^A-Za-z0-9\-\._@\/\ ]/', '', $path );
-		}
-		return $path;
+		return $response;
 	}
 }

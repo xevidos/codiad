@@ -38,6 +38,8 @@ Current Tasks:
 Task List:
   
 * Add ability to login with LDAP
+* Add archive management
+* Add bookmark files
 * Add custom market
 * \- Add in new admin interface ( Check admin-portal branch for progress )
 	- Group Management
@@ -46,13 +48,17 @@ Task List:
 	- Project Management
 	- System Settings
 	- User Management
+* Add different code linters
 * Add Drag and Drop natively to filemanager
 * Add folder / filestructure upload ability
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
+* Add move files
 * Add permissions module ( more in depth permissions such as read/write, delete, etc )
+* Add print code
 * Add support for more database systems ( MSSQL, Oracle, SQLite, Filesystem storage, etc )
+* Add terminal support ( optional per permission level )
 * Add in auto save timer that saves after the user stops typing instead of after every change
 * Clean up update script
 * Fix broken themes
