@@ -32,7 +32,15 @@ if( $_GET['action'] == 'add_user' ) {
 		"undefined"
 	);
 	
-	if( ! in_array( $_GET['username'], $invalid_users ) ) {
+	if( ! isset( $_GET['access'] ) || in_array( $_GET['access'], $invalid_users ) || ! in_array( $_GET['access'], array_keys( Permissions::LEVELS ) ) ) {
+		
+		exit( formatJSEND( "error", "No access set." ) );
+	} else {
+		
+		$Project->access = Permissions::LEVELS[$_GET['access']];
+	}
+	
+	if( isset( $_GET['username'] ) && ! in_array( $_GET['username'], $invalid_users ) ) {
 		
 		$Project->user = $_GET['username'];
 	} else {
@@ -65,7 +73,7 @@ if( $_GET['action'] == 'add_user' ) {
 //////////////////////////////////////////////////////////////////
 
 if( $_GET['action'] == 'create' ) {
-		
+	
 	$Project->name = $_GET['project_name'];
 	
 	if( $_GET['public_project'] == 'true' ) {
@@ -110,7 +118,7 @@ if( $_GET['action'] == 'current' ) {
 
 if( $_GET['action'] == 'delete' ) {
 	
-	if( checkPath( $_GET['project_path'] ) ) {
+	if( isset( $_GET['project_path'] ) ) {
 		
 		$Project->path = $_GET['project_path'];
 		$Project->Delete();
@@ -123,8 +131,7 @@ if( $_GET['action'] == 'delete' ) {
 
 if( $_GET['action'] == 'get_access' ) {
 	
-	$Project->path = $_GET['project_path'];
-	$access = $Project->get_access( $_GET['project_path'] );
+	$access = $Project->get_access( $_GET['project_id'] );
 	echo formatJSEND( "success", $access );
 }
 
@@ -184,7 +191,7 @@ if( $_GET['action'] == 'get_owner' ) {
 
 if( $_GET['action'] == 'open' ) {
 	
-	if( ! checkPath( $_GET['path'] ) ) {
+	if( ! isset( $_GET['path'] ) || ! Permissions::has_read( $_GET['path'] ) ) {
 		
 		die( formatJSEND( "error", "No Access to path " . $_GET['path'] ) );
 	}
@@ -205,8 +212,7 @@ if( $_GET['action'] == 'remove_user' ) {
 		$Project->user = $_GET['username'];
 	} else {
 		
-		echo formatJSEND( "error", "No username set." );
-		return;
+		exit( formatJSEND( "error", "No username set." ) );
 	}
 	
 	if(	! in_array( $_GET['project_path'], $invalid ) ) {
@@ -214,8 +220,15 @@ if( $_GET['action'] == 'remove_user' ) {
 		$Project->path = $_GET['project_path'];
 	} else {
 		
-		echo formatJSEND( "error", "No project path set." );
-		return;
+		exit( formatJSEND( "error", "No project path set." ) );
+	}
+	
+	if(	! in_array( $_GET['project_id'], $invalid ) ) {
+		
+		$Project->project_id = $_GET['project_id'];
+	} else {
+		
+		exit( formatJSEND( "error", "No project id set." ) );
 	}
 	
 	if( $Project->check_owner( $_GET["project_path"], true ) ) {
@@ -223,7 +236,7 @@ if( $_GET['action'] == 'remove_user' ) {
 		$Project->remove_user();
 	} else {
 		
-		echo formatJSEND( "error", "You can not manage this project." );
+		exit( formatJSEND( "error", "You can not manage this project." ) );
 	}
 }
 
@@ -233,7 +246,7 @@ if( $_GET['action'] == 'remove_user' ) {
 
 if( $_GET['action'] == 'rename' ) {
 	
-	if( ! checkPath( $_GET['project_path'] ) ) {
+	if( ! isset( $_GET['project_path'] ) || ! Permissions::has_owner( $_GET['project_path'] ) ) {
 		
 		die( formatJSEND( "error", "No Access" ) );
 	}

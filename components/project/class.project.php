@@ -14,13 +14,14 @@ class Project extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
-	public $name         = '';
-	public $path         = '';
-	public $gitrepo      = false;
-	public $gitbranch    = '';
-	public $projects     = array();
-	public $no_return    = false;
-	public $assigned     = false;
+	public $access = Permissions::LEVELS["read"];
+	public $name = '';
+	public $path = '';
+	public $gitrepo = false;
+	public $gitbranch = '';
+	public $projects = array();
+	public $no_return = false;
+	public $assigned = false;
 	public $command_exec = '';
 	public $public_project = false;
 	public $user = '';
@@ -67,43 +68,74 @@ class Project extends Common {
 	public function add_user() {
 		
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
+		$query = "SELECT * FROM projects WHERE path=? AND owner=? LIMIT 1";
 		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
-
-		if( ! empty( $result ) ) {
+		$project = $sql->query( $query, $bind_variables, array(), "fetch" );
+		
+		if( empty( $project ) ) {
 			
-			$access = json_decode( $result["access"] );
+			exit( formatJSEND( "error", "Error fetching projects." ) );
+		}
+		
+		$user_id = get_user_id( $this->user );
+		
+		if( $user_id === false ) {
 			
-			if( is_array( $access ) ) {
-				
-				if( ! in_array( $this->user, $access ) ) {
-					
-					array_push( $access, $this->user );
-				}
-			} else {
-				
-				$access = array(
-					$this->user
-				);
-			}
+			exit( formatJSEND( "error", "Error fetching user information." ) );
+		}
+		
+		$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ?", array( $project["id"], $user_id ), array(), "fetch" );
+		
+		if( ! empty( $user ) ) {
 			
-			$access = json_encode( $access );
-			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
-			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			$query = "UPDATE access SET level=? WHERE project=? AND user=?;";
+			$bind_variables = array( $this->access, $project["id"], $user_id );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result > 0 ) {
-			
-				echo( formatJSEND( "success", "Successfully added {$this->user}." ) );
+				
+				echo formatJSEND( "success", "Successfully updated {$this->user}." );
 			} else {
 				
 				echo formatJSEND( "error", "Error setting access for project." );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Error fetching projects." );
+			$query = "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );";
+			$bind_variables = array( $project["id"], $user_id, $this->access );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result > 0 ) {
+				
+				echo formatJSEND( "success", "Successfully added {$this->user}." );
+			} else {
+				
+				echo formatJSEND( "error", "Error setting access for project." );
+			}
 		}
+	}
+	
+	public function check_duplicate( $full_path ) {
+		
+		global $sql;
+		$pass = true;
+		$query = "SELECT id, path, owner FROM projects;";
+		$result = $sql->query( $query, array(), array(), "fetchAll" );
+		
+		if( ! empty( $result ) ) {
+			
+			foreach( $result as $row => $project ) {
+				
+				$full_project_path = Common::isAbsPath( $project["path"] ) ? $project["path"] : WORKSPACE . "/{$project["path"]}";
+				
+				if( ! ( strpos( $full_path, $full_project_path ) === FALSE ) ) {
+					
+					$pass = false;
+					break;
+				}
+			}
+		}
+		return $pass;
 	}
 	
 	public function check_owner( $path = null, $exclude_public = false ) {
@@ -115,7 +147,7 @@ class Project extends Common {
 		global $sql;
 		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
+		$result = $sql->query( $query, $bind_variables, array(), "fetch" );
 		$return = false;
 		
 		if( ! empty( $result ) ) {
@@ -138,25 +170,12 @@ class Project extends Common {
 		return( $return );
 	}
 	
-	public function get_access( $path = null ) {
+	public function get_access( $project_id = null ) {
 		
-		if( $path === null ) {
-			
-			$path = $this->path;
-		}
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=?";
-		$bind_variables = array( $path );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
-		
-		if( ! empty( $return ) ) {
-			
-			$return = $return["access"];
-		} else {
-			
-			$return = formatJSEND( "error", "Error fetching project info." );
-		}
-		
+		$query = "SELECT * FROM access WHERE project=?";
+		$bind_variables = array( $project_id );
+		$return = $sql->query( $query, $bind_variables, array() );
 		return( $return );
 	}
 	
@@ -169,7 +188,7 @@ class Project extends Common {
 		global $sql;
 		$query = "SELECT owner FROM projects WHERE path=?";
 		$bind_variables = array( $path );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
@@ -188,31 +207,65 @@ class Project extends Common {
 			
 			$project = $this->path;
 		}
+		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
-		$bind_variables = array( $project, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$query = "
+			SELECT * FROM projects
+			WHERE path = ?
+			AND (
+				owner=?
+				OR owner='nobody'
+				OR id IN ( SELECT project FROM access WHERE user = ? )
+			) ORDER BY name;";
+		$bind_variables = array( $project, $_SESSION["user"], $_SESSION["user_id"] );
+		//$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
+		//$bind_variables = array( $project, $_SESSION["user"] );
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
 		} else {
 			
-			$return = formatJSEND( "error", "Error fetching projects." );
+			$return = formatJSEND( "error", "No projects found." );
 		}
 		
+		return( $return );
+	}
+	
+	public function get_all_projects() {
+		
+		if( is_admin() ) {
+			
+			global $sql;
+			$query = "SELECT * FROM projects";
+			$bind_variables = array();
+			$return = $sql->query( $query, $bind_variables, array() );
+			
+			if( empty( $return ) ) {
+				
+				$return = formatJSEND( "error", "No projects found." );
+			}
+		} else {
+			
+			$return = formatJSEND( "error", "Only admins are allowed to view all projects." );
+		}
 		return( $return );
 	}
 	
 	public function get_projects() {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE owner=? OR owner='nobody' OR access LIKE ? ORDER BY name;";
-		$bind_variables = array( $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
+		$query = "
+			SELECT * FROM projects
+			WHERE owner=?
+			OR owner='nobody'
+			OR id IN ( SELECT project FROM access WHERE user = ? );";
+		$bind_variables = array( $_SESSION["user"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		
 		if( empty( $return ) ) {
 			
-			$return = formatJSEND( "error", "Error fetching projects." );
+			$return = formatJSEND( "error", "No projects found." );
 		}
 		
 		return( $return );
@@ -221,42 +274,24 @@ class Project extends Common {
 	public function remove_user() {
 		
 		global $sql;
-		$query = "SELECT access FROM projects WHERE path=? AND owner=?";
-		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$result = $sql->query( $query, $bind_variables, array() )[0];
-
-		if( ! empty( $result ) ) {
+		
+		$user_id = get_user_id( $this->user );
+		
+		if( $user_id === false ) {
 			
-			$access = json_decode( $result["access"] );
+			return formatJSEND( "error", "Error fetching user information." );
+		}
+		
+		$query = "DELETE FROM access WHERE project=? AND user=?;";
+		$bind_variables = array( $this->project_id, $user_id );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		
+		if( $return > 0 ) {
 			
-			if( is_array( $access ) ) {
-				
-				$key = array_search( $this->user, $access );
-					
-				if ( $key !== false ) {
-					
-					unset( $access[$key] );
-				} else {
-					
-					echo( formatJSEND( "error", "{$this->user} is not in the access list." ) );
-				}
-			}
-			
-			$access = json_encode( $access );
-			$query = "UPDATE projects SET access=? WHERE path=? AND owner=?;";
-			$bind_variables = array( $access, $this->path, $_SESSION["user"] );
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-			
-			if( $return > 0 ) {
-			
-				echo( formatJSEND( "success", "Successfully removed {$this->user}." ) );
-			} else {
-				
-				echo formatJSEND( "error", "Error setting access for project." );
-			}
+			echo( formatJSEND( "success", "Successfully removed {$this->user}." ) );
 		} else {
 			
-			echo formatJSEND( "error", "Error fetching projects." );
+			echo( formatJSEND( "error", "{$this->user} is not in the access list." ) );
 		}
 	}
 	
@@ -337,9 +372,16 @@ class Project extends Common {
 	public function Open() {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' OR access LIKE ? );";
-		$bind_variables = array( $this->path, $_SESSION["user"], '%"' . $_SESSION["user"] . '"%' );
-		$return = $sql->query( $query, $bind_variables, array() )[0];
+		$query = "
+			SELECT * FROM projects
+			WHERE path = ? 
+			AND (
+				owner=?
+				OR owner='nobody'
+				OR id IN ( SELECT project FROM access WHERE user = ? )
+			) ORDER BY name LIMIT 1;";
+		$bind_variables = array( $this->path, $_SESSION["user"], $_SESSION["user_id"] );
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
@@ -348,6 +390,7 @@ class Project extends Common {
 			$sql->query( $query, $bind_variables, 0, "rowCount" );
 			$this->name = $return['name'];
 			$_SESSION['project'] = $return['path'];
+			$_SESSION['project_id'] = $return['id'];
 			
 			echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
 		} else {
@@ -361,7 +404,7 @@ class Project extends Common {
 	//////////////////////////////////////////////////////////////////
 	
 	public function Create() {
-			
+		
 		if ( $this->name != '' && $this->path != '' ) {
 			
 			$this->path = $this->cleanPath();
@@ -372,24 +415,27 @@ class Project extends Common {
 			}
 			if ( $this->path != '' ) {
 				
-				if( ! $this->public_project && ! $this->isAbsPath( $this->path ) ) {
+				$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+				
+				if( ! $this->isAbsPath( $this->path ) ) {
 					
-					$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+					$this->path =  $_SESSION["user"] . '/' . $this->path;
+				}
+				
+				$pass = $this->check_duplicate( $this->path );
+				if ( $pass ) {
 					
 					if( ! is_dir( $user_path ) ) {
 						
 						mkdir( $user_path, 0755, true );
 					}
 					
-					$this->path =  $_SESSION["user"] . '/' . $this->path;
-				}
-				
-				$pass = $this->checkDuplicate();
-				if ( $pass ) {
-					
 					if ( ! $this->isAbsPath( $this->path ) ) {
 						
-						mkdir( WORKSPACE . '/' . $this->path );
+						if( ! is_dir( WORKSPACE . '/' . $this->path ) ) {
+							
+							mkdir( WORKSPACE . '/' . $this->path );
+						}
 					} else {
 						
 						if( ! is_admin() ) {
@@ -407,7 +453,7 @@ class Project extends Common {
 									$allowed = true;
 								}
 							}
-							if ( ! $allowed) {
+							if ( ! $allowed ) {
 								
 								die( formatJSEND( "error", "Absolute Path Only Allowed for " . WHITEPATHS ) );
 							}
@@ -443,18 +489,18 @@ class Project extends Common {
 						$this->ExecuteCMD();
 					}
 					
-					echo formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) );
+					exit( formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) ) );
 				} else {
 					
-					echo formatJSEND( "error", "A Project With the Same Name or Path Exists" );
+					exit( formatJSEND( "error", "A Project With the Same Name or Path Exists" ) );
 				}
 			} else {
 				
-				echo formatJSEND( "error", "Project Name/Folder not allowed" );
+				exit( formatJSEND( "error", "Project Name/Folder not allowed" ) );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Project Name/Folder is empty" );
+			exit( formatJSEND( "error", "Project Name/Folder is empty" ) );
 		}
 	}
 	
@@ -495,35 +541,24 @@ class Project extends Common {
 	
 	public function Delete() {
 		
-		global $sql;
-		$query = "DELETE FROM projects WHERE path=? AND ( owner=? OR owner='nobody' );";
-		$bind_variables = array( $this->path, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-		
-		if( $return > 0 ) {
+		if( Permissions::has_owner( $this->path ) ) {
 			
-			echo( formatJSEND( "success", "Successfully deleted $project_name" ) );
+			global $sql;
+			$query = "DELETE FROM projects WHERE path=?";
+			$bind_variables = array( $this->path );
+			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $return > 0 ) {
+				
+				exit( formatJSEND( "success", "Successfully deleted project." ) );
+			} else {
+				
+				exit( formatJSEND( "error", "Error deleting project" ) );
+			}
 		} else {
 			
-			echo formatJSEND( "error", "Error deleting project $project_name" );
+			exit( formatJSEND( "error", "You do not have permission to delete this project" ) );
 		}
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Check Duplicate
-	//////////////////////////////////////////////////////////////////
-	
-	public function CheckDuplicate() {
-		
-		$pass = true;
-		foreach ( $this->projects as $project => $data ) {
-			
-			if ( $data['name'] == $this->name || $data['path'] == $this->path ) {
-				
-				$pass = false;
-			}
-		}
-		return $pass;
 	}
 	
 	//////////////////////////////////////////////////////////////////

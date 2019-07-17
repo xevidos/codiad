@@ -130,41 +130,39 @@
 			var _this = this;
 			codiad.modal.load(400, this.dialog + '?action=create');
 			$('#modal-content form')
-				.live('submit', function(e) {
-					e.preventDefault();
-					var pass = true;
-					var username = $('#modal-content form input[name="username"]')
-						.val();
-					var password1 = $('#modal-content form input[name="password1"]')
-						.val();
-					var password2 = $('#modal-content form input[name="password2"]')
-						.val();
+			.live('submit', function(e) {
+				e.preventDefault();
+				var pass = true;
+				var username = $('#modal-content form input[name="username"]')
+					.val();
+				var password1 = $('#modal-content form input[name="password1"]')
+					.val();
+				var password2 = $('#modal-content form input[name="password2"]')
+					.val();
+				
+				// Check matching passwords
+				if(password1 != password2) {
 					
-					// Check matching passwords
-					if(password1 != password2) {
-						codiad.message.error(i18n('Passwords Do Not Match'));
-						pass = false;
-					}
+					codiad.message.error(i18n('Passwords Do Not Match'));
+					pass = false;
+				}
+				
+				if( pass ) {
 					
-					// Check no spaces in username
-					if(!/^[a-z0-9]+$/i.test(username) || username.length === 0) {
-						codiad.message.error(i18n('Username Must Be Alphanumeric String'));
-						pass = false;
-					}
-					
-					if(pass) {
-						$.post(_this.controller + '?action=create', {
-							'username': username,
-							'password': password1
-						}, function(data) {
-							var createResponse = codiad.jsend.parse(data);
-							if(createResponse != 'error') {
-								codiad.message.success(i18n('User Account Created'))
-								_this.list();
-							}
-						});
-					}
-				});
+					$.post( _this.controller + '?action=create', {
+						'username': username,
+						'password': password1,
+						'password2': password2,
+					}, function(data) {
+						var createResponse = codiad.jsend.parse( data );
+						if( createResponse != 'error' ) {
+							
+							codiad.message.success( i18n( 'User Account Created' ) )
+							_this.list();
+						}
+					});
+				}
+			});
 		},
 		
 		//////////////////////////////////////////////////////////////////

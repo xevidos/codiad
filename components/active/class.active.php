@@ -31,6 +31,14 @@ class Active extends Common {
 	public function __construct() {
 	}
 	
+	public static function remove( $path ) {
+		
+		global $sql;
+		$query = "DELETE FROM active WHERE path=? AND username=?;";
+		$bind_variables = array( $path, $_SESSION["user"] );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// List User's Active Files
 	//////////////////////////////////////////////////////////////////
@@ -38,14 +46,14 @@ class Active extends Common {
 	public function ListActive() {
 		
 		global $sql;
-		$query = "SELECT path,position,focused FROM active WHERE username=?";
+		$query = "SELECT path, position, focused FROM active WHERE username=?";
 		$bind_variables = array( $this->username );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
 		$root = WORKSPACE;
 		$active_list = $result;
 		
-		if( ! empty( $return ) ) {
+		if( ! empty( $result ) ) {
 			
 			foreach ( $result as $id => $data ) {
 				
@@ -57,20 +65,14 @@ class Active extends Common {
 					$root = $root.'/';
 				}
 				
-				if ( ! file_exists( $root . $data['path'] ) ) {
+				if ( ! is_file( $root . $data['path'] ) ) {
 					
-					$tainted = true;
+					self::remove( $data['path'] );
 					unset( $active_list[$id] );
 				}
 			}
 		}
-		
-		if( $tainted ) {
-			
-			$this->update_active( $active_list );
-		}
-		
-		echo formatJSEND( "success", $active_list );
+		exit( formatJSEND( "success", $active_list ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -132,23 +134,6 @@ class Active extends Common {
 		global $sql;
 		$query = "UPDATE active SET path=? WHERE path=?;";
 		$bind_variables = array( $this->new_path, $this->path );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-		
-		if( $return > 0 ) {
-			
-			echo formatJSEND( "success" );
-		}
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Remove File
-	//////////////////////////////////////////////////////////////////
-	
-	public function Remove() {
-		
-		global $sql;
-		$query = "DELETE FROM active WHERE path=? AND username=?;";
-		$bind_variables = array( $this->path, $this->username );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {

@@ -390,11 +390,16 @@
 			this.setTabSize( this.settings.tabSize, i );
 			this.setSoftTabs( this.settings.softTabs, i );
 			this.setOverScroll( this.settings.overScroll, i );
-			i.setOptions( {
+			i.setOptions({
 				enableBasicAutocompletion: true,
 				enableSnippets: true,
 				enableLiveAutocompletion: this.settings.autocomplete
 			});
+			
+			if( i.getSession().read_only ) {
+				
+				i.setReadOnly( true );
+			}
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -718,11 +723,15 @@
 		/////////////////////////////////////////////////////////////////
 		
 		setSession: function( session, i ) {
+			
 			i = i || this.getActive();
 			if( !this.isOpen( session ) ) {
+				
 				if( !i ) {
+					
 					i = this.addInstance( session );
 				} else {
+					
 					i.setSession( session );
 				}
 			} else {

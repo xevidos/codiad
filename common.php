@@ -5,6 +5,9 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $sql = null;
 Common::startSession();
@@ -93,6 +96,7 @@ class Common {
 			define( "LANGUAGE", "en" );
 		}
 		
+		require_once( COMPONENTS . "/permissions/class.permissions.php" );
 		require_once( COMPONENTS . "/update/class.update.php" );
 		require_once( COMPONENTS . "/sql/class.sql.php" );
 		global $sql;
@@ -103,60 +107,25 @@ class Common {
 	// New Methods
 	//////////////////////////////////////////////////////////////////
 	
-	
-	
-	//////////////////////////////////////////////////////////////////
-	// Check access to application
-	//////////////////////////////////////////////////////////////////
-	
-	public static function check_access( $action = "return" ) {
-		
-		/*if( ! self::check_session() ) {
-			
-			session_destroy();
-			self::return( formatJSEND( "error", "Error fetching project information." ), "exit" );
-		}*/
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// Check access to a project
-	//////////////////////////////////////////////////////////////////
-	public static function check_project_access( $project_path, $action ) {
+	public static function get_user_id( $username ) {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
-		$bind_variables = array( $project_name, $project_path, $_SESSION["user"] );
-		$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking project access." ) );
+		$user_id = false;
+		$query = "SELECT id FROM users WHERE username = ? LIMIT 1;";
+		$bind_variables = array( $username );
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
-			try {
-				
-				$users = json_decode( $return["access"] );
-			} catch( exception $e ) {
-				
-				$users = array();
-			}
-			
-			if( $return["owner"] == 'nobody' || $return["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
-				
-				$return = true;
-			} else {
-				
-				$return = false;
-			}
-		} else {
-			
-			$return = false;
+			$user_id = $return["id"];
 		}
-		
-		self::return( $return, $action );
+		return $user_id;
 	}
 	
 	public static function get_users( $return = "return", $exclude_current = false ) {
 		
 		global $sql;
-		$query = "SELECT username FROM users";
+		$query = "SELECT * FROM users";
 		$bind = "";
 		$bind_variables = array();
 		
@@ -168,25 +137,19 @@ class Common {
 		}
 		
 		$result = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking users." ) );
-		$user_list = array();
-		
-		foreach( $result as $row ) {
-			
-			array_push( $user_list, $row["username"] );
-		}
-		
+
 		if( ! empty( $result ) ) {
 			
 			switch( $return ) {
 				
 				case( "json" ):
 					
-					$return = json_encode( $user_list );
+					$return = json_encode( $result );
 				break;
 				
 				case( "return" ):
 					
-					$return = $user_list;
+					$return = $result;
 				break;
 			}
 		} else {
@@ -564,47 +527,7 @@ class Common {
 	
 	public static function checkPath( $path ) {
 		
-		global $sql;
-		//$query = "SELECT * FROM projects WHERE LOCATE( path, ? ) > 0 LIMIT 1;";
-		//$bind_variables = array( $path );
-		//$result = $sql->query( $query, $bind_variables, array() )[0];
-		$result = $sql->select(
-			"projects",
-			array(),
-			array(
-				array(
-					"find",
-					"[path]",
-					$path,
-					array(
-						"more than",
-						0
-					)
-				),
-				array(
-					"limit",
-					1
-				)
-			)
-		);
-		
-		if( ! empty( $result ) ) {
-			
-			$result = $result[0];
-			try {
-				
-				$users = json_decode( $result["access"] );
-			} catch( exception $e ) {
-				
-				$users = array();
-			}
-			
-			if( $result["owner"] == 'nobody' || $result["owner"] == $_SESSION["user"] || ( in_array( $_SESSION["user"], $users ) && ! empty( $users ) ) ) {
-				
-				return( true );
-			}
-		}
-		return( false );
+		return Permissions::has_manager( $path );
 	}
 	
 	
@@ -651,19 +574,20 @@ class Common {
 // Wrapper for old method names
 //////////////////////////////////////////////////////////////////
 
-function is_admin() { return Common::is_admin(); }
-function debug($message) { Common::debug($message); }
-function i18n($key, $args = array()) { echo Common::i18n($key, $args); }
-function get_i18n($key, $args = array()) { return Common::get_i18n($key, $args); }
-function checkSession(){ Common::checkSession(); }
-function getJSON($file,$namespace=""){ return Common::getJSON($file,$namespace); }
-function saveJSON($file,$data,$namespace=""){ Common::saveJSON($file,$data,$namespace); }
-function formatJSEND($status,$data=false){ return Common::formatJSEND($status,$data); }
 function checkAccess() { return Common::checkAccess(); }
-function checkPath($path) { return Common::checkPath($path); }
-function isAvailable($func) { return Common::isAvailable($func); }
-function logout() { return Common::logout(); }
+function checkPath( $path ) { return Common::checkPath($path); }
+function checkSession() { Common::checkSession(); }
+function debug( $message ) { Common::debug( $message ); }
+function formatJSEND( $status, $data=false ){ return Common::formatJSEND($status,$data); }
+function get_i18n( $key, $args = array() ) { return Common::get_i18n($key, $args); }
+function get_user_id( $username ) { return Common::get_user_id( $username ); }
 function get_users( $return = "return", $exclude_current = false ) { return Common::get_users( $return, $exclude_current ); }
-function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
 function get_version() { return Common::get_version(); }
+function getJSON( $file,$namespace=""){ return Common::getJSON( $file, $namespace ); }
+function i18n( $key, $args = array() ) { echo Common::i18n( $key, $args ); }
+function is_admin() { return Common::is_admin(); }
+function isAvailable( $func ) { return Common::isAvailable( $func ); }
+function logout() { return Common::logout(); }
+function saveJSON( $file, $data, $namespace="" ){ Common::saveJSON( $file, $data, $namespace ); }
+function search_users( $username, $return = "return", $exclude_current = false ) { return Common::search_users( $username, $return, $exclude_current ); }
 ?>

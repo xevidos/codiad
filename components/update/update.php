@@ -15,6 +15,7 @@ $projects_file = BASE_PATH . "/data/projects.php";
 $users_file = BASE_PATH . "/data/users.php";
 //checkSession();
 if ( ! checkAccess() ) {
+	
 	echo "Error, you do not have access to update Codiad.";
 	exit();
 }
@@ -176,7 +177,13 @@ class updater {
 		
 		$sql = new sql();
 		$connection = $sql->connect();
-		$result = $sql->create_default_tables();
+		$result = $sql->recreate_default_tables();
+		$upgrade_function = str_replace( ".", "_", $this->update::VERSION );
+		
+		if( is_callable( array( $this, $upgrade_function ) ) ) {
+			
+			$this->$upgrade_function();
+		}
 	}
 	
 	function check_update() {
@@ -452,7 +459,6 @@ class updater {
 	function update() {
 		
 		$this->backup();
-		
 		
 		try {
 			
