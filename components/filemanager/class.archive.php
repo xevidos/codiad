@@ -69,9 +69,43 @@ class Archive {
 		return $system;
 	}
 	
-	public static function compress( $path, $type = "zip" ) {
+	public static function compress( $path, $output = "default", $type = "default" ) {
 		
 		$response = array();
+		
+		if( $type == "default" ) {
+			
+			$type = self:: get_supported_type();
+		}
+		
+		if( $output == "default" ) {
+			
+			$output = dirname( $path ) . "/" . basename( $path ) . ".$type";
+			$path_parts = pathinfo( $output );
+			$existing = $output;
+			$i = 1;
+			
+			do {
+				
+				if( is_dir( $existing ) ) {
+					
+					$existing = rtrim( $output, "/" ) . " $i/";
+				} elseif( is_file( $existing ) ) {
+					
+					if( isset( $path_parts["extension"] ) ) {
+						
+						$existing = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $output );
+					} else {
+						
+						$existing = $output . " $i";
+					}
+				}
+				$i++;
+			} while( is_file( $existing ) || is_dir( $existing ) );
+			
+			$output = $existing;
+		}
+		
 		$supported = self::supports( $type );
 		$archive = self::get_instance();
 		
@@ -79,10 +113,10 @@ class Archive {
 			
 			if( extension_loaded( self::EXTENSIONS["{$type}"] ) ) {
 				
-				$response = call_user_func( array( $archive, "{$type}_c" ), $path );
+				$response = call_user_func( array( $archive, "{$type}_c" ), $path, $output  );
 			} else {
 				
-				$response = $archive->execute( $type, "compress" );
+				//$response = $archive->execute( $type, "compress", $path, dirname( $path ) );
 			}
 		} else {
 			
@@ -91,7 +125,7 @@ class Archive {
 		return $response;
 	}
 	
-	public static function decompress( $file, $path = null ) {
+	public static function decompress( $file, $output = "default" ) {
 		
 		$type = filetype( $file );
 		$response = array();
@@ -114,6 +148,28 @@ class Archive {
 		return $response;
 	}
 	
+	public static function get_supported_type() {
+		
+		//zip is usually the most used format supported by the most OS's,
+		//we check that first then check the rest of the types.
+		
+		$supported_type = null;
+		$types = self::SUPPORTED_TYPES;
+		$zip_id = array_search( "zip", $types );
+		unset( $types[$zip_id] );
+		array_unshift( $types, "zip" );
+		
+		foreach( $types as $id => $type ) {
+			
+			if( self::supports( $type ) ) {
+				
+				$supported_type = $type;
+				break;
+			}
+		}
+		return $supported_type;
+	}
+	
 	public static function supports( $type ) {
 		
 		$response = array();
@@ -124,9 +180,11 @@ class Archive {
 			$system = self::get_system();
 			$supported = false;
 			$extension = self::EXTENSIONS["{$type}"];
-			$command = self::COMMANDS["{$system}"]["{$type}"];
 			
 			if( extension_loaded( $extension ) ) {
+				
+				$type_supported = true;
+			} elseif( isset( self::COMMANDS["{$type}"] ) && isset( self::COMMANDS["{$type}"]["compress"][$system] ) ) {
 				
 				$type_supported = true;
 			}
@@ -157,6 +215,7 @@ class Archive {
 			$archive = new ZipArchive();
 			if( $archive->open( $output, ZIPARCHIVE::CREATE ) !== true ) {
 				
+				echo var_dump( $path, $output );
 				return false;
 			}
 		}

@@ -106,11 +106,13 @@
 					break;
 				case 'root':
 					$( '#context-menu .directory-only, #context-menu .root-only' ).show();
+					$( '#context-menu .non-root' ).hide();
 					break;
 				case 'editor':
 					$( '#context-menu .editor-only' ).show();
 					break;
 			}
+			
 			if( codiad.project.isAbsPath( $( '#file-manager a[data-type="root"]' ).attr( 'data-path' ) ) ) {
 				$( '#context-menu .no-external' ).hide();
 			} else if( type == "editor" ) {
@@ -169,31 +171,16 @@
 		
 		archive: function( path ) {
 			
+			let _this = this;
+			
 			$.get( _this.controller + '?action=archive&path=' + encodeURIComponent( path ), function( data ) {
 				
 				console.log( data );
-				
-				var deleteResponse = codiad.jsend.parse( data );
-				if( deleteResponse != 'error' ) {
-					var node = $( '#file-manager a[data-path="' + path + '"]' );
-					let parent_path = node.parent().parent().prev().attr( 'data-path' );
-					node.parent( 'li' ).remove();
-					// Close any active files
-					$( '#active-files a' )
-					.each( function() {
-						var curPath = $( this )
-						.attr( 'data-path' );
-						if( curPath.indexOf( path ) == 0 ) {
-							codiad.active.remove( curPath );
-						}
-					});
-					/* Notify listeners. */
-					amplify.publish( 'filemanager.onDelete', {
-						deletePath: path,
-						path: parent_path
-					});
-				}
-				codiad.modal.unload();
+				let response = codiad.jsend.parse( data );
+				parent = path.split( '/' );
+				parent.pop();
+				_this.rescan( parent.join( '/' ) );
+				console.log( response );
 			});
 		},
 		

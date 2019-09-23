@@ -13,8 +13,8 @@
     },
     {
         "title": "Archive",
-        "icon": "icon-folder",
-        "applies-to" : "directory-only",
+        "icon": "icon-archive",
+        "applies-to" : "directory-only non-root",
         "onclick": "codiad.filemanager.archive( $('#context-menu').attr('data-path') );"
     },
     {

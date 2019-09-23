@@ -8,6 +8,7 @@
 
 require_once('../../lib/diff_match_patch.php');
 require_once('../../common.php');
+require_once('./class.archive.php');
 
 class Filemanager extends Common {
 	

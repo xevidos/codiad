@@ -86,7 +86,6 @@ if( isset( $_GET["destination"] ) ) {
 //////////////////////////////////////////////////////////////////
 
 $Filemanager = new Filemanager();
-$Archive = new Archive();
 
 switch( $action ) {
 	
@@ -97,7 +96,24 @@ switch( $action ) {
 			exit( formatJSEND( "error", "No path specified." ) );
 		}
 		
-		//$Archive->compress(  );
+		if( ! Permissions::check_access( "create", $access ) ) {
+			
+			exit( formatJSEND( "error", "Invalid access to create archive." ) );
+		}
+		
+		$Archive = new Archive();
+		$path = $Filemanager->formatPath( $_GET["path"] );
+		$result = $Archive->compress( $path );
+		
+		if( $result ) {
+			
+			$response = formatJSEND( "success", null );
+		} else {
+			
+			$response = formatJSEND( "error", "Could not create archive." );
+		}
+		
+		exit( $response );
 	break;
 	
 	case 'create':
