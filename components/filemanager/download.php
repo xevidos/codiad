@@ -49,7 +49,7 @@ if (isset($_GET['type']) && ($_GET['type']=='directory' || $_GET['type']=='root'
 
         $filename .= '.zip';
         $download_file = $targetPath.$filename;
-        DirZip::zipDir($dir, $targetPath .$filename);
+        Archive::compress( $dir, $targetPath . $filename );
     } elseif (isAvailable('system') && stripos(PHP_OS, 'win') === false) {
       # Execute the tar command and save file
         $filename .= '.tar.gz';

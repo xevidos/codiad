@@ -154,7 +154,15 @@ if( $_GET['action'] == 'get_current' ) {
 			
 			$Project->no_return = true;
 		}
-		$Project->GetFirst();
+		$project = $Project->GetFirst();
+		
+		if( $project == null ) {
+			
+			exit( formatJSEND( "error", "Error, Could not load a projet." ) );
+		} else {
+			
+			exit( formatJSEND( "success", $project ) );
+		}
 	} else {
 		
 		// Load current
@@ -162,7 +170,7 @@ if( $_GET['action'] == 'get_current' ) {
 		$project_name = $Project->GetName();
 		if( ! $no_return ) {
 			
-			echo formatJSEND( "success", array( "name" => $project_name, "path" => $_SESSION['project'] ) );
+			exit( formatJSEND( "success", array( "name" => $project_name, "path" => $_SESSION['project'] ) ) );
 		}
 	}
 }

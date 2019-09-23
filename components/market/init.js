@@ -1,24 +1,42 @@
 /*
- *  Copyright (c) Codiad & daeks (codiad.com), distributed
+ *  Copyright (c) Codiad & daeks (codiad.com), and Isaac Brown (telaaedifex.com), distributed
  *  as-is and without warranty under the MIT License. See
  *  [root]/license.txt for more. This information must remain intact.
  */
 
-(function(global, $){
+( function( global, $ ) {
 
-    var codiad = global.codiad;
+	let codiad = global.codiad;
+	
+	$( function() {
+		
+		codiad.market.init();
+	});
+	
+	codiad.market = {
+		
+		controller: 'components/market/controller.php',
+		dialog: 'components/market/dialog.php',
+		
+		init: function() {},
+		
+		get_installed_plugins: function() {},
+		get_installed_themes: function() {},
+		
+		get_plugins: function() {},
+		get_themes: function() {},
+		
+		install: function() {},
+		
+		search: function() {},
+		
+		uninstall: function() {},
+		
+		update: function() {},
+	};
+})( this, jQuery );
 
-    $(function() {
-        codiad.market.init();
-    });
-
-    codiad.market = {
-
-        controller: 'components/market/controller.php',
-        dialog: 'components/market/dialog.php',
-
-        init: function() {  
-        },
+/*
 
         //////////////////////////////////////////////////////////////////
         // Open marketplace
@@ -99,4 +117,5 @@
             });
         },
     };
-})(this, jQuery);
+
+*/

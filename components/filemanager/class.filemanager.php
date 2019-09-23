@@ -1,7 +1,7 @@
 <?php
 
 /*
-*  Copyright (c) Codiad & Kent Safranski (codiad.com), distributed
+*  Copyright (c) Codiad & Kent Safranski (codiad.com), Telaaedifex distributed
 *  as-is and without warranty under the MIT License. See
 *  [root]/license.txt for more. This information must remain intact.
 */
@@ -318,9 +318,16 @@ class Filemanager extends Common {
 				
 				while( false !== ( $object = readdir( $handle ) ) ) {
 					
-					if( $object != "." && $object != ".." && $object != $this->controller ) {
+					if( $object != "." && $object != ".." && $object != "" ) {
 						
-						if ( is_dir( $path . '/' . $object ) ) {
+						$full_path = $path . '/' . $object;
+						
+						if( is_link( $full_path ) ) {
+							
+							$full_path = readlink( $full_path );
+						}
+						
+						if ( is_dir( $full_path ) ) {
 							
 							$type = "directory";
 							$size = count( glob( $path . '/' . $object . '/*' ) );

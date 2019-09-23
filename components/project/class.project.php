@@ -262,12 +262,6 @@ class Project extends Common {
 			OR id IN ( SELECT project FROM access WHERE user = ? );";
 		$bind_variables = array( $_SESSION["user"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
-		
-		if( empty( $return ) ) {
-			
-			$return = formatJSEND( "error", "No projects found." );
-		}
-		
 		return( $return );
 	}
 	
@@ -337,16 +331,17 @@ class Project extends Common {
 	
 	public function GetFirst() {
 		
+		if( ! is_array( $this->projects ) || empty( $this->projects ) ) {
+			
+			return null;
+		}
+		
 		$this->name = $this->projects[0]['name'];
 		$this->path = $this->projects[0]['path'];
 		
 		// Set Sessions
 		$_SESSION['project'] = $this->path;
-		
-		if ( ! $this->no_return ) {
-			
-			echo formatJSEND( "success", $this->projects[0] );
-		}
+		return $this->projects[0];
 	}
 	
 	//////////////////////////////////////////////////////////////////

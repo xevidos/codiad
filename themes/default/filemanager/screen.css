@@ -421,3 +421,7 @@
 #file-manager .loading {
     background-image: url(images/spinner.gif);
 }
+#file-manager .drag_over {
+	background-color: #4a4a4a;
+	border-radius: 10px;
+}

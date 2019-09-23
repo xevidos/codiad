@@ -37,8 +37,9 @@ Current Tasks:
 
 Task List:
   
+* Add ability to create shortlinks with certain permissions for users to share.
 * Add ability to login with LDAP
-* Add archive management
+* Add archive management abilities
 * Add bookmark files
 * Add custom market
 * \- Add in new admin interface ( Check admin-portal branch for progress )

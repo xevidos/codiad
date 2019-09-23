@@ -86,8 +86,19 @@ if( isset( $_GET["destination"] ) ) {
 //////////////////////////////////////////////////////////////////
 
 $Filemanager = new Filemanager();
+$Archive = new Archive();
 
 switch( $action ) {
+	
+	case 'archive':
+		
+		if( ! isset( $_GET["path"] ) ) {
+			
+			exit( formatJSEND( "error", "No path specified." ) );
+		}
+		
+		//$Archive->compress(  );
+	break;
 	
 	case 'create':
 		

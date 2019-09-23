@@ -12,6 +12,12 @@
         "onclick": "codiad.filemanager.createNode($('#context-menu').attr('data-path'),'directory');"
     },
     {
+        "title": "Archive",
+        "icon": "icon-folder",
+        "applies-to" : "directory-only",
+        "onclick": "codiad.filemanager.archive( $('#context-menu').attr('data-path') );"
+    },
+    {
         "title": "Break",
         "icon": null,
         "applies-to" : "directory-only",
