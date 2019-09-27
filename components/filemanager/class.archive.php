@@ -218,6 +218,13 @@ class Archive {
 				echo var_dump( $path, $output );
 				return false;
 			}
+			
+			if( is_file( $path ) ) {
+				
+				$archive->addFile( $path, basename( $path ) );
+				$archive->close();
+				return true;
+			}
 		}
 		
 		$i = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $path ) );
