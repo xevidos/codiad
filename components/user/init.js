@@ -266,7 +266,7 @@
 			$.get(this.controller + '?action=project&project=' + project);
 		},
 		
-		update_access: function( e, username=null ) {
+		update_access: function( e, username ) {
 			
 			let access = "";
 			
@@ -278,7 +278,10 @@
 				access = e.target.value;
 			}
 			
-			$.get( this.controller + `?action=update_access&username=${username}&access=${access}`, function( data ) {
+			$.post( this.controller + `?action=update_access`, {
+				username: username,
+				access: access,
+			}, function( data ) {
 				
 				let response = codiad.jsend.parse( data );
 				if( response != 'error' ) {

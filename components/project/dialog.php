@@ -96,7 +96,7 @@ switch( $_GET['action'] ) {
 										?>
 										<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
 										<?php
-									} elseif( $owner !== $_SESSION["user"] ) {
+									} elseif( $owner !== $_SESSION["user_id"] ) {
 										
 										?>
 										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be managed'));" class="icon-block bigger-icon"></a></td>

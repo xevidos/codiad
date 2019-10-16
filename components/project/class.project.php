@@ -155,13 +155,13 @@ class Project extends Common {
 			$owner = $result["owner"];
 			if( $exclude_public ) {
 				
-				if( $owner == $_SESSION["user"] ) {
+				if( $owner == $_SESSION["user_id"] ) {
 					
 					$return = true;
 				}
 			} else {
 				
-				if( $owner == $_SESSION["user"] || $owner == 'nobody' ) {
+				if( $owner == $_SESSION["user_id"] || $owner == 'nobody' ) {
 					
 					$return = true;
 				}
@@ -217,7 +217,7 @@ class Project extends Common {
 				OR owner='nobody'
 				OR id IN ( SELECT project FROM access WHERE user = ? )
 			) ORDER BY name;";
-		$bind_variables = array( $project, $_SESSION["user"], $_SESSION["user_id"] );
+		$bind_variables = array( $project, $_SESSION["user_id"], $_SESSION["user_id"] );
 		//$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
 		//$bind_variables = array( $project, $_SESSION["user"] );
 		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
@@ -260,7 +260,7 @@ class Project extends Common {
 			WHERE owner=?
 			OR owner='nobody'
 			OR id IN ( SELECT project FROM access WHERE user = ? );";
-		$bind_variables = array( $_SESSION["user"], $_SESSION["user_id"] );
+		$bind_variables = array( $_SESSION["user_id"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		return( $return );
 	}
@@ -293,14 +293,14 @@ class Project extends Common {
 		
 		global $sql;
 		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
-		$bind_variables = array( $old_name, $path, $_SESSION["user"] );
+		$bind_variables = array( $old_name, $path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$pass = false;
 		
 		if( ! empty( $return ) ) {
 			
 			$query = "UPDATE projects SET name=? WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
-			$bind_variables = array( $new_name, $old_name, $path, $_SESSION["user"] );
+			$bind_variables = array( $new_name, $old_name, $path, $_SESSION["user_id"] );
 			$return = $sql->query( $query, $bind_variables, 0, "rowCount");
 			
 			if( $return > 0 ) {
@@ -375,13 +375,13 @@ class Project extends Common {
 				OR owner='nobody'
 				OR id IN ( SELECT project FROM access WHERE user = ? )
 			) ORDER BY name LIMIT 1;";
-		$bind_variables = array( $this->path, $_SESSION["user"], $_SESSION["user_id"] );
+		$bind_variables = array( $this->path, $_SESSION["user_id"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( ! empty( $return ) ) {
 			
 			$query = "UPDATE users SET project=? WHERE username=?;";
-			$bind_variables = array( $this->path, $_SESSION["user"] );
+			$bind_variables = array( $return["id"], $_SESSION["user"] );
 			$sql->query( $query, $bind_variables, 0, "rowCount" );
 			$this->name = $return['name'];
 			$_SESSION['project'] = $return['path'];

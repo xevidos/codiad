@@ -1,4 +1,14 @@
 --
+-- Table structure for table `access`
+--
+
+CREATE TABLE IF NOT EXISTS `access` (
+  `user` int NOT NULL,
+  `project` int NOT NULL,
+  `level` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `active`
 --
 
@@ -7,16 +17,6 @@ CREATE TABLE IF NOT EXISTS `active` (
   `path` text NOT NULL,
   `position` varchar(255) DEFAULT NULL,
   `focused` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Table structure for table `access`
---
-
-CREATE TABLE IF NOT EXISTS `access` (
-  `user` int NOT NULL,
-  `project` int NOT NULL,
-  `level` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
   `id` int PRIMARY KEY AUTO_INCREMENT NOT NULL,
   `name` varchar(255) NOT NULL,
   `path` text NOT NULL,
-  `owner` int NOT NULL,
+  `owner` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

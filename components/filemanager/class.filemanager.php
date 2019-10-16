@@ -406,7 +406,8 @@ class Filemanager extends Common {
 		if( $patch && ! $mtime ) {
 			
 			$response["status"] = "error";
-			$response["message"] = "mtime parameter not found";
+			$response["message"] = "invalid mtime parameter not found";
+			$response["mtime"] = $mtime;
 			return $response;
 		}
 		

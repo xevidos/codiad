@@ -14,7 +14,6 @@ class Active extends Common {
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
 	
-	public $username    = "";
 	public $path        = "";
 	public $new_path    = "";
 	
@@ -34,7 +33,7 @@ class Active extends Common {
 	public static function remove( $path ) {
 		
 		global $sql;
-		$query = "DELETE FROM active WHERE path=? AND username=?;";
+		$query = "DELETE FROM active WHERE path=? AND user=?;";
 		$bind_variables = array( $path, $_SESSION["user"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 	}
@@ -46,8 +45,8 @@ class Active extends Common {
 	public function ListActive() {
 		
 		global $sql;
-		$query = "SELECT path, position, focused FROM active WHERE username=?";
-		$bind_variables = array( $this->username );
+		$query = "SELECT path, position, focused FROM active WHERE user=?";
+		$bind_variables = array( $_SESSION["user_id"] );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
 		$root = WORKSPACE;
@@ -82,7 +81,7 @@ class Active extends Common {
 	public function Check() {
 		
 		global $sql;
-		$query = "SELECT username FROM active WHERE path=?";
+		$query = "SELECT user FROM active WHERE path=?";
 		$bind_variables = array( $this->path );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
@@ -92,10 +91,11 @@ class Active extends Common {
 		
 		foreach( $result as $id => $data ) {
 			
-			array_push( $users, $data["username"] );
-			if( $data["username"] == $this->username ) {
+			array_push( $users, $data["user"] );
+			if( $data["user"] == $_SESSION ) {
 				
 				$user = true;
+				break;
 			}
 		}
 		
@@ -115,8 +115,8 @@ class Active extends Common {
 	public function Add() {
 		
 		global $sql;
-		$query = "INSERT INTO active( username, path, focused ) VALUES ( ?, ?, ? );";
-		$bind_variables = array( $this->username, $this->path, false );
+		$query = "INSERT INTO active( user, path, focused ) VALUES ( ?, ?, ? );";
+		$bind_variables = array( $_SESSION["user_id"], $this->path, false );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {
@@ -149,8 +149,8 @@ class Active extends Common {
 	public function RemoveAll() {
 		
 		global $sql;
-		$query = "DELETE FROM active WHERE username=?;";
-		$bind_variables = array( $this->username );
+		$query = "DELETE FROM active WHERE user=?;";
+		$bind_variables = array( $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {
@@ -167,8 +167,8 @@ class Active extends Common {
 	public function MarkFileAsFocused() {
 		
 		global $sql;
-		$query = "UPDATE active SET focused=? WHERE username=?;UPDATE active SET focused=? WHERE path=? AND username=?;";
-		$bind_variables = array( false, $this->username, true, $this->path, $this->username );
+		$query = "UPDATE active SET focused=? WHERE user=?;UPDATE active SET focused=? WHERE path=? AND user=?;";
+		$bind_variables = array( false, $_SESSION["user_id"], true, $this->path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {
@@ -188,8 +188,8 @@ class Active extends Common {
 			
 			foreach( $positions as $path => $cursor ) {
 				
-				$query .= "UPDATE active SET position=? WHERE path=? AND username=?;";
-				array_push( $bind_variables, json_encode( $cursor ), $path, $this->username );
+				$query .= "UPDATE active SET position=? WHERE path=? AND user=?;";
+				array_push( $bind_variables, json_encode( $cursor ), $path, $_SESSION["user_id"] );
 			}
 			
 			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );

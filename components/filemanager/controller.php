@@ -169,24 +169,36 @@ switch( $action ) {
 	
 	case 'modify':
 		
-		if( isset( $_POST["content"] ) || isset( $_POST["patch"] ) ) {
+		if( isset( $_POST["data"] ) ) {
 			
-			$content = isset( $_POST["content"] ) ? $_POST["content"] : "";
-			$patch = isset( $_POST["patch"] ) ? $_POST["patch"] : false;
-			$mtime = isset( $_POST["mtime"] ) ? $_POST["mtime"] : 0;
+			$data = json_decode( $_POST["data"], true );
 			
-			if( get_magic_quotes_gpc() ){
+			if( json_last_error() !== JSON_ERROR_NONE ) {
 				
-				$content = stripslashes( $content );
-				$patch = stripslashes( $patch );
-				$mtime = stripslashes( $mtime );
+				$data = json_decode( stripslashes( $_POST["data"] ), true );
 			}
 			
-			$response = $Filemanager->modify( $path, $content, $mtime );
+			if( json_last_error() !== JSON_ERROR_NONE ) {
+				
+				$data = array();
+			}
+			
+			if( isset( $data["content"] ) || isset( $data["patch"] ) ) {
+				
+				$content = isset( $data["content"] ) ? $data["content"] : "";
+				$patch = isset( $data["patch"] ) ? $data["patch"] : false;
+				$mtime = isset( $data["mtime"] ) ? $data["mtime"] : 0;
+				
+				$response = $Filemanager->modify( $path, $content, $patch, $mtime );
+			} else {
+				
+				$response["status"] = "error";
+				$response["message"] = "Missing modification content";
+			}
 		} else {
 			
 			$response["status"] = "error";
-			$response["message"] = "Missing modification content";
+			$response["message"] = "Missing save data";
 		}
 	break;
 	

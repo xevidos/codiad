@@ -54,10 +54,10 @@
 			
 			
 			this.noOpen = this.noAudio.concat( this.noFiles, this.noImages ),
-				this.noBrowser = this.noAudio.concat( this.noImages ),
-				
-				// Initialize node listener
-				this.nodeListener();
+			this.noBrowser = this.noAudio.concat( this.noImages ),
+			
+			// Initialize node listener
+			this.nodeListener();
 			this.auto_reload = ( await codiad.settings.get_option( "codiad.filemanager.autoReloadPreview" ) == "true" );
 			
 			amplify.subscribe( 'settings.save', async function() {
@@ -1066,8 +1066,10 @@
 					callbacks.error.apply( context, [data] );
 				}
 			}
-			
-			$.post( this.controller + '?action=modify&path=' + encodeURIComponent( path ), data, function( resp ) {
+			let post = {
+				"data": JSON.stringify( data )
+			};
+			$.post( this.controller + '?action=modify&path=' + encodeURIComponent( path ), post, function( resp ) {
 				
 				console.log( resp );
 				resp = $.parseJSON( resp );

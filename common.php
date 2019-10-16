@@ -167,8 +167,8 @@ class Common {
 	public static function is_admin() {
 		
 		global $sql;
-		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
-		$bind_variables = array( $_SESSION["user"], "admin" );
+		$query = "SELECT COUNT( * ) FROM users WHERE id=? AND access=?;";
+		$bind_variables = array( $_SESSION["user_id"], Permissions::SYSTEM_LEVELS["admin"] );
 		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
 		$admin = ( $return > 0 );
 		return $admin;
@@ -316,32 +316,7 @@ class Common {
 	
 	public static function startSession() {
 		
-		Common::construct();
-		
-		//Set a Session Name
-		session_name( md5( BASE_PATH ) );
-		session_save_path( SESSIONS_PATH );
-		session_start();
-		
-		if( ! defined( 'SESSION_ID' ) ) {
-			
-			define( "SESSION_ID", session_id() );
-		}
-		
-		//Check for external authentification
-		if( defined( 'AUTH_PATH' ) ) {
-			
-			require_once( AUTH_PATH );
-		}
-		
-		global $lang;
-		if ( isset( $_SESSION['lang'] ) ) {
-			
-			include BASE_PATH . "/languages/{$_SESSION['lang']}.php";
-		} else {
-			
-			include BASE_PATH . "/languages/" . LANGUAGE . ".php";
-		}
+		Common::start_session();
 	}
 	
 	//////////////////////////////////////////////////////////////////

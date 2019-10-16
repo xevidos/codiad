@@ -72,10 +72,10 @@ switch($_GET['action']){
 							<td width="75">
 								<select onchange="codiad.user.update_access( event, '<?php echo( $data['username'] ); ?>' )">
 								<?php
-								foreach( User::ACCESS as $role ) {
+								foreach( Permissions::SYSTEM_LEVELS as $role => $id ) {
 									
 									?>
-									<option value="<?php echo $role;?>" <?php if( $data["access"] == $role ) { echo 'selected="selected"'; }?>><?php echo i18n( $role );?></option>
+									<option value="<?php echo $id;?>" <?php if( $data["access"] == $id ) { echo 'selected="selected"'; }?>><?php echo i18n( $role );?></option>
 									<?php
 								}
 								?>

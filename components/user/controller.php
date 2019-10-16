@@ -36,22 +36,73 @@ if($_GET['action']=='authenticate') {
 		die( formatJSEND( "error", "Missing username or password" ) );
 	}
 	
-	$User->username = User::CleanUsername( $_POST['username'] );
-	$User->password = $_POST['password'];
+	$username = User::CleanUsername( $_POST['username'] );
+	$password = $User->encrypt_password( $_POST['password'] );
 	
 	// check if the asked languages exist and is registered in languages/code.php
 	require_once '../../languages/code.php';
 	if( isset( $languages[$_POST['language']] ) ) {
 		
-		$User->lang = $_POST['language'];
+		$lang = $_POST['language'];
 	} else {
 		
-		$User->lang = 'en';
+		$lang = 'en';
 	}
 	
 	// theme
-	$User->theme = $_POST['theme'];
-	$User->Authenticate();
+	$theme = $_POST['theme'];
+	$permissions = array(
+		"755",
+		"0755"
+	);
+	
+	if( ! is_dir( SESSIONS_PATH ) ) {
+		
+		mkdir( SESSIONS_PATH, 00755 );
+	}
+	
+	$server_user = getmyuid();
+	$sessions_permissions = substr( sprintf( '%o', fileperms( SESSIONS_PATH ) ), -4 );
+	$sessions_owner = fileowner( SESSIONS_PATH );
+	
+	if( is_array( $server_user ) ) {
+		
+		$server_user = $server_user["uid"];
+	}
+	
+	if( ! ( $sessions_owner === $server_user ) ) {
+		
+		try {
+			
+			chown( SESSIONS_PATH, $server_user );
+		} catch( Exception $e ) {
+			
+			exit( formatJSEND("error", "Error, incorrect owner of sessions folder.  Expecting: $server_user, Recieved: " . $sessions_owner ) );
+		}
+	}
+	
+	if( ! in_array( $sessions_permissions, $permissions ) ) {
+		
+		try {
+			
+			chmod( SESSIONS_PATH, 00755 );
+		} catch( Exception $e ) {
+			
+			exit( formatJSEND("error", "Error, incorrect permissions on sessions folder.  Expecting: 0755, Recieved: " . $sessions_permissions ) );
+		}
+	}
+	
+	$pass = $User->Authenticate( $username, $password );
+	
+	if( $pass ) {
+		
+		$_SESSION['lang'] = $lang;
+		$_SESSION['theme'] = $theme;
+		exit( formatJSEND( "success", array( "username" => $this->username ) ) );
+	} else {
+		
+		exit( formatJSEND( "error", "Incorrect Username or Password" ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////
@@ -86,9 +137,9 @@ if( $_GET['action'] == 'create' ) {
 			exit( formatJSEND( "error", "Invalid characters in username" ) );
 		}
 		
-		$User->username = User::CleanUsername( $_POST['username'] );
-		$User->password = $_POST['password'];
-		$User->Create();
+		$username = User::CleanUsername( $_POST['username'] );
+		$password = $User->encrypt_password( $_POST['password'] );
+		$User->Create( $username, $password );
 	}
 }
 
@@ -174,7 +225,7 @@ if( $_GET['action'] == 'update_access' ) {
 
 	checkSession();
 	
-	if( ! isset( $_GET['access'] ) || ! isset( $_GET['username'] ) ) {
+	if( ! isset( $_POST['access'] ) || ! isset( $_POST['user'] ) ) {
 		
 		die( formatJSEND( "error", "Could not update access." ) );
 	}
@@ -184,7 +235,10 @@ if( $_GET['action'] == 'update_access' ) {
 		die( formatJSEND( "error", "You do not have permission to update user's access." ) );
 	}
 	
-	$User->username = $_GET["username"];
-	$User->access  = $_GET["access"];
-	$User->update_access();
+	if( ! in_array( $_POST["access"], array_keys( Permissions::SYSTEM_LEVELS ) ) ) {
+		
+		exit( formatJSEND( "error", "Invalid access level specified." ) );
+	}
+	
+	$User->update_access( $_POST["user"], $_POST["access"] );
 }

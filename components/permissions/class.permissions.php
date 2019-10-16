@@ -23,6 +23,12 @@ class Permissions {
 		"admin" => 64,
 	);
 	
+	const SYSTEM_LEVELS = array(
+		
+		"user" => 32,
+		"admin" => 64,
+	);
+	
 	function __construct() {
 		
 		
@@ -82,7 +88,7 @@ class Permissions {
 				if( $data["owner"] == 'nobody' ) {
 					
 					$access = self::LEVELS["owner"];
-				} elseif( $data["owner"] == $_SESSION["user"] ) {
+				} elseif( $data["owner"] == $_SESSION["user_id"] ) {
 					
 					$access = self::LEVELS["owner"];
 				} else {
