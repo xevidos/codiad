@@ -34,7 +34,7 @@ class Active extends Common {
 		
 		global $sql;
 		$query = "DELETE FROM active WHERE path=? AND user=?;";
-		$bind_variables = array( $path, $_SESSION["user"] );
+		$bind_variables = array( $path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 	}
 	
@@ -115,13 +115,21 @@ class Active extends Common {
 	public function Add() {
 		
 		global $sql;
-		$query = "INSERT INTO active( user, path, focused ) VALUES ( ?, ?, ? );";
-		$bind_variables = array( $_SESSION["user_id"], $this->path, false );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		$query = "UPDATE active SET focused=false WHERE user=? AND path=?;";
+		$bind_variables = array( $_SESSION["user_id"], $this->path );
+		$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
-		if( $return > 0 ) {
+		if( $result == 0 ) {
 			
-			echo formatJSEND( "success" );
+			global $sql;
+			$query = "INSERT INTO active( user, path, focused ) VALUES ( ?, ?, ? );";
+			$bind_variables = array( $_SESSION["user_id"], $this->path, false );
+			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			
+			if( $result > 0 ) {
+				
+				echo formatJSEND( "success" );
+			}
 		}
 	}
 	

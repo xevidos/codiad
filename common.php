@@ -167,7 +167,7 @@ class Common {
 	public static function is_admin() {
 		
 		global $sql;
-		$query = "SELECT COUNT( * ) FROM users WHERE id=? AND access=?;";
+		$query = "SELECT COUNT( * ) FROM users WHERE id=? AND ( access=? OR access='admin' );";
 		$bind_variables = array( $_SESSION["user_id"], Permissions::SYSTEM_LEVELS["admin"] );
 		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
 		$admin = ( $return > 0 );
@@ -390,11 +390,11 @@ class Common {
 		
 		$pass = false;
 		
-		if( isset( $_SESSION["token"] ) && isset( $_SESSION["user"] ) ) {
+		if( isset( $_SESSION["token"] ) && isset( $_SESSION["user_id"] ) ) {
 			
 			global $sql;
-			$query = "SELECT COUNT( * ) FROM users WHERE username=? AND token=?;";
-			$bind_variables = array( $_SESSION["user"], sha1( $_SESSION["token"] ) );
+			$query = "SELECT COUNT( * ) FROM users WHERE id=? AND token=?;";
+			$bind_variables = array( $_SESSION["user_id"], sha1( $_SESSION["token"] ) );
 			$return = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking access." ), "fetchColumn" );
 			
 			if( $return > 0 ) {
@@ -458,33 +458,43 @@ class Common {
 	// Format JSEND Response
 	//////////////////////////////////////////////////////////////////
 	
-	public static function formatJSEND( $status, $data = false ) {
+	public static function formatJSEND( $status, $data = false, $debug = false ) {
 		
 		/// Debug /////////////////////////////////////////////////
-		$debug = "";
+		$jsend = array(
+			"status" => null,
+			"data" => null,
+			"debug" => null,
+			"message" => null,
+		);
+		
 		if( count( Common::$debugMessageStack ) > 0 ) {
 			
-			$debug .= ',"debug":';
-			$debug .= json_encode( Common::$debugMessageStack );
+			$jsend["debug"] = json_encode( Common::$debugMessageStack );
+		}
+		
+		if( $debug ) {
+			
+			$jsend["debug"] = $debug;
 		}
 		
 		if( $status == "success" ) {
 			
 			// Success ///////////////////////////////////////////////
+			$jsend["status"] = "success";
+			
 			if( $data ) {
 				
-				$jsend = '{"status":"success","data":' . json_encode( $data ) . $debug . '}';
-			} else {
-				
-				$jsend = '{"status":"success","data":null' . $debug . '}';
+				$jsend["data"] = $data;
 			}
 		} else {
 			
 			// Error /////////////////////////////////////////////////
-			$jsend = '{"status":"' . $status . '","message":"' . $data . '"' . $debug . '}';
+			$jsend["status"] = "error";
+			$jsend["message"] = $data;
 		}
 		// Return ////////////////////////////////////////////////
-		return $jsend;
+		return json_encode( $jsend );
 	}
 	
 	//////////////////////////////////////////////////////////////////

@@ -214,7 +214,7 @@ class Project extends Common {
 			WHERE path = ?
 			AND (
 				owner=?
-				OR owner='nobody'
+				OR owner=-1
 				OR id IN ( SELECT project FROM access WHERE user = ? )
 			) ORDER BY name;";
 		$bind_variables = array( $project, $_SESSION["user_id"], $_SESSION["user_id"] );
@@ -258,7 +258,7 @@ class Project extends Common {
 		$query = "
 			SELECT * FROM projects
 			WHERE owner=?
-			OR owner='nobody'
+			OR owner=-1
 			OR id IN ( SELECT project FROM access WHERE user = ? );";
 		$bind_variables = array( $_SESSION["user_id"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
@@ -292,14 +292,14 @@ class Project extends Common {
 	public function rename_project( $old_name, $new_name, $path ) {
 		
 		global $sql;
-		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
+		$query = "SELECT * FROM projects WHERE name=? AND path=? AND ( owner=? OR owner=-1 );";
 		$bind_variables = array( $old_name, $path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$pass = false;
 		
 		if( ! empty( $return ) ) {
 			
-			$query = "UPDATE projects SET name=? WHERE name=? AND path=? AND ( owner=? OR owner='nobody' );";
+			$query = "UPDATE projects SET name=? WHERE name=? AND path=? AND ( owner=? OR owner=-1 );";
 			$bind_variables = array( $new_name, $old_name, $path, $_SESSION["user_id"] );
 			$return = $sql->query( $query, $bind_variables, 0, "rowCount");
 			
@@ -372,7 +372,7 @@ class Project extends Common {
 			WHERE path = ? 
 			AND (
 				owner=?
-				OR owner='nobody'
+				OR owner=-1
 				OR id IN ( SELECT project FROM access WHERE user = ? )
 			) ORDER BY name LIMIT 1;";
 		$bind_variables = array( $this->path, $_SESSION["user_id"], $_SESSION["user_id"] );

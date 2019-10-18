@@ -37,7 +37,7 @@ if($_GET['action']=='authenticate') {
 	}
 	
 	$username = User::CleanUsername( $_POST['username'] );
-	$password = $User->encrypt_password( $_POST['password'] );
+	$password = $_POST['password'];
 	
 	// check if the asked languages exist and is registered in languages/code.php
 	require_once '../../languages/code.php';
@@ -98,7 +98,7 @@ if($_GET['action']=='authenticate') {
 		
 		$_SESSION['lang'] = $lang;
 		$_SESSION['theme'] = $theme;
-		exit( formatJSEND( "success", array( "username" => $this->username ) ) );
+		exit( formatJSEND( "success", array( "username" => $username ) ) );
 	} else {
 		
 		exit( formatJSEND( "error", "Incorrect Username or Password" ) );
@@ -137,9 +137,7 @@ if( $_GET['action'] == 'create' ) {
 			exit( formatJSEND( "error", "Invalid characters in username" ) );
 		}
 		
-		$username = User::CleanUsername( $_POST['username'] );
-		$password = $User->encrypt_password( $_POST['password'] );
-		$User->Create( $username, $password );
+		$User->Create( $_POST['username'], $_POST['password'] );
 	}
 }
 

@@ -26,7 +26,7 @@ if ( $_POST['action'] == 'create_default_tables' ) {
 			exit( formatJSEND( "success", "Created tables." ) );
 		} else {
 			
-			exit( formatJSEND( "error", "Could not create tables." ) );
+			exit( formatJSEND( "error", array( "message" => "Could not create tables.", "result" => $result ) ) );
 		}
 	} else {
 		

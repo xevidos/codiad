@@ -172,8 +172,8 @@ class Settings {
 		
 		global $sql;
 		
-		$query = "SELECT name, value FROM user_options WHERE username=?;";
-		$bind_variables = array( $this->username );
+		$query = "SELECT name, value FROM user_options WHERE user=?;";
+		$bind_variables = array( $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$options = array();
 		
@@ -259,21 +259,21 @@ class Settings {
 			}
 		} else {
 			
-			$query = "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ?, ? );";
+			$query = "UPDATE user_options SET value=? WHERE name=? AND user=?;";
 			$bind_variables = array(
+				$value,
 				$option,
 				$_SESSION["user_id"],
-				$value,
 			);
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result == 0 ) {
 				
-				$query = "UPDATE user_options SET value=? WHERE name=? AND user=?;";
+				$query = "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ?, ? );";
 				$bind_variables = array(
-					$value,
 					$option,
 					$_SESSION["user_id"],
+					$value,
 				);
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			}

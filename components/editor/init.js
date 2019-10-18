@@ -1321,54 +1321,14 @@
 		
 		bindKeys: function( i ) {
 			
+			//Add key bindings to editor so we overwrite any already Setup
+			//by the ace editor.
 			var _this = this;
 			
-			// Find
-			i.commands.addCommand( {
-				name: 'Find',
-				bindKey: {
-					win: 'Ctrl-F',
-					mac: 'Command-F'
-				},
-				exec: function( e ) {
-					_this.openSearch( 'find' );
-				}
+			codiad.keybindings.bindings.forEach( function( m, j, a ) {
+				
+				i.commands.addCommand( m );
 			});
-			
-			// Find + Replace
-			i.commands.addCommand( {
-				name: 'Replace',
-				bindKey: {
-					win: 'Ctrl-R',
-					mac: 'Command-R'
-				},
-				exec: function( e ) {
-					_this.openSearch( 'replace' );
-				}
-			});
-			
-			i.commands.addCommand( {
-				name: 'Move Up',
-				bindKey: {
-					win: 'Ctrl-up',
-					mac: 'Command-up'
-				},
-				exec: function( e ) {
-					codiad.active.move( 'up' );
-				}
-			});
-			
-			i.commands.addCommand( {
-				name: 'Move Down',
-				bindKey: {
-					win: 'Ctrl-down',
-					mac: 'Command-up'
-				},
-				exec: function( e ) {
-					codiad.active.move( 'down' );
-				}
-			});
-			
 		},
 		
 		//////////////////////////////////////////////////////////////////

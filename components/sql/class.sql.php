@@ -207,6 +207,22 @@ class sql {
 			
 			try {
 				
+				$this->query( array(
+					"mysql" => "ALTER TABLE user_options DROP INDEX name255username255;",
+					"pgsql" => "ALTER TABLE user_options DROP CONSTRAINT name255username255;",
+				), array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//The access field is not there.
+				//echo var_export( $error->getMessage(), $access_query );
+				$status_updates["nameusername_user_option_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "No constriant to remove."
+				);
+			}
+			
+			try {
+				
 				$update_query = "";
 				$options = $this->query( "SELECT id, name, username, value FROM user_options", array(), array(), "fetchAll", "exception" );
 				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
@@ -273,6 +289,56 @@ class sql {
 			
 			try {
 				
+				$convert = false;
+				$update_query = "";
+				$projects = $this->query( "SELECT id, name, path, owner FROM projects", array(), array(), "fetchAll", "exception" );
+				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
+				$delete = Permissions::LEVELS["delete"];
+				
+				foreach( $projects as $row => $project ) {
+					
+					if( ! is_numeric( $project["owner"] ) ) {
+						
+						$convert = true;
+					}
+					
+					foreach( $users as $row => $user ) {
+						
+						if( $project["owner"] == $user["username"] ) {
+							
+							$update_query .= "UPDATE projects SET owner={$user["id"]} WHERE id={$project["id"]};";
+							break;
+						}
+					}
+					
+					if( $project["owner"] != $user["username"] ) {
+						
+						$update_query .= "UPDATE projects SET owner=-1 WHERE id={$project["id"]};";
+					}
+				}
+				
+				if( strlen( $update_query ) > 0 && $convert ) {
+					
+					//change project to users table
+					$result = $this->query( "ALTER TABLE projects DROP COLUMN owner", array(), array(), "rowCount", "exception" );
+					$result = $this->query( "ALTER TABLE projects ADD COLUMN owner INT", array(), array(), "rowCount", "exception" );
+					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+				} else {
+					
+					$status_updates["owner_projects_column"] = array( "dev_message" => "User projects owner column needed no conversion." );
+				}
+			} catch( Exception $error ) {
+				
+				//The access field is not there.
+				//echo var_export( $error->getMessage(), $access_query );
+				$status_updates["username_user_option_column"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "No username column to convert."
+				);
+			}
+			
+			try {
+				
 				$projects = $this->query( array(
 					"mysql" => "ALTER TABLE active DROP INDEX username255path1500;",
 					"pgsql" => "ALTER TABLE active DROP CONSTRAINT username255path1500;",
@@ -281,6 +347,20 @@ class sql {
 				
 				//echo var_dump( $error->getMessage() );
 				$status_updates["username_path_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Removal of username255path1500 constraint in the active table failed.  This usually means there was never one to begin with"
+				);
+			}
+			
+			try {
+				
+				$result = $this->query( "DELETE FROM active;", array(), 0, "rowCount", "exception" );
+				$result = $this->query( "ALTER TABLE active DROP COLUMN username;", array(), 0, "rowCount", "exception" );
+				$result = $this->query( "ALTER TABLE active ADD COLUMN user INT", array(), array(), "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+				$status_updates["username_active_coluin"] = array(
 					"error_message" => $error->getMessage(),
 					"dev_message" => "Removal of username255path1500 constraint in the active table failed.  This usually means there was never one to begin with"
 				);

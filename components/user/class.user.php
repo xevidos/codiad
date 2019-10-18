@@ -159,7 +159,7 @@ class User {
 		
 		global $sql;
 		$pass = false;
-		$this->EncryptPassword();
+		$password = $this->encrypt_password( $password );
 		$query = "SELECT * FROM users WHERE username=? AND password=?;";
 		$bind_variables = array( $username, $password );
 		$return = $sql->query( $query, $bind_variables, array() );
@@ -198,7 +198,7 @@ class User {
 			$_SESSION["login_session"] = true;
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
-			$bind_variables = array( sha1( $token ), $this->username );
+			$bind_variables = array( sha1( $token ), $username );
 			$return = $sql->query( $query, $bind_variables, 0, 'rowCount' );
 			$projects = $sql->query( "SELECT path FROM projects WHERE id = ?", array( $user["project"] ), array() );
 			
@@ -294,6 +294,8 @@ class User {
 	
 	public function Create( $username, $password ) {
 		
+		$username = self::CleanUsername( $username );
+		$password = $this->encrypt_password( $password );
 		$this->add_user( $username, $password  );
 	}
 	

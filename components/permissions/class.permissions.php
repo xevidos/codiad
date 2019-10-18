@@ -85,7 +85,7 @@ class Permissions {
 					continue;
 				}
 				
-				if( $data["owner"] == 'nobody' ) {
+				if( $data["owner"] == -1 ) {
 					
 					$access = self::LEVELS["owner"];
 				} elseif( $data["owner"] == $_SESSION["user_id"] ) {

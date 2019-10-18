@@ -177,7 +177,7 @@ class updater {
 		
 		$sql = new sql();
 		$connection = $sql->connect();
-		$result = $sql->recreate_default_tables();
+		$result = $sql->create_default_tables();
 		$upgrade_function = str_replace( ".", "_", $this->update::VERSION );
 		
 		if( is_callable( array( $this, $upgrade_function ) ) ) {

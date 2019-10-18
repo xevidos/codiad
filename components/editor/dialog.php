@@ -19,6 +19,17 @@ checkSession();
 	<?php
 	switch( $_GET['action'] ) {
 		
+		case 'line':
+			
+			?>
+			<label><?php i18n("Goto Line:"); ?></label>
+			<input name="goto_line" autofocus="autofocus" autocomplete="off">
+			<button class="btn-left" onclick="codiad.editor.goto_line();return false;"><?php i18n("Goto"); ?></button>
+			<button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Cancel"); ?></button>
+			<?php
+		break;	
+		break;
+		
 		case 'search':
 			
 			//////////////////////////////////////////////////////////////////
