@@ -1329,7 +1329,6 @@
 				
 				i.commands.addCommand( m );
 			});
-<<<<<<< HEAD
 		},
 		
 		open_goto: function() {
@@ -1348,9 +1347,6 @@
 			let line = $( '#modal input[name="goto_line"]' ).val();
 			this.gotoLine( line );
 			codiad.modal.unload();
-			
-=======
->>>>>>> 5af37cbce3326f97b4d3ff7eb50e88feb1fc8063
 		},
 		
 		//////////////////////////////////////////////////////////////////

@@ -52,7 +52,6 @@
 				}
 			},
 			{
-<<<<<<< HEAD
 				name: 'Goto Line',
 				bindKey: {
 					win: 'Ctrl-L',
@@ -64,8 +63,6 @@
 				}
 			},
 			{
-=======
->>>>>>> 5af37cbce3326f97b4d3ff7eb50e88feb1fc8063
 				name: 'Move Down',
 				bindKey: {
 					win: 'Ctrl-down',
