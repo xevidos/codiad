@@ -520,7 +520,7 @@
 								
 								if( files[index].type == 'file' ) {
 									
-									let ext = ' ext-' + name.split( '.' ).pop();
+									ext = 'ext-' + name.split( '.' ).pop();
 								} else {
 									
 									link.droppable({
@@ -544,7 +544,8 @@
 								
 								span.addClass( nodeClass );
 								
-								link.addClass( files[index].type + ext );
+								link.addClass( files[index].type );
+								link.addClass( ext );
 								link.attr( "data-type", files[index].type );
 								link.attr( "data-path", files[index].name );
 								link.text( name );
@@ -568,8 +569,6 @@
 					}
 					
 					node.removeClass( 'loading' );
-					
-					console.log( "rescanChildren",  _this.rescanChildren )
 					
 					if( rescan && _this.rescanChildren.length > _this.rescanCounter ) {
 						
@@ -691,7 +690,6 @@
 			let path = drag_path;
 			let newPath = `${drop_path}/` + path.split( "/" ).pop();
 			
-			console.log( path, newPath );
 			_this.rename( path, newPath );
 		},
 		
@@ -968,11 +966,9 @@
 					parent.pop();
 					newParent.pop();
 					
-					console.log( parent.join( '/' ) );
-					console.log( newParent.join( '/' ) );
-					
 					codiad.filemanager.rescan( parent.join( '/' ) );
 					codiad.filemanager.rescan( newParent.join( '/' ) );
+					
 					/* Notify listeners. */
 					amplify.publish( 'filemanager.onRename', {
 						path: path,
@@ -1071,7 +1067,6 @@
 			};
 			$.post( this.controller + '?action=modify&path=' + encodeURIComponent( path ), post, function( resp ) {
 				
-				console.log( resp );
 				resp = $.parseJSON( resp );
 				if( resp.status == 'success' ) {
 					if( messages === true ) {

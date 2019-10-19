@@ -18,7 +18,12 @@
 		controller: 'components/market/controller.php',
 		dialog: 'components/market/dialog.php',
 		
+		plugins: [],
+		themes: [],
+		
 		init: function() {},
+		
+		get_all: function() {},
 		
 		get_installed_plugins: function() {},
 		get_installed_themes: function() {},

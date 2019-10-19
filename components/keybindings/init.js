@@ -52,6 +52,20 @@
 				}
 			},
 			{
+<<<<<<< HEAD
+				name: 'Goto Line',
+				bindKey: {
+					win: 'Ctrl-L',
+					mac: 'Command-L'
+				},
+				exec: function( e ) {
+					
+					codiad.editor.open_goto();
+				}
+			},
+			{
+=======
+>>>>>>> 5af37cbce3326f97b4d3ff7eb50e88feb1fc8063
 				name: 'Move Down',
 				bindKey: {
 					win: 'Ctrl-down',

@@ -362,6 +362,9 @@
 			session.listThumb = listThumb;
 			$( '#list-active-files' ).append( listThumb );
 			
+			
+			
+			
 			/* If the tab list would overflow with the new tab. Move the
 			 * first tab to dropdown, then add a new tab. */
 			if( this.isTabListOverflowed( true ) ) {
@@ -375,7 +378,10 @@
 			
 			this.updateTabDropdownVisibility();
 			
-			$.get( this.controller + '?action=add&path=' + encodeURIComponent( path ) );
+			$.get( this.controller + '?action=add&path=' + encodeURIComponent( path ), function( data ) {
+				
+				//console.log( data );
+			});
 			
 			if( focus ) {
 				this.focus( path );

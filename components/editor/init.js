@@ -1329,6 +1329,28 @@
 				
 				i.commands.addCommand( m );
 			});
+<<<<<<< HEAD
+		},
+		
+		open_goto: function() {
+			
+			if( this.getActive() ) {
+				
+				codiad.modal.load( 400, 'components/editor/dialog.php?action=line' );
+				codiad.modal.hideOverlay();
+			} else {
+				codiad.message.error( 'No Open Files' );
+			}
+		},
+		
+		goto_line: function() {
+			
+			let line = $( '#modal input[name="goto_line"]' ).val();
+			this.gotoLine( line );
+			codiad.modal.unload();
+			
+=======
+>>>>>>> 5af37cbce3326f97b4d3ff7eb50e88feb1fc8063
 		},
 		
 		//////////////////////////////////////////////////////////////////

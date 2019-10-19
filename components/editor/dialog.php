@@ -23,7 +23,11 @@ checkSession();
 			
 			?>
 			<label><?php i18n("Goto Line:"); ?></label>
+<<<<<<< HEAD
+			<input name="goto_line" type="number" autofocus="autofocus" autocomplete="off">
+=======
 			<input name="goto_line" autofocus="autofocus" autocomplete="off">
+>>>>>>> 5af37cbce3326f97b4d3ff7eb50e88feb1fc8063
 			<button class="btn-left" onclick="codiad.editor.goto_line();return false;"><?php i18n("Goto"); ?></button>
 			<button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Cancel"); ?></button>
 			<?php
