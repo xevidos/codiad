@@ -23,7 +23,6 @@ class Project extends Common {
 	public $no_return = false;
 	public $assigned = false;
 	public $command_exec = '';
-	public $public_project = false;
 	public $user = '';
 	
 	//////////////////////////////////////////////////////////////////
@@ -47,12 +46,12 @@ class Project extends Common {
 	public function add_project( $project_name, $project_path, $owner = null ) {
 		
 		global $sql;
-		if( $this->public_project ) {
+		if( $owner == null ) {
 			
-			$owner = 'nobody';
+			$owner = -1;
 		} else {
 			
-			$owner = $_SESSION["user"];
+			$owner = $_SESSION["user_id"];
 		}
 		
 		$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
@@ -69,7 +68,7 @@ class Project extends Common {
 		
 		global $sql;
 		$query = "SELECT * FROM projects WHERE path=? AND owner=? LIMIT 1";
-		$bind_variables = array( $this->path, $_SESSION["user"] );
+		$bind_variables = array( $this->path, $_SESSION["user_id"] );
 		$project = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( empty( $project ) ) {

@@ -1139,9 +1139,11 @@
 				action: 'search',
 				path: path
 			});
+			
 			codiad.modal.load_process.done( async function() {
 				var lastSearched = JSON.parse( await codiad.settings.get_option( "lastSearched" ) );
 				if( lastSearched ) {
+					
 					$( '#modal-content form input[name="search_string"]' ).val( lastSearched.searchText );
 					$( '#modal-content form input[name="search_file_type"]' ).val( lastSearched.fileExtension );
 					$( '#modal-content form select[name="search_type"]' ).val( lastSearched.searchType );
@@ -1152,15 +1154,11 @@
 			});
 			codiad.modal.hideOverlay();
 			let _this = this;
-			$( '#modal-content form' )
-			.live( 'submit', function( e ) {
-				$( '#filemanager-search-processing' )
-				.show();
+			$( '#modal-content form' ).live( 'submit', function( e ) {
+				$( '#filemanager-search-processing' ).show();
 				e.preventDefault();
-				searchString = $( '#modal-content form input[name="search_string"]' )
-				.val();
-				fileExtensions = $( '#modal-content form input[name="search_file_type"]' )
-				.val();
+				searchString = $( '#modal-content form input[name="search_string"]' ).val();
+				fileExtensions = $( '#modal-content form input[name="search_file_type"]' ).val();
 				searchFileType = $.trim( fileExtensions );
 				if( searchFileType != '' ) {
 					//season the string to use in find command
@@ -1168,12 +1166,21 @@
 				}
 				searchType = $( '#modal-content form select[name="search_type"]' )
 				.val();
-				$.post( _this.controller + '?action=search&path=' + encodeURIComponent( path ) + '&type=' + searchType, {
-					search_string: searchString,
-					search_file_type: searchFileType
+				let options = {
+					filetype: fileExtensions,
+				};
+				$.post( _this.controller + '?action=search', {
+					path: path,
+					query: searchString,
+					options: JSON.stringify( options )
 				}, function( data ) {
-					searchResponse = codiad.jsend.parse( data );
-					var results = '';
+					
+					let searchResponse = codiad.jsend.parse( data );
+					let results = '';
+					
+					console.log( data );
+					console.log( searchResponse );
+					
 					if( searchResponse != 'error' ) {
 						$.each( searchResponse.index, function( key, val ) {
 							// Cleanup file format

@@ -635,6 +635,12 @@ class Filemanager extends Common {
 			"status" => "none",
 			"message" => null,
 		);
+		
+		if( ! common::isAbsPath( $path ) ) {
+			
+			$path = WORKSPACE . "/$path";
+		}
+		
 		if ( ! function_exists( 'shell_exec' ) ) {
 			
 			$response["status"] = "error";
@@ -654,7 +660,7 @@ class Filemanager extends Common {
 					
 					$da['line'] = $data[1];
 					$da['file'] = str_replace( $path, '', $data[0] );
-					$da['result'] = str_replace( $path, '', $data[0] );
+					$da['result'] = $_SESSION["project"] . str_replace( $path, '', $data[0] );
 					$da['string'] = str_replace( $data[0] . ":" . $data[1] . ':', '', $line );
 					$return[] = $da;
 				}
@@ -666,7 +672,8 @@ class Filemanager extends Common {
 			} else {
 				
 				$response["status"] = "success";
-				$response["index"] = $return;
+				$response["data"] = array();
+				$response["data"]["index"] = $return;
 			}
 		}
 		return $response;

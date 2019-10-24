@@ -8,13 +8,27 @@ require_once('../../common.php');
 require_once('../settings/class.settings.php');
 require_once('./class.update.php');
 
-
+function check_access_legacy() {
+	
+	$pass = false;
+	
+	if( isset( $_SESSION["token"] ) && isset( $_SESSION["user"] ) ) {
+		
+		global $sql;
+		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
+		$bind_variables = array( $_SESSION["user"], "admin" );
+		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
+		$admin = ( $return > 0 );
+		return $admin;
+	}
+	return $pass;
+}
 
 $user_settings_file = BASE_PATH . "/data/settings.php";
 $projects_file = BASE_PATH . "/data/projects.php";
 $users_file = BASE_PATH . "/data/users.php";
 //checkSession();
-if ( ! checkAccess() ) {
+if ( ! checkAccess() && ! check_access_legacy() ) {
 	
 	echo "Error, you do not have access to update Codiad.";
 	exit();

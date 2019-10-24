@@ -1,6 +1,6 @@
 ( function( global, $ ) {
 
-	var codiad = global.codiad;
+	let codiad = global.codiad;
 	
 	//////////////////////////////////////////////////////////////////////
 	// Parse JSEND Formatted Returns
@@ -11,7 +11,8 @@
 		parse: function( d ) {
 		
 			// (Data)
-			var obj = $.parseJSON( d );
+			let obj = $.parseJSON( d );
+			
 			if ( obj === undefined || obj === null ) {
 				
 				return 'error';

@@ -46,9 +46,9 @@ if( ! isset( $_SESSION['project'] ) ) {
 	require_once('../project/controller.php');
 }
 
-if( isset( $_GET["path"] ) ) {
+if( isset( $_GET["path"] )  || isset( $_POST["path"] ) ) {
 	
-	$path = $_GET["path"];
+	$path = isset( $_GET["path"] ) ? $_GET["path"] : $_POST["path"];
 } else {
 	
 	$response["status"] = "error";
@@ -60,7 +60,7 @@ if( isset( $_GET["path"] ) ) {
 // Security Check
 //////////////////////////////////////////////////////////////////
 
-$access = Permissions::get_access( $_GET['path'] );
+$access = Permissions::get_access( $path );
 
 if ( ! Permissions::check_access( "read", $access ) ) {
 	
@@ -91,7 +91,7 @@ switch( $action ) {
 	
 	case 'archive':
 		
-		if( ! isset( $_GET["path"] ) ) {
+		if( ! isset( $path ) ) {
 			
 			exit( formatJSEND( "error", "No path specified." ) );
 		}
@@ -102,7 +102,7 @@ switch( $action ) {
 		}
 		
 		$Archive = new Archive();
-		$path = $Filemanager->formatPath( $_GET["path"] );
+		$path = $Filemanager->formatPath( $path );
 		$result = $Archive->compress( $path );
 		
 		if( $result ) {
@@ -238,15 +238,19 @@ switch( $action ) {
 	
 	case 'search':
 		
-		if( isset( $_GET["query"] ) ) {
+		if( isset( $path ) && isset( $_POST["query"] ) ) {
 			
-			$query = $_GET["query"];
-			if( isset( $_GET["options"] ) ) {
+			$query = $_POST["query"];
+			
+			if( isset( $_POST["options"] ) ) {
 				
-				$options = $_GET["options"];
+				$options = json_decode( $_POST["options"], true );
+			} else {
+				
+				$options = array();
 			}
 			
-			$response = $Filemanager->search( $path, $query );
+			$response = $Filemanager->search( $path, $query, $options );
 		} else {
 			
 			$response["status"] = "error";

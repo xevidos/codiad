@@ -1,6 +1,5 @@
 <?php
 
-require_once( __DIR__ . "/class.sql.conversions.php" );
 require_once( __DIR__ . "/../permissions/class.permissions.php" );
 
 class sql {
@@ -13,13 +12,10 @@ class sql {
 	);
 	
 	public $connection = null;
-	public $conversions = null;
 	public $identifier_character = null;
 	protected static $instance = null;
 	
 	public function __construct() {
-		
-		$this->conversions = new sql_conversions();
 	}
 	
 	public function close() {
@@ -44,12 +40,6 @@ class sql {
 		}
 		
 		return( $this->connection );
-	}
-	
-	public function create_table( $table_name, $fields=array(), $attributes=array() ) {
-		
-		$query = $this->conversions->table( $table_name, $fields, $attributes );
-		//$this->query( $query, array(), array(), null, "rowCount" );
 	}
 	
 	public function create_default_tables() {
@@ -302,16 +292,19 @@ class sql {
 						$convert = true;
 					}
 					
+					$current_user = null;
+					
 					foreach( $users as $row => $user ) {
 						
 						if( $project["owner"] == $user["username"] ) {
 							
 							$update_query .= "UPDATE projects SET owner={$user["id"]} WHERE id={$project["id"]};";
+							$current_user = $user;
 							break;
 						}
 					}
 					
-					if( $project["owner"] != $user["username"] ) {
+					if( $current_user != null && $project["owner"] != $current_user["username"] ) {
 						
 						$update_query .= "UPDATE projects SET owner=-1 WHERE id={$project["id"]};";
 					}
