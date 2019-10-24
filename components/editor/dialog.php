@@ -86,28 +86,3 @@ checkSession();
 	}
 	?>
 </form>
-<script>
-	$( function() {
-		<?php
-		if( $_GET['action'] == 'search' ) {
-			?>
-			if( codiad.editor.multi_line ) {
-				
-				$('textarea[name="find"]').val( codiad.active.getSelectedText() );
-				$('textarea[name="find"]').focus();
-			} else {
-				
-				$('input[name="find"]').val( codiad.active.getSelectedText() );
-				$('input[name="find"]').focus();
-			}
-			<?php
-		} elseif( $_GET['action'] == 'sort' ) {
-			
-			?>
-			$('textarea[name="sort"]').val( codiad.active.getSelectedText() );
-			$('textarea[name="sort"]').focus();
-			<?php
-		}
-		?>
-	});
-</script>

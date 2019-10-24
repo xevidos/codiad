@@ -1359,13 +1359,33 @@
 		//////////////////////////////////////////////////////////////////
 		
 		openSearch: function( type ) {
+			
 			if( this.getActive() ) {
-				codiad.modal.load( 400,
-					'components/editor/dialog.php?action=search&type=' +
-					type );
-				codiad.modal.hideOverlay();
-			} else {
-				codiad.message.error( 'No Open Files' );
+				
+				let selected = codiad.active.getSelectedText();
+				
+				codiad.modal.load(
+					400,
+					'components/editor/dialog.php?action=search&type=' + type,
+					{},
+					function( c ) {
+						
+						let input = c.find( 'input:first' );
+						let textarea = c.find( 'textarea:first' );
+						
+						if( input.css( 'display' ) !== 'none' ) {
+							
+							input.val( selected )
+							input.focus();
+						} else if( textarea.css( 'display' ) !== 'none' ) {
+							
+							textarea.val( selected )
+							textarea.focus();
+						}
+						console.log( input, textarea );
+						codiad.modal.hideOverlay();
+					}
+				);
 			}
 		},
 		

@@ -19,35 +19,42 @@
 			.hide();
 		},
 		
-		load: function( width, url, data ) {
+		load: function( width, url, data, callback = null ) {
 			
 			data = data || {};
-			var bounds = this._getBounds( width );
+			let bounds = this._getBounds( width );
+			let content = $( '#modal-content' )
 			$('#modal')
-				.css({
-					'top': bounds.top,
-					'left': bounds.left,
-					'min-width': width + 'px',
-					'margin-left': '-' + Math.ceil( width / 2 ) + 'px'
-				})
-				.draggable({
-					handle: '#drag-handle'
-				});
-			$('#modal-content')
-			.html('<div id="modal-loading"></div>');
-			this.load_process = $.get( url, data, function( data ) {
-				$('#modal-content').html( data );
-				// Fix for Firefox autofocus goofiness
-				$('input[autofocus="autofocus"]')
-				.focus();
+			.css({
+				'top': bounds.top,
+				'left': bounds.left,
+				'min-width': width + 'px',
+				'margin-left': '-' + Math.ceil( width / 2 ) + 'px'
+			})
+			.draggable({
+				handle: '#drag-handle'
 			});
-			var event = {animationPerformed: false};
-			amplify.publish( 'modal.onLoad', event );            
+			content.html('<div id="modal-loading"></div>');
+			
+			this.load_process = $.get( url, data, function( data ) {
+				
+				content.html( data );
+				// Fix for Firefox autofocus goofiness
+				$('#modal-content input[autofocus="autofocus"]').focus();
+				
+				if( callback ) {
+					
+					callback( content );
+				}
+			});
+			
+			let event = {animationPerformed: false};
+			amplify.publish( 'modal.onLoad', event );      
+			
 			// If no plugin has provided a custom load animation
 			if( ! event.animationPerformed ) {
 				
-				$('#modal, #modal-overlay')
-				.fadeIn(200);
+				$('#modal, #modal-overlay').fadeIn(200);
 			}
 			codiad.sidebars.modalLock = true;
 		},

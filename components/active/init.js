@@ -752,14 +752,18 @@
 		//////////////////////////////////////////////////////////////////
 		
 		getSelectedText: function() {
-			var path = this.getPath();
-			var session = this.sessions[path];
+			
+			let path = this.getPath();
+			let session = this.sessions[path];
 			
 			if( path && this.isOpen( path ) ) {
-				return session.getTextRange(
-					codiad.editor.getActive()
-				.getSelectionRange() );
+				
+				console.log( "Session:", session );
+				console.log( "selection: ", codiad.editor.getActive().getSelectionRange() )
+				console.log( "text: ", session.getTextRange( codiad.editor.getActive().getSelectionRange() ) )
+				return session.getTextRange( codiad.editor.getActive().getSelectionRange() );
 			} else {
+				
 				codiad.message.error( i18n( 'No Open Files or Selected Text' ) );
 			}
 		},

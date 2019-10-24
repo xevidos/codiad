@@ -649,7 +649,7 @@ class Filemanager extends Common {
 			
 			$return = array();
 			$input = str_replace( '"', '', $query );
-			$cmd = 'find -L ' . escapeshellarg( $path ) . ' -iregex  '.escapeshellarg( '.*' . $options["filetype"] ) . ' -type f -print0 | xargs -0 grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
+			$cmd = 'find -L ' . escapeshellarg( $path ) . ' -iregex  ' . escapeshellarg( '.*' . $options["filetype"] ) . ' -type f -print0 | xargs -0 grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
 			$output = shell_exec( $cmd );
 			$output_arr = explode( "\n", $output );
 			foreach ( $output_arr as $line ) {
@@ -660,7 +660,7 @@ class Filemanager extends Common {
 					
 					$da['line'] = $data[1];
 					$da['file'] = str_replace( $path, '', $data[0] );
-					$da['result'] = $_SESSION["project"] . str_replace( $path, '', $data[0] );
+					$da['result'] = str_replace( WORKSPACE . '/', '', $data[0] );
 					$da['string'] = str_replace( $data[0] . ":" . $data[1] . ':', '', $line );
 					$return[] = $da;
 				}
