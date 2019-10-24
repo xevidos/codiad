@@ -649,7 +649,7 @@ class Filemanager extends Common {
 			
 			$return = array();
 			$input = str_replace( '"', '', $query );
-			$cmd = 'find -L ' . escapeshellarg( $path ) . ' -iregex  '.escapeshellarg( '.*' . $options["filetype"] ) . ' -type f | xargs grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
+			$cmd = 'find -L ' . escapeshellarg( $path ) . ' -iregex  '.escapeshellarg( '.*' . $options["filetype"] ) . ' -type f -print0 | xargs -0 grep -i -I -n -R -H ' . escapeshellarg( $input ) . '';
 			$output = shell_exec( $cmd );
 			$output_arr = explode( "\n", $output );
 			foreach ( $output_arr as $line ) {
