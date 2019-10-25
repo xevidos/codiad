@@ -184,6 +184,22 @@
 			});
 		},
 		
+		unarchive: function( path ) {
+			
+			let _this = this;
+			
+			$.get( _this.controller + '?action=unarchive&path=' + encodeURIComponent( path ), function( data ) {
+				
+				console.log( data );
+				let response = codiad.jsend.parse( data );
+				console.log( response );
+				/*parent = path.split( '/' );
+				parent.pop();
+				_this.rescan( parent.join( '/' ) );
+				*/
+			});
+		},
+		
 		contextCheckMouse: function( e ) {
 			
 			let offset = $( '#context-menu' ).offset();
@@ -429,7 +445,7 @@
 		// Loop out all files and folders in directory path
 		//////////////////////////////////////////////////////////////////
 		
-		indexFiles: [],
+		opened_folders: [],
 		
 		index: function( path, rescan ) {
 			
@@ -452,35 +468,41 @@
 				});
 			}
 			
-			if( node.hasClass( 'open' ) && ! rescan ) {
+			let open = node.hasClass( 'open' );
+			
+			if( open ) {
+				
+				_this.opened_folders.push( path );
+			}
+			
+			if( open && ! rescan ) {
 				
 				node.parent( 'li' )
-					.children( 'ul' )
-					.slideUp( 300, function() {
-						$( this )
-						.remove();
-						node.removeClass( 'open' );
-					});
+				.children( 'ul' )
+				.slideUp( 300, function() {
+					$( this )
+					.remove();
+					node.removeClass( 'open' );
+				});
 			} else {
 				
 				node.addClass( 'loading' );
 				$.get( this.controller + '?action=index&path=' + encodeURIComponent( path ), function( data ) {
 					
 					node.addClass( 'open' );
-					let  response = codiad.jsend.parse( data );
+					let response = codiad.jsend.parse( data );
+					console.log( response );
 					
 					if( response != 'error' ) {
 						
 						/* Notify listener */
-						_this.indexFiles = response.index;
+						files = response.index;
 						amplify.publish( "filemanager.onIndex", {
 							path: path,
 							files: _this.indexFiles
 						});
 						
-						let files = _this.indexFiles;
-						
-						if( files.length > 0 ) {
+						if( Object.keys( files ).length > 0 ) {
 							
 							let expanded = parentNode.children( 'span' ).hasClass( 'plus' );
 							
@@ -495,70 +517,11 @@
 							if( rescan ) {
 								
 								display = '';
-							}
-							
-							container.css( "display", display );
-							
-							$.each( files, function( index ) {
-								
-								let ext = '';
-								let name = files[index].name.replace( path, '' );
-								let nodeClass = 'none';
-								let entry = $( "<li></li>" );
-								let span = $( "<span></span>" );
-								let link = $( "<a></a>" );
-								
-								entry.draggable({
-									
-									opacity: 0.85,
-									revert: true,
-									start: _this.object_start,
-									stop: _this.object_stop,
-									zIndex: 100
-								});
-								name = name.split( '/' ).join( ' ' );
-								
-								if( files[index].type == 'file' ) {
-									
-									ext = 'ext-' + name.split( '.' ).pop();
-								} else {
-									
-									link.droppable({
-										accept: _this.object_accept,
-										drop: _this.object_drop,
-										over: _this.object_over,
-										out: _this.object_out
-									});
-								}
-								
-								if( files[index].type == 'directory' && files[index].size > 0 ) {
-									
-									if( expanded ) {
-										
-										nodeClass = 'minus';
-									} else {
-										
-										nodeClass = 'plus';
-									}
-								}
-								
-								span.addClass( nodeClass );
-								
-								link.addClass( files[index].type );
-								link.addClass( ext );
-								link.attr( "data-type", files[index].type );
-								link.attr( "data-path", files[index].name );
-								link.text( name );
-								
-								entry.append( span, link );
-								container.append( entry );
-							});
-							
-							if( rescan ) {
-								
 								node.parent( 'li' ).children( 'ul' ).remove();
 							}
 							
+							container.css( "display", display );
+							_this.createIndexes( files, container );
 							$( container ).insertAfter( node );
 							
 							if( ! rescan ) {
@@ -567,19 +530,73 @@
 							}
 						}
 					}
-					
 					node.removeClass( 'loading' );
-					
-					if( rescan && _this.rescanChildren.length > _this.rescanCounter ) {
-						
-						_this.rescan( _this.rescanChildren[_this.rescanCounter++] );
-					} else {
-						
-						_this.rescanChildren = [];
-						_this.rescanCounter = 0;
-					}
 				});
 			}
+		},
+		
+		createIndexes: function( files, container = null ) {
+			
+			let _this = this;
+			
+			$.each( files, function( key, value ) {
+				
+				console.log( key, value );
+				
+				let expanded = _this.opened_folders.includes( value.path );
+				let ext = '';
+				let name = '';
+				let nodeClass = 'none';
+				let entry = $( "<li></li>" );
+				let span = $( "<span></span>" );
+				let link = $( "<a></a>" );
+				let type = null;
+				
+				entry.draggable({
+					
+					opacity: 0.85,
+					revert: true,
+					start: _this.object_start,
+					stop: _this.object_stop,
+					zIndex: 100
+				});
+				
+				if( value.children == undefined ) {
+					
+					ext = "ext-" + value.extension;
+					name = value.basename;
+					type = 'file';
+					link.addClass( ext );
+				} else {
+					
+					link.droppable({
+						accept: _this.object_accept,
+						drop: _this.object_drop,
+						over: _this.object_over,
+						out: _this.object_out
+					});
+					
+					if( expanded ) {
+						
+						nodeClass = 'minus';
+					} else {
+						
+						nodeClass = 'plus';
+					}
+					
+					name = value.basename;
+					type = 'directory';
+				}
+				
+				span.addClass( nodeClass );
+				link.addClass( type );
+				link.attr( "data-type", type );
+				link.attr( "data-path", value.path );
+				link.text( name );
+				
+				entry.append( span, link );
+				container.append( entry );
+			});
 		},
 		
 		//////////////////////////////////////////////////////////////////

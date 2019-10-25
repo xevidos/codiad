@@ -18,6 +18,12 @@
         "onclick": "codiad.filemanager.archive( $('#context-menu').attr('data-path') );"
     },
     {
+        "title": "Unarchive",
+        "icon": "icon-archive",
+        "applies-to" : "file-only non-root",
+        "onclick": "codiad.filemanager.unarchive( $('#context-menu').attr('data-path') );"
+    },
+    {
         "title": "Break",
         "icon": null,
         "applies-to" : "directory-only",

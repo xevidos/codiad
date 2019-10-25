@@ -258,6 +258,33 @@ switch( $action ) {
 		}
 	break;
 	
+	case 'unarchive':
+		
+		if( ! isset( $path ) ) {
+			
+			exit( formatJSEND( "error", "No path specified." ) );
+		}
+		
+		if( ! Permissions::check_access( "create", $access ) ) {
+			
+			exit( formatJSEND( "error", "Invalid access to unzip archive." ) );
+		}
+		
+		$Archive = new Archive();
+		$path = $Filemanager->formatPath( $path );
+		$result = $Archive->decompress( $path );
+		
+		if( $result && $result["status"] == "success" ) {
+			
+			$response = formatJSEND( "success", $result );
+		} else {
+			
+			$response = formatJSEND( "error", $result["message"] );
+		}
+		
+		exit( $response );
+	break;
+	
 	case 'upload':
 		
 		$response = $Filemanager->upload( $path );

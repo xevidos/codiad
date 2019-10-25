@@ -53,7 +53,7 @@ class Filemanager extends Common {
 		 * trying to rename or delete it, allow the actual file name.
 		 */
 		
-		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\ ]/', $path );
+		$invalid_characters = preg_match( '/[^A-Za-z0-9\-\._@\/\(\) ]/', $path );
 		
 		if( $invalid_characters && ! ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 			
@@ -61,7 +61,7 @@ class Filemanager extends Common {
 		} elseif( $invalid_characters && ( $_GET['action'] == "modify" || $_GET['action'] == "delete" ) ) {
 		} else {
 			
-			$path = preg_replace( '/[^A-Za-z0-9\-\._\/\ ]/', '', $path );
+			$path = preg_replace( '/[^A-Za-z0-9\-\._@\/\(\) ]/', '', $path );
 		}
 		return $path;
 	}
@@ -315,63 +315,12 @@ class Filemanager extends Common {
 			
 			$index = array();
 			
-			if( is_dir( $path ) && $handle = opendir( $path ) ) {
+			if( is_dir( $path ) ) {
 				
-				while( false !== ( $object = readdir( $handle ) ) ) {
-					
-					if( $object != "." && $object != ".." && $object != "" ) {
-						
-						$full_path = $path . '/' . $object;
-						
-						if( is_link( $full_path ) ) {
-							
-							$full_path = readlink( $full_path );
-						}
-						
-						if ( is_dir( $full_path ) ) {
-							
-							$type = "directory";
-							$size = count( glob( $path . '/' . $object . '/*' ) );
-						} else {
-							
-							$type = "file";
-							$size = @filesize( $path . '/' . $object );
-						}
-						$index[] = array(
-							
-							"name" => $relative_path . $object,
-							"type" => $type,
-							"size" => $size
-						);
-					}
-				}
-			
-				$folders = array();
-				$files = array();
-				foreach( $index as $item => $data ) {
-					
-					if ( $data['type'] == 'directory' ) {
-						
-						$folders[] = array( "name" => htmlentities( $data['name'], ENT_QUOTES ), "type" => $data['type'], "size" => $data['size'] );
-					}
-					if ( $data['type'] == 'file' ) {
-						
-						$files[] = array( "name" => htmlentities( $data['name'], ENT_QUOTES ), "type" => $data['type'], "size" => $data['size'] );
-					}
-				}
-				
-				function sorter( $a, $b, $key = 'name' ) {
-					
-					return strnatcmp( $a[$key], $b[$key] );
-				}
-				
-				usort( $folders, "sorter" );
-				usort( $files, "sorter" );
-				
-				$output = array_merge( $folders, $files );
+				$files = $this->index_path( $path );
 				
 				$response["status"] = "success";
-				$response["data"] = array( "index" => $output );
+				$response["data"] = array( "index" => $files );
 			} else {
 				
 				$response["status"] = "error";
@@ -383,6 +332,52 @@ class Filemanager extends Common {
 			$response["message"] = "Path Does Not Exist";
 		}
 		return $response;
+	}
+	
+	function index_path( $path ) {
+		
+		$paths = array();
+		
+		if( is_dir( $path ) && $handle = opendir( $path ) ) {
+			
+			while( false !== ( $f = readdir( $handle ) ) ) {
+				
+				if ( "$f" != '.' && "$f" != '..' ) {
+					
+					$p = "$path" . DIRECTORY_SEPARATOR . "$f";
+					$p = str_replace( "//", "/", $p );
+					$rp = realpath( $p );
+					$path_info = pathinfo( $p );
+					
+					if( is_dir( $p ) ) {
+						
+						$paths[] = array(
+							
+							"basename" => $path_info["basename"],
+							"children" => $this->index_path( $p ),
+							"dirname" => str_replace( WORKSPACE . "/", "", $p ),
+							"extension" => null,
+							"filename" => $path_info["filename"],
+							"full_dirname" => $path_info["dirname"],
+							"full_path" => $p,
+							"path" => str_replace( WORKSPACE . "/", "", $p ),
+						);
+					} else {
+						
+						$paths[] = array(
+							"basename" => $path_info["basename"],
+							"dirname" => str_replace( WORKSPACE . "/", "", $p ),
+							"extension" => isset( $path_info["extension"] ) ? $path_info["extension"] : null,
+							"filename" => $path_info["filename"],
+							"path" => str_replace( WORKSPACE . "/", "", $p ),
+						);
+					}
+				}
+			}
+		}
+		
+		closedir( $handle );
+		return $paths;
 	}
 	
 	//////////////////////////////////////////////////////////////////

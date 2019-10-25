@@ -127,19 +127,33 @@ class Archive {
 	
 	public static function decompress( $file, $output = "default" ) {
 		
-		$type = filetype( $file );
 		$response = array();
+		$path_info = pathinfo( $file );
+		$type = isset( $path_info["extension"] ) ? $path_info["extension"] : null;
 		$supported = self::supports( $type );
 		$archive = self::get_instance();
+		
+		if( $output == "default" ) {
+			
+			$output = $path_info["dirname"] . "/" . $path_info["filename"];
+		}
 		
 		if( $supported["status"] === "success" ) {
 			
 			if( extension_loaded( self::EXTENSIONS["{$type}"] ) ) {
 				
-				$response = call_user_func( array( $archive, "{$type}_d" ), $path );
+				$response = call_user_func( array( $archive, "{$type}_d" ), $file, $output );
 			} else {
 				
 				$response = $archive->execute( $type, "decompress" );
+			}
+			
+			if( $response === true ) {
+				
+				$response = array(
+					"status" => "success",
+					"message" => null,
+				);
 			}
 		} else {
 			
@@ -257,11 +271,17 @@ class Archive {
 	
 	function zip_d( $path, $output ) {
 		
+		if( ! is_dir( $output ) ) {
+			
+			mkdir( $output );
+		}
+		
 		$status = false;
 		$output = rtrim( $output, '/' ) . '/';
 		$archive = new ZipArchive();
+		$open = $archive->open( $path );
 		
-		if ( $archive->open( $path ) === true ) {
+		if ( $open === true ) {
 			
 			$archive->extractTo( $output );
 			$archive->close();
