@@ -193,10 +193,9 @@
 				console.log( data );
 				let response = codiad.jsend.parse( data );
 				console.log( response );
-				/*parent = path.split( '/' );
+				parent = path.split( '/' );
 				parent.pop();
 				_this.rescan( parent.join( '/' ) );
-				*/
 			});
 		},
 		
@@ -446,6 +445,7 @@
 		//////////////////////////////////////////////////////////////////
 		
 		opened_folders: [],
+		indexFiles: [],
 		
 		index: function( path, rescan ) {
 			
@@ -475,14 +475,16 @@
 				_this.opened_folders.push( path );
 			}
 			
-			if( open && ! rescan ) {
+			if( node.hasClass( 'open' ) && ! rescan ) {
 				
 				node.parent( 'li' )
 				.children( 'ul' )
 				.slideUp( 300, function() {
-					$( this )
-					.remove();
+					
+					$( this ).remove();
 					node.removeClass( 'open' );
+					node.parent().children( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
+					node.parent().children().find( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
 				});
 			} else {
 				
@@ -491,6 +493,7 @@
 					
 					node.addClass( 'open' );
 					let response = codiad.jsend.parse( data );
+					
 					console.log( response );
 					
 					if( response != 'error' ) {
@@ -503,13 +506,6 @@
 						});
 						
 						if( Object.keys( files ).length > 0 ) {
-							
-							let expanded = parentNode.children( 'span' ).hasClass( 'plus' );
-							
-							if( expanded ) {
-								
-								parentNode.children( 'span' ).removeClass( 'plus' ).addClass( 'minus' );
-							}
 							
 							let display = 'display:none;';
 							let container = $( '<ul></ul>' );

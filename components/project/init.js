@@ -54,11 +54,11 @@
 		add_user: function() {
 			
 			let _this = this;
-			let username = $( '#modal-content form select[name="user_list"]' ).val();
+			let id = $( '#modal-content form select[name="user_list"]' ).val();
 			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
 			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			
-			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&username=' + encodeURIComponent( username ) + '&access=delete', function( data ) {
+			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( id ) + '&access=delete', function( data ) {
 				
 				response = codiad.jsend.parse( data );
 				console.log( response );
@@ -72,14 +72,14 @@
 		change_access: function( e ) {
 			
 			let _this = codiad.project;
-			let username = $( '#modal-content form select[name="user_list"]' ).val();
+			let id = $( '#modal-content form select[name="user_list"]' ).val();
 			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
 			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			let access = $( e.target ).children( "option:selected" ).val();
 			
-			console.log( access, username, project_path, project_id );
+			console.log( access, id, project_path, project_id );
 			
-			$.get( _this.controller + '?action=add_user&path=' + encodeURIComponent( project_path ) + '&id=' + encodeURIComponent( project_id ) + '&username=' + encodeURIComponent( username ) + '&access=' + encodeURIComponent( access ), function( data ) {
+			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( id ) + '&access=' + encodeURIComponent( access ), function( data ) {
 				
 				let response = codiad.jsend.parse( data );
 				console.log( response );

@@ -137,7 +137,12 @@ if( $_GET['action'] == 'create' ) {
 			exit( formatJSEND( "error", "Invalid characters in username" ) );
 		}
 		
-		$User->Create( $_POST['username'], $_POST['password'] );
+		$result = $User->Create( $_POST['username'], $_POST['password'] );
+		
+		if( $result ) {
+			
+			exit( formatJSEND( "success", "User successfully created." ) );
+		}
 	}
 }
 
@@ -151,11 +156,11 @@ if( $_GET['action'] == 'delete' ) {
 		
 		if( ! isset( $_GET['username'] ) ) {
 			
-			die( formatJSEND( "error", "Missing username" ) );
+			exit( formatJSEND( "error", "Missing username" ) );
 		}
 		
-		$User->username = User::CleanUsername( $_GET['username'] );
-		$User->Delete();
+		$return = $User->Delete( $_GET['username'] );
+		exit( json_encode( $return ) );
 	}
 }
 

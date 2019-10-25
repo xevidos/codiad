@@ -43,75 +43,67 @@ class Project extends Common {
 	// NEW METHODS
 	//////////////////////////////////////////////////////////////////
 	
-	public function add_project( $project_name, $project_path, $owner = null ) {
+	public function add_project( $project_name, $project_path, $owner ) {
 		
 		global $sql;
-		if( $owner == null ) {
-			
-			$owner = -1;
-		} else {
-			
-			$owner = $_SESSION["user_id"];
-		}
-		
 		$query = "INSERT INTO projects( name, path, owner ) VALUES ( ?, ?, ? );";
 		$bind_variables = array( $project_name, $project_path, $owner );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
-		
-		if( ! ( $return > 0 ) ) {
-			
-			exit( formatJSEND( "error", "Error creating project $project_name" ) );
-		}
+		return $return;
 	}
 	
-	public function add_user() {
+	public function add_user( $path, $user_id, $access ) {
 		
 		global $sql;
+		$return = array(
+			"status" => null,
+			"message" => null,
+		);
 		$query = "SELECT * FROM projects WHERE path=? AND owner=? LIMIT 1";
-		$bind_variables = array( $this->path, $_SESSION["user_id"] );
+		$bind_variables = array( $path, $_SESSION["user_id"] );
 		$project = $sql->query( $query, $bind_variables, array(), "fetch" );
 		
 		if( empty( $project ) ) {
 			
-			exit( formatJSEND( "error", "Error fetching projects." ) );
-		}
-		
-		$user_id = get_user_id( $this->user );
-		
-		if( $user_id === false ) {
-			
-			exit( formatJSEND( "error", "Error fetching user information." ) );
-		}
-		
-		$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ?", array( $project["id"], $user_id ), array(), "fetch" );
-		
-		if( ! empty( $user ) ) {
-			
-			$query = "UPDATE access SET level=? WHERE project=? AND user=?;";
-			$bind_variables = array( $this->access, $project["id"], $user_id );
-			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
-			
-			if( $result > 0 ) {
-				
-				echo formatJSEND( "success", "Successfully updated {$this->user}." );
-			} else {
-				
-				echo formatJSEND( "error", "Error setting access for project." );
-			}
+			$return["status"] = "error";
+			$return["message"] = "Error fetching projects.";
 		} else {
 			
-			$query = "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );";
-			$bind_variables = array( $project["id"], $user_id, $this->access );
-			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+			$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1", array( $project["id"], $user_id ), array(), "fetch" );
 			
-			if( $result > 0 ) {
+			if( ! empty( $user ) ) {
 				
-				echo formatJSEND( "success", "Successfully added {$this->user}." );
+				$query = "UPDATE access SET level=? WHERE project=? AND user=?;";
+				$bind_variables = array( $access, $project["id"], $user_id );
+				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
+				
+				if( $result > 0 ) {
+					
+					$return["status"] = "success";
+					$return["message"] = "Successfully updated access.";
+				} else {
+					
+					$return["status"] = "error";
+					$return["message"] = "Error setting access for project.";
+				}
 			} else {
 				
-				echo formatJSEND( "error", "Error setting access for project." );
+				$query = "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );";
+				$bind_variables = array( $project["id"], $user_id, $access );
+				$result = $sql->query( $query, $bind_variables, 0, "rowCount", "exception" );
+				
+				if( $result > 0 ) {
+					
+					$return["status"] = "success";
+					$return["message"] = "Successfully updated access.";
+				} else {
+					
+					$return["status"] = "error";
+					$return["message"] = "Error setting access for project.";
+				}
 			}
 		}
+		return $return;
 	}
 	
 	public function check_duplicate( $full_path ) {
@@ -397,26 +389,39 @@ class Project extends Common {
 	// Create
 	//////////////////////////////////////////////////////////////////
 	
-	public function Create() {
+	public function Create( $path, $name, $public ) {
 		
-		if ( $this->name != '' && $this->path != '' ) {
+		$return = array(
+			"status" => null,
+			"message" => null,
+		);
+		
+		if( $public === true ) {
 			
-			$this->path = $this->cleanPath();
-			$this->name = htmlspecialchars( $this->name );
-			if ( ! $this->isAbsPath( $this->path ) ) {
+			$owner = -1;
+		} else {
+			
+			$owner = $_SESSION["user_id"];
+		}
+		
+		if ( $name != '' && $path != '' ) {
+			
+			$path = $this->clean_path( $path );
+			$name = htmlspecialchars( $name );
+			if ( ! $this->isAbsPath( $path ) ) {
 				
-				$this->path = $this->SanitizePath();
+				$path = $this->sanitize_path( $path );
 			}
-			if ( $this->path != '' ) {
+			if ( $path != '' ) {
 				
 				$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
 				
-				if( ! $this->isAbsPath( $this->path ) ) {
+				if( ! $this->isAbsPath( $path ) ) {
 					
-					$this->path =  $_SESSION["user"] . '/' . $this->path;
+					$path =  $_SESSION["user"] . '/' . $path;
 				}
 				
-				$pass = $this->check_duplicate( $this->path );
+				$pass = $this->check_duplicate( $path );
 				if ( $pass ) {
 					
 					if( ! is_dir( $user_path ) ) {
@@ -424,78 +429,87 @@ class Project extends Common {
 						mkdir( $user_path, 0755, true );
 					}
 					
-					if ( ! $this->isAbsPath( $this->path ) ) {
+					if ( ! $this->isAbsPath( $path ) ) {
 						
-						if( ! is_dir( WORKSPACE . '/' . $this->path ) ) {
+						if( ! is_dir( WORKSPACE . '/' . $path ) ) {
 							
-							mkdir( WORKSPACE . '/' . $this->path );
+							mkdir( WORKSPACE . '/' . $path );
 						}
 					} else {
 						
-						if( ! is_admin() ) {
+						if( is_admin() ) {
 							
-							die( formatJSEND( "error", "Absolute Paths are only allowed for admins" ) );
-						}
-						
-						if ( defined( 'WHITEPATHS' ) ) {
-							
-							$allowed = false;
-							foreach ( explode( ",", WHITEPATHS ) as $whitepath ) {
+							if ( defined( 'WHITEPATHS' ) ) {
 								
-								if ( strpos( $this->path, $whitepath ) === 0 ) {
+								$allowed = false;
+								foreach ( explode( ",", WHITEPATHS ) as $whitepath ) {
 									
-									$allowed = true;
+									if ( strpos( $path, $whitepath ) === 0 ) {
+										
+										$allowed = true;
+									}
+								}
+								if ( ! $allowed ) {
+									
+									$return["status"] = "error";
+									$return["message"] = "Absolute Path Only Allowed for " . WHITEPATHS;
 								}
 							}
-							if ( ! $allowed ) {
+							if ( ! file_exists( $path ) ) {
 								
-								die( formatJSEND( "error", "Absolute Path Only Allowed for " . WHITEPATHS ) );
-							}
-						}
-						if ( ! file_exists( $this->path ) ) {
-							
-							if ( ! mkdir( $this->path . '/', 0755, true ) ) {
+								if ( ! mkdir( $path . '/', 0755, true ) ) {
+									
+									$return["status"] = "error";
+									$return["message"] = "Unable to create Absolute Path";
+								}
+							} else {
 								
-								die( formatJSEND( "error", "Unable to create Absolute Path" ) );
+								if ( ! is_writable( $path ) || ! is_readable( $path ) ) {
+									
+									$return["status"] = "error";
+									$return["message"] = "No Read/Write Permission";
+								}
 							}
 						} else {
 							
-							if ( ! is_writable( $this->path ) || ! is_readable( $this->path ) ) {
-								
-								die( formatJSEND( "error", "No Read/Write Permission" ) );
-							}
+							$return["status"] = "error";
+							$return["message"] = "Absolute Paths are only allowed for admins";
 						}
 					}
-					$this->projects[] = array( "name" => $this->name, "path" => $this->path );
-					$this->add_project( $this->name, $this->path );
 					
-					// Pull from Git Repo?
-					if ( $this->gitrepo && filter_var( $this->gitrepo, FILTER_VALIDATE_URL ) !== false ) {
+					if( $return["status"] == null ) {
 						
-						$this->gitbranch = $this->SanitizeGitBranch();
-						if ( ! $this->isAbsPath( $this->path ) ) {
+						$this->projects[] = array( "name" => $name, "path" => $path );
+						$result = $this->add_project( $name, $path, $owner );
+						
+						if( $result > 0 ) {
 							
-							$this->command_exec = "cd " . escapeshellarg( WORKSPACE . '/' . $this->path ) . " && git init && git remote add origin " . escapeshellarg( $this->gitrepo ) . " && git pull origin " . escapeshellarg( $this->gitbranch );
+							$return["status"] = "success";
+							$return["message"] = "Created Project";
+							$return["data"] = array( "name" => $name, "path" => $path );
 						} else {
 							
-							$this->command_exec = "cd " . escapeshellarg( $this->path ) . " && git init && git remote add origin " . escapeshellarg( $this->gitrepo ) . " && git pull origin " . escapeshellarg( $this->gitbranch );
+							$return["status"] = "error";
+							$return["message"] = "A Project With the Same Name or Path Exists";
 						}
-						$this->ExecuteCMD();
 					}
-					
-					exit( formatJSEND( "success", array( "name" => $this->name, "path" => $this->path ) ) );
 				} else {
 					
-					exit( formatJSEND( "error", "A Project With the Same Name or Path Exists" ) );
+					$return["status"] = "error";
+					$return["message"] = "A Project With the Same Name or Path Exists";
 				}
 			} else {
 				
-				exit( formatJSEND( "error", "Project Name/Folder not allowed" ) );
+				$return["status"] = "error";
+				$return["message"] = "Project Name/Folder not allowed";
 			}
 		} else {
 			
-			exit( formatJSEND( "error", "Project Name/Folder is empty" ) );
+			$return["status"] = "error";
+			$return["message"] = "Project Name/Folder is empty";
 		}
+		
+		return $return;
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -565,6 +579,12 @@ class Project extends Common {
 		return preg_replace( '/[^\w-]/', '', strtolower( $sanitized ) );
 	}
 	
+	public function sanitize_path( $path ) {
+		
+		$sanitized = str_replace( " ", "_", $path );
+		return preg_replace( '/[^\w-]/', '', strtolower( $sanitized ) );
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// Clean Path
 	//////////////////////////////////////////////////////////////////
@@ -583,31 +603,16 @@ class Project extends Common {
 		return $path;
 	}
 	
-	//////////////////////////////////////////////////////////////////
-	// Execute Command
-	//////////////////////////////////////////////////////////////////
-	
-	public function ExecuteCMD() {
+	public function clean_path( $path ) {
 		
-		if ( function_exists( 'system' ) ) {
+		// prevent Poison Null Byte injections
+		$path = str_replace( chr( 0 ), '', $path );
+		
+		// prevent go out of the workspace
+		while( strpos( $path, '../' ) !== false ) {
 			
-			ob_start();
-			system( $this->command_exec );
-			ob_end_clean();
-		}  elseif( function_exists( 'passthru' ) ) {
-			
-			//passthru
-			ob_start();
-			passthru($this->command_exec);
-			ob_end_clean();
-		}  elseif ( function_exists( 'exec' ) ) {
-			
-			//exec
-			exec( $this->command_exec, $this->output );
-		} elseif ( function_exists( 'shell_exec' ) ) {
-			
-			//shell_exec
-			shell_exec( $this->command_exec );
+			$path = str_replace( '../', '', $path );
 		}
+		return $path;
 	}
 }

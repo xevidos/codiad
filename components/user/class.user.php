@@ -52,16 +52,13 @@ class User {
 		$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
 		if( $return > -1 ) {
 			
-			//TODO: add new permissions system to delete cleanup
-			
-			$query = "DELETE FROM projects WHERE owner=? AND access IN ( ?,?,?,?,? );";
+			$query = "
+			DELETE FROM projects
+			WHERE owner=( SELECT id FROM users WHERE username=? )
+			AND ( SELECT COUNT(*) FROM access WHERE project = projects.id AND WHERE user <> ( SELECT id FROM users WHERE username=? ) );";
 			$bind_variables = array(
 				$username,
-				"null",
-				null,
-				"[]",
-				"",
-				json_encode( array( $username ) )
+				$username
 			);
 			$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
 			
@@ -296,16 +293,18 @@ class User {
 		
 		$username = self::CleanUsername( $username );
 		$password = $this->encrypt_password( $password );
-		$this->add_user( $username, $password  );
+		$result = $this->add_user( $username, $password, Permissions::SYSTEM_LEVELS["user"] );
+		return $result;
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// Delete Account
 	//////////////////////////////////////////////////////////////////
 	
-	public function Delete() {
+	public function Delete( $username ) {
 		
-		$this->delete_user();
+		$username = self::CleanUsername( $username );
+		return $this->delete_user( $username );
 	}
 	
 	//////////////////////////////////////////////////////////////////

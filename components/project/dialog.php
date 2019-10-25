@@ -91,7 +91,7 @@ switch( $_GET['action'] ) {
 									<td width="250"><?php echo($data['path']);?></td>
 									<?php
 									$owner = $Project->get_owner( $data['path'] );
-									if( $owner == 'nobody' ) {
+									if( $owner == -1 ) {
 										
 										?>
 										<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
@@ -114,7 +114,7 @@ switch( $_GET['action'] ) {
 										?>
 										<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
 										<?php
-									} elseif( $owner !== $_SESSION["user"] && $owner != -1 ) {
+									} elseif( $owner !== $_SESSION["user_id"] && $owner != -1 ) {
 										
 										?>
 										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
@@ -229,7 +229,7 @@ switch( $_GET['action'] ) {
 				foreach( $users as $user ) {
 					
 					?>
-					<option value="<?php echo htmlentities( $user["username"] );?>"><?php echo htmlentities( $user["username"] );?></option>
+					<option value="<?php echo htmlentities( $user["id"] );?>"><?php echo htmlentities( $user["username"] );?></option>
 					<?php
 				}
 				?>
@@ -281,7 +281,7 @@ switch( $_GET['action'] ) {
 								}
 								?>
 							</select>
-							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user["username"] );?>' );">Remove Access</button>
+							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user["id"] );?>' );">Remove Access</button>
 						</td>
 					</tr>
 					<?php

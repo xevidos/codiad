@@ -113,8 +113,7 @@
 			};
 			
 			// Assuming the mode file has no dependencies
-			$.loadScript( 'components/editor/ace-editor/mode-' + mode.name + '.js',
-				fn );
+			$.loadScript( 'components/editor/ace-editor/mode-' + mode.name + '.js', fn );
 		},
 		
 		init: function() {

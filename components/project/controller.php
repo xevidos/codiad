@@ -37,33 +37,31 @@ if( $_GET['action'] == 'add_user' ) {
 		exit( formatJSEND( "error", "No access set." ) );
 	} else {
 		
-		$Project->access = Permissions::LEVELS[$_GET['access']];
+		$access = Permissions::LEVELS[$_GET['access']];
 	}
 	
-	if( isset( $_GET['username'] ) && ! in_array( $_GET['username'], $invalid_users ) ) {
+	if( isset( $_GET['user_id'] ) && ! in_array( $_GET['user_id'], $invalid_users ) ) {
 		
-		$Project->user = $_GET['username'];
+		$user = $_GET['user_id'];
 	} else {
 		
-		echo formatJSEND( "error", "No username set." );
-		return;
+		exit(  formatJSEND( "error", "No user id set." ) );
 	}
 	
-	if( $_GET['project_path'] != '' ) {
+	if( isset( $_GET['project_path'] ) && $_GET['project_path'] != '' ) {
 		
-		$Project->path = $_GET['project_path'];
+		$project = $_GET['project_path'];
 	} else {
 		
-		echo formatJSEND( "error", "No project path set." );
-		return;
+		exit( formatJSEND( "error", "No project path set." ) );
 	}
 	
-	if( $Project->check_owner( $_GET["project_path"], true ) ) {
+	if( $Project->check_owner( $_GET['project_path'], true ) ) {
 		
-		$Project->add_user();
+		return $Project->add_user( $project, $user, $access );
 	} else {
 		
-		echo formatJSEND( "error", "You can not manage this project." );
+		exit( formatJSEND( "error", "You can not manage this project." ) );
 	}
 }
 
@@ -74,27 +72,11 @@ if( $_GET['action'] == 'add_user' ) {
 
 if( $_GET['action'] == 'create' ) {
 	
-	$Project->name = $_GET['project_name'];
-	
-	if( $_GET['public_project'] == 'true' ) {
-		
-		$Project->public_project = true;
-	}
-	
-	if( $_GET['project_path'] != '' ) {
-		
-		$Project->path = $_GET['project_path'];
-	} else {
-		
-		$Project->path = $_GET['project_name'];
-	}
-	// Git Clone?
-	if( ! empty( $_GET['git_repo'] ) ) {
-		
-		$Project->gitrepo = $_GET['git_repo'];
-		$Project->gitbranch = $_GET['git_branch'];
-	}
-	$Project->Create();
+	$name = $_GET['project_name'];
+	$public = ( $_GET['public_project'] != 'true' ) ? false : true;
+	$path = ( $_GET['project_path'] != '' ) ? $_GET['project_path'] : $_GET['project_name'];
+	$return = $Project->Create( $path, $name, $public );
+	exit( json_encode( $return ) );
 }
 
 //////////////////////////////////////////////////////////////////

@@ -78,43 +78,50 @@ class Filemanager extends Common {
 		);
 		$path = self::formatPath( $path );
 		
-		// Create file
-		if( $type == "file" ) {
+		if( Permissions::has_create( $path ) ) {
 			
-			if ( ! file_exists( $path ) ) {
+			// Create file
+			if( $type == "file" ) {
 				
-				if ( $file = fopen( $path, 'w' ) ) {
+				if ( ! file_exists( $path ) ) {
 					
-					// Write content
-					if ( $content ) {
+					if ( $file = fopen( $path, 'w' ) ) {
 						
-						fwrite( $file, $content );
+						// Write content
+						if ( $content ) {
+							
+							fwrite( $file, $content );
+						}
+						fclose( $file );
+						
+						$response["status"] = "success";
+						$response["mtime"] = filemtime( $path );
+					} else {
+						
+						$response["status"] = "error";
+						$response["message"] = "Cannot Create File";
 					}
-					fclose( $file );
-					
-					$response["status"] = "success";
-					$response["mtime"] = filemtime( $path );
 				} else {
 					
 					$response["status"] = "error";
-					$response["message"] = "Cannot Create File";
+					$response["message"] = "File Already Exists";
 				}
-			} else {
+			} elseif( $type == "directory" ) {
 				
-				$response["status"] = "error";
-				$response["message"] = "File Already Exists";
+				if ( ! is_dir( $path ) ) {
+					
+					mkdir( $path );
+					$response["status"] = "success";
+				} else {
+					
+					$response["status"] = "error";
+					$response["message"] = "Directory Already Exists";
+				}
 			}
-		} elseif( $type == "directory" ) {
+		} else {
 			
-			if ( ! is_dir( $path ) ) {
-				
-				mkdir( $path );
-				$response["status"] = "success";
-			} else {
-				
-				$response["status"] = "error";
-				$response["message"] = "Directory Already Exists";
-			}
+			$response["status"] = "error";
+			$response["message"] = "You do not have permission to create files in this project";
 		}
 		return $response;
 	}
@@ -354,13 +361,15 @@ class Filemanager extends Common {
 						$paths[] = array(
 							
 							"basename" => $path_info["basename"],
-							"children" => $this->index_path( $p ),
+							//"children" => $this->index_path( $p ),
+							"children" => array(),
 							"dirname" => str_replace( WORKSPACE . "/", "", $p ),
 							"extension" => null,
 							"filename" => $path_info["filename"],
 							"full_dirname" => $path_info["dirname"],
 							"full_path" => $p,
 							"path" => str_replace( WORKSPACE . "/", "", $p ),
+							"type" => "directory",
 						);
 					} else {
 						
@@ -370,6 +379,7 @@ class Filemanager extends Common {
 							"extension" => isset( $path_info["extension"] ) ? $path_info["extension"] : null,
 							"filename" => $path_info["filename"],
 							"path" => str_replace( WORKSPACE . "/", "", $p ),
+							"type" => "file",
 						);
 					}
 				}
@@ -377,8 +387,27 @@ class Filemanager extends Common {
 		}
 		
 		closedir( $handle );
+		usort( $paths, array( $this, "sorter" ) );
 		return $paths;
 	}
+	
+	function sorter( $a, $b ) {
+		
+		$basename = strnatcmp( $a["basename"], $b["basename"] );
+		$type = strnatcmp( $a["type"], $b["type"] );
+		$result = 0;
+		
+		if( $type == 0 ) {
+			
+			$result = $basename;
+		} else {
+			
+			$result = $type;
+		}
+		
+		return $result;
+	}
+
 	
 	//////////////////////////////////////////////////////////////////
 	// MODIFY (Modifies a file name/contents or directory name)
@@ -396,6 +425,13 @@ class Filemanager extends Common {
 		if( $content == ' ' ) {
 			
 			$content = ''; // Blank out file
+		}
+		
+		if( ! Permissions::has_write( $path ) ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "You do not have access to write to this file.";
+			return $response;
 		}
 		
 		if( $patch && ! $mtime ) {
@@ -530,6 +566,7 @@ class Filemanager extends Common {
 			$response["data"] = array(
 				"content" => $output,
 				"mtime" => filemtime( $path ),
+				"read_only" => ( ! Permissions::has_write( $path ) ),
 			);
 		} else {
 			
