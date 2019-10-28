@@ -45,7 +45,7 @@ if( $_GET['action'] == 'add_user' ) {
 		$user = $_GET['user_id'];
 	} else {
 		
-		exit(  formatJSEND( "error", "No user id set." ) );
+		exit( formatJSEND( "error", "No user id set." ) );
 	}
 	
 	if( isset( $_GET['project_path'] ) && $_GET['project_path'] != '' ) {
@@ -58,7 +58,7 @@ if( $_GET['action'] == 'add_user' ) {
 	
 	if( $Project->check_owner( $_GET['project_path'], true ) ) {
 		
-		return $Project->add_user( $project, $user, $access );
+		exit( json_encode(  $Project->add_user( $project, $user, $access ) ) );
 	} else {
 		
 		exit( formatJSEND( "error", "You can not manage this project." ) );

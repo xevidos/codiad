@@ -491,6 +491,12 @@
 				node.addClass( 'loading' );
 				$.get( this.controller + '?action=index&path=' + encodeURIComponent( path ), function( data ) {
 					
+					let expanded = parentNode.children( 'span' ).hasClass( 'plus' )
+					if( expanded ) {
+					
+						parentNode.children( 'span' ).removeClass( 'plus' ).addClass( 'minus' );
+					}
+
 					node.addClass( 'open' );
 					let response = codiad.jsend.parse( data );
 					

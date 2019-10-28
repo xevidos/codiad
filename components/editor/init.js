@@ -1415,6 +1415,9 @@
 				var replace = $( '#modal input[name="replace"]' )
 				.val();
 			}
+			
+			console.log( action, i, find, replace );
+			
 			switch ( action ) {
 				case 'find':
 					

@@ -140,7 +140,7 @@ class Filemanager extends Common {
 		if( ! Common::checkPath( $path ) ) {
 			
 			$response["status"] = "error";
-			$response["message"] = "No access.";
+			$response["message"] = "You do not have access to delete this file";
 		} else {
 			
 			$path = self::formatPath( $path );
