@@ -361,8 +361,7 @@ class Filemanager extends Common {
 						$paths[] = array(
 							
 							"basename" => $path_info["basename"],
-							//"children" => $this->index_path( $p ),
-							"children" => array(),
+							"children" => $this->index_path( $p ),
 							"dirname" => str_replace( WORKSPACE . "/", "", $p ),
 							"extension" => null,
 							"filename" => $path_info["filename"],

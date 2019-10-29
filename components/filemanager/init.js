@@ -5,7 +5,7 @@
  */
 ( function( global, $ ) {
 	
-	var codiad = global.codiad;
+	let codiad = global.codiad;
 	
 	$( window ).load( function() {
 		
@@ -121,14 +121,14 @@
 				$( '#context-menu .no-external' ).show();
 			}
 			// Show menu
-			var top = e.pageY;
+			let top = e.pageY;
 			if( top > $( window ).height() - $( '#context-menu' ).height() ) {
 				top -= $( '#context-menu' ).height();
 			}
 			if( top < 10 ) {
 				top = 10;
 			}
-			var max = $( window ).height() - top - 10;
+			let max = $( window ).height() - top - 10;
 			
 			$( '#context-menu' )
 			.css( {
@@ -246,15 +246,15 @@
 			$( '#modal-content form' )
 			.live( 'submit', function( e ) {
 				e.preventDefault();
-				var shortName = $( '#modal-content form input[name="object_name"]' )
+				let shortName = $( '#modal-content form input[name="object_name"]' )
 				.val();
-				var path = $( '#modal-content form input[name="path"]' )
+				let path = $( '#modal-content form input[name="path"]' )
 				.val();
-				var type = $( '#modal-content form input[name="type"]' )
+				let type = $( '#modal-content form input[name="type"]' )
 				.val();
-				var createPath = path + '/' + shortName;
+				let createPath = path + '/' + shortName;
 				$.get( codiad.filemanager.controller + '?action=create&path=' + encodeURIComponent( createPath ) + '&type=' + type, function( data ) {
-					var createResponse = codiad.jsend.parse( data );
+					let createResponse = codiad.jsend.parse( data );
 					if( createResponse != 'error' ) {
 						codiad.message.success( type.charAt( 0 )
 						.toUpperCase() + type.slice( 1 ) + ' Created' );
@@ -285,15 +285,15 @@
 		
 		createObject: function( parent, path, type ) {
 			// NODE FORMAT: <li><a class="{type} {ext-file_extension}" data-type="{type}" data-path="{path}">{short_name}</a></li>
-			var parentNode = $( '#file-manager a[data-path="' + parent + '"]' );
+			let parentNode = $( '#file-manager a[data-path="' + parent + '"]' );
 			if( !$( '#file-manager a[data-path="' + path + '"]' )
 			.length ) { // Doesn't already exist
 				if( parentNode.hasClass( 'open' ) && parentNode.hasClass( 'directory' ) ) { // Only append node if parent is open (and a directory)
-					var shortName = this.getShortName( path );
+					let shortName = this.getShortName( path );
 					if( type == 'directory' ) {
-						var appendage = '<li><span class="none"></span><a class="directory" data-type="directory" data-path="' + path + '">' + shortName + '</a></li>';
+						let appendage = '<li><span class="none"></span><a class="directory" data-type="directory" data-path="' + path + '">' + shortName + '</a></li>';
 					} else {
-						var appendage = '<li><span class="none"></span><a class="file ext-' +
+						let appendage = '<li><span class="none"></span><a class="file ext-' +
 							this.getExtension( shortName ) +
 							'" data-type="file" data-path="' +
 							path + '">' + shortName + '</a></li>';
@@ -330,15 +330,15 @@
 					
 					console.log( data );
 					
-					var deleteResponse = codiad.jsend.parse( data );
+					let deleteResponse = codiad.jsend.parse( data );
 					if( deleteResponse != 'error' ) {
-						var node = $( '#file-manager a[data-path="' + path + '"]' );
+						let node = $( '#file-manager a[data-path="' + path + '"]' );
 						let parent_path = node.parent().parent().prev().attr( 'data-path' );
 						node.parent( 'li' ).remove();
 						// Close any active files
 						$( '#active-files a' )
 						.each( function() {
-							var curPath = $( this )
+							let curPath = $( this )
 							.attr( 'data-path' );
 							if( curPath.indexOf( path ) == 0 ) {
 								codiad.active.remove( curPath );
@@ -365,14 +365,14 @@
 			.live( 'submit', function( e ) {
 				e.preventDefault();
 				$.get( _this.controller + '?action=deleteInner&path=' + encodeURIComponent( path ), function( data ) {
-					var deleteResponse = codiad.jsend.parse( data );
+					let deleteResponse = codiad.jsend.parse( data );
 					if( deleteResponse != 'error' ) {
-						var node = $( '#file-manager a[data-path="' + path + '"]' ).parent( 'ul' ).remove();
+						let node = $( '#file-manager a[data-path="' + path + '"]' ).parent( 'ul' ).remove();
 						
 						// Close any active files
 						$( '#active-files a' )
 						.each( function() {
-							var curPath = $( this )
+							let curPath = $( this )
 							.attr( 'data-path' );
 							if( curPath.indexOf( path ) == 0 ) {
 								codiad.active.remove( curPath );
@@ -403,7 +403,7 @@
 		//////////////////////////////////////////////////////////////////
 		
 		download: function( path ) {
-			var type = this.getType( path );
+			let type = this.getType( path );
 			$( '#download' )
 			.attr( 'src', 'components/filemanager/download.php?path=' + encodeURIComponent( path ) + '&type=' + type );
 		},
@@ -445,18 +445,81 @@
 		//////////////////////////////////////////////////////////////////
 		
 		opened_folders: [],
-		indexFiles: [],
+		files: [],
+		
+		get_index: function( path, files ) {
+			
+			let _this = this;
+			let index = {};
+			let total = files.length;
+			
+			for( let i = 0;i < total;i++ ) {
+				
+				if( path == files[i].dirname ) {
+					
+					index = files[i];
+					break;
+				} else {
+					
+					if( files[i].children !== undefined ) {
+						
+						index = _this.get_index( path, files[i].children );
+						
+						if( Object.keys( index ).length > 0 ) {
+							
+							break;
+						}
+					}
+				}
+			}
+			return index;
+		},
+		
+		set_index_children: function( path, files, children ) {
+			
+			let _this = this;
+			let index = {};
+			let total = files.length;
+			
+			for( let i = 0;i < total;i++ ) {
+				
+				if( path == files[i].dirname ) {
+					
+					files[i].children = children;
+					index = files[i];
+					break;
+				} else {
+					
+					if( files[i].children !== undefined ) {
+						
+						index = _this.set_index_children( path, files[i].children, children );
+						
+						if( Object.keys( index ).length > 0 ) {
+							
+							break;
+						}
+					}
+				}
+			}
+			return index;
+		},
 		
 		index: function( path, rescan ) {
 			
-			let _this = this;
+			let _this = codiad.filemanager;
+			let node = $( '#file-manager a[data-path="' + path + '"]' );
+			let parentNode = node.parent();
+			let span = node.prev();
+			let total_saved = _this.files.length;
+			let container = $( '<ul></ul>' );
+			let files = [];
+			let open_children = parentNode.find( 'a.open' );
+			let root = false;
+			
 			if( rescan === undefined ) {
 				
 				rescan = false;
 			}
-			
-			let node = $( '#file-manager a[data-path="' + path + '"]' );
-			let parentNode = node.parent();
 			
 			if( node.hasClass( "directory" ) ) {
 				
@@ -468,12 +531,118 @@
 				});
 			}
 			
-			let open = node.hasClass( 'open' );
+			node.addClass( 'loading' );
 			
-			if( open ) {
+			/*for( let i = open_children.length;i--; ) {
 				
-				_this.opened_folders.push( path );
+				_this.opened_folders.push( $( open_children[i] ).attr( "data-path" ) );
+			}*/
+			
+			open_children.each( function( key, value ) {
+				
+				_this.opened_folders.push( value.attr( "data-path" ) );
+			});
+			
+			console.log( "test", open_children, _this.open_children );
+			
+			if( rescan || total_saved == 0 ) {
+				
+				$.get( this.controller + '?action=index&path=' + encodeURIComponent( path ), function( data ) {
+					
+					let response = codiad.jsend.parse( data );
+					let files = [];
+					
+					if( response != 'error' ) {
+						
+						let result = response.index;
+						let total_files = result.length;
+						
+						if( total_saved == 0 ) {
+							
+							root = true;
+							_this.files = result;
+							files = result;
+						} else {
+							
+							_this.set_index_children( path, _this.files, result );
+							files = result;
+						}
+						
+						/* Notify listener */
+						amplify.publish( "filemanager.onIndex", {
+							path: path,
+							files: files
+						});
+						
+						console.log( files, container, _this.files );
+						
+						_this.createIndexes( files, container );
+						
+						let ul = node.parent( 'li' ).children( 'ul' );
+						
+						if( ul.length ) {
+							
+							ul.replaceWith( container );
+						} else {
+							
+							$( container ).insertAfter( node );
+						}
+						node.removeClass( 'loading' );
+					}
+				});
+			} else {
+				
+				let file = _this.get_index( path, _this.files );
+				files = file.children;
+				
+				console.log( file, files );
+				
+				/* Notify listener */
+				amplify.publish( "filemanager.onIndex", {
+					path: path,
+					files: files
+				});
+				
+				let plus = span.hasClass( 'plus' );
+				
+				if( plus || span.hasClass( 'none' ) ) {
+					
+					if( plus ) {
+						
+						span.removeClass( 'plus' )
+						span.addClass( 'minus' );
+					}
+					
+					node.addClass( 'open' );
+					_this.createIndexes( files, container );
+					let ul = node.parent( 'li' ).children( 'ul' );
+					
+					if( ul.length ) {
+						
+						ul.replaceWith( container );
+					} else {
+						
+						$( container ).insertAfter( node );
+					}
+				} else if( span.hasClass( 'minus' ) ) {
+					
+					
+					span.removeClass( 'minus' );
+					span.addClass( 'plus' );
+					node.parent( 'li' )
+					.children( 'ul' )
+					.slideUp( 300, function() {
+						
+						$( this ).remove();
+						node.removeClass( 'open' );
+						node.parent().children( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
+						node.parent().children().find( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
+					});
+				}
+				node.removeClass( 'loading' );
 			}
+			
+			/*
 			
 			if( node.hasClass( 'open' ) && ! rescan ) {
 				
@@ -493,10 +662,10 @@
 					
 					let expanded = parentNode.children( 'span' ).hasClass( 'plus' )
 					if( expanded ) {
-					
+						
 						parentNode.children( 'span' ).removeClass( 'plus' ).addClass( 'minus' );
 					}
-
+					
 					node.addClass( 'open' );
 					let response = codiad.jsend.parse( data );
 					
@@ -504,46 +673,56 @@
 					
 					if( response != 'error' ) {
 						
-						/* Notify listener */
+						/* Notify listener *
 						files = response.index;
 						amplify.publish( "filemanager.onIndex", {
 							path: path,
 							files: _this.indexFiles
 						});
+						let keys = Object.keys( files );
+						let total_keys = keys.length;
 						
-						if( Object.keys( files ).length > 0 ) {
+						
+						for( let i = 0;i < total_keys;i++ ) {
 							
-							let display = 'display:none;';
-							let container = $( '<ul></ul>' );
-							
-							if( rescan ) {
+							if( files[keys[i]]. ) {
 								
-								display = '';
-								node.parent( 'li' ).children( 'ul' ).remove();
-							}
-							
-							container.css( "display", display );
-							_this.createIndexes( files, container );
-							$( container ).insertAfter( node );
-							
-							if( ! rescan ) {
+								let display = 'display:none;';
+								let container = $( '<ul></ul>' );
 								
-								node.siblings( 'ul' ).slideDown( 300 );
+								if( rescan ) {
+									
+									display = '';
+									node.parent( 'li' ).children( 'ul' ).remove();
+								}
+								
+								container.css( "display", display );
+								_this.createIndexes( files, container );
+								$( container ).insertAfter( node );
+								
+								if( ! rescan ) {
+									
+									container.css( "display", display );
+									node.siblings( 'ul' ).slideDown( 300 );
+								}
 							}
 						}
 					}
 					node.removeClass( 'loading' );
 				});
 			}
+			*/
 		},
 		
 		createIndexes: function( files, container = null ) {
 			
 			let _this = this;
+			let total_files = files.length;
 			
-			$.each( files, function( key, value ) {
+			for( let i = 0;i < total_files;i++ ) {
 				
-				console.log( key, value );
+				let value = files[i];
+				console.log( _this.opened_folders, value.path )
 				
 				let expanded = _this.opened_folders.includes( value.path );
 				let ext = '';
@@ -578,12 +757,21 @@
 						out: _this.object_out
 					});
 					
-					if( expanded ) {
+					if( value.children.length > 0 ) {
 						
-						nodeClass = 'minus';
-					} else {
-						
-						nodeClass = 'plus';
+						if( expanded ) {
+							
+							let sub_container = $( '<ul></ul>' );
+							console.log( value.children );
+							
+							nodeClass = 'minus';
+							link.addClass( 'open' );
+							_this.createIndexes( value.children, sub_container );
+							$( sub_container ).insertAfter( container );
+						} else {
+							
+							nodeClass = 'plus';
+						}
 					}
 					
 					name = value.basename;
@@ -598,7 +786,7 @@
 				
 				entry.append( span, link );
 				container.append( entry );
-			});
+			};
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -620,7 +808,7 @@
 					_this.openFile( $( this ).parent().children( "a" )
 					.attr( 'data-path' ) );
 				}
-				if( !$( this ).hasClass( 'none' ) ) {
+				/*if( !$( this ).hasClass( 'none' ) ) {
 					if( $( this ).hasClass( 'plus' ) ) {
 						$( this ).removeClass( 'plus' )
 						$( this ).addClass( 'minus' );
@@ -628,7 +816,7 @@
 						$( this ).removeClass( 'minus' )
 						$( this ).addClass( 'plus' );
 					}
-				}
+				}*/
 			});
 			$( '#file-manager a' )
 			.live( 'dblclick', function() { // Open or Expand
@@ -641,6 +829,7 @@
 						_this.openFile( $( this )
 						.attr( 'data-path' ) );
 					}
+					/*
 					if( !$( this ).parent().children( "span" ).hasClass( 'none' ) ) {
 						if( $( this ).parent().children( "span" ).hasClass( 'plus' ) ) {
 							$( this ).parent().children( "span" ).removeClass( 'plus' )
@@ -649,7 +838,7 @@
 							$( this ).parent().children( "span" ).removeClass( 'minus' )
 							$( this ).parent().children( "span" ).addClass( 'plus' );
 						}
-					}
+					}*/
 				}
 			})
 			.live( 'click', function() { // Open or Expand
@@ -662,6 +851,7 @@
 						_this.openFile( $( this )
 						.attr( 'data-path' ) );
 					}
+					/*
 					if( !$( this ).parent().children( "span" ).hasClass( 'none' ) ) {
 						if( $( this ).parent().children( "span" ).hasClass( 'plus' ) ) {
 							$( this ).parent().children( "span" ).removeClass( 'plus' )
@@ -670,7 +860,7 @@
 							$( this ).parent().children( "span" ).removeClass( 'minus' )
 							$( this ).parent().children( "span" ).addClass( 'plus' );
 						}
-					}
+					}*/
 				}
 			})
 			.live( "contextmenu", function( e ) { // Context Menu
@@ -753,15 +943,15 @@
 				path: path
 			});
 			
-			var node = $( '#file-manager a[data-path="' + path + '"]' );
-			var ext = this.getExtension( path );
+			let node = $( '#file-manager a[data-path="' + path + '"]' );
+			let ext = this.getExtension( path );
 			
 			if( $.inArray( ext.toLowerCase(), this.noOpen ) < 0 ) {
 				
 				node.addClass( 'loading' );
 				$.get( this.controller + '?action=open&path=' + encodeURIComponent( path ), function( data ) {
 					
-					var openResponse = codiad.jsend.parse( data );
+					let openResponse = codiad.jsend.parse( data );
 					if( openResponse != 'error' ) {
 						
 						node.removeClass( 'loading' );
@@ -797,7 +987,7 @@
 			$.ajax( {
 				url: this.controller + '?action=open_in_browser&path=' + encodeURIComponent( path ),
 				success: function( data ) {
-					var openIBResponse = codiad.jsend.parse( data );
+					let openIBResponse = codiad.jsend.parse( data );
 					if( openIBResponse != 'error' ) {
 						
 						_this.preview = window.open( openIBResponse.url, '_newtab' );
@@ -819,7 +1009,7 @@
 		openInModal: function( path ) {
 			
 			let type = "";
-			var ext = this.getExtension( path ).toLowerCase();
+			let ext = this.getExtension( path ).toLowerCase();
 			
 			if( this.noAudio.includes( ext ) ) {
 				
@@ -846,7 +1036,7 @@
 			} else if( path == this.clipboard ) {
 				codiad.message.error( i18n( 'Cannot Paste Directory Into Itself' ) );
 			} else {
-				var shortName = _this.getShortName( _this.clipboard );
+				let shortName = _this.getShortName( _this.clipboard );
 				if( $( '#file-manager a[data-path="' + path + '/' + shortName + '"]' )
 				.length ) { // Confirm overwrite?
 					codiad.modal.load( 400, this.dialog, {
@@ -856,7 +1046,7 @@
 					$( '#modal-content form' )
 					.live( 'submit', function( e ) {
 						e.preventDefault();
-						var duplicate = false;
+						let duplicate = false;
 						if( $( '#modal-content form select[name="or_action"]' ).val() == 1 ) {
 							duplicate = true;
 							//console.log( 'Dup!' );
@@ -871,14 +1061,14 @@
 		
 		processPasteNode: function( path, duplicate ) {
 			let _this = this;
-			var shortName = this.getShortName( this.clipboard );
-			var type = this.getType( this.clipboard );
+			let shortName = this.getShortName( this.clipboard );
+			let type = this.getType( this.clipboard );
 			
 			$.get( this.controller + '?action=duplicate&path=' +
 				encodeURIComponent( this.clipboard ) + '&destination=' +
 				encodeURIComponent( path + '/' + shortName ) + '&duplicate=' + encodeURIComponent( duplicate ),
 				function( data ) {
-					var pasteResponse = codiad.jsend.parse( data );
+					let pasteResponse = codiad.jsend.parse( data );
 					if( pasteResponse != 'error' ) {
 						_this.createObject( path, path + '/' + shortName, type );
 						codiad.modal.unload();
@@ -960,7 +1150,7 @@
 					}
 					
 					codiad.message.success( renamedMessage );
-					var node = $( '#file-manager a[data-path="' + path + '"]' );
+					let node = $( '#file-manager a[data-path="' + path + '"]' );
 					// Change pathing and name for node
 					node.attr( 'data-path', newPath ).html( newPath.split( "/" ).pop() );
 					if( type == 'file' ) {
@@ -1003,8 +1193,8 @@
 		//////////////////////////////////////////////////////////////////
 		
 		renameNode: function( path ) {
-			var shortName = this.getShortName( path );
-			var type = this.getType( path );
+			let shortName = this.getShortName( path );
+			let type = this.getType( path );
 			let _this = this;
 			codiad.modal.load( 250, this.dialog, {
 				action: 'rename',
@@ -1016,14 +1206,14 @@
 			.live( 'submit', function( e ) {
 				let project = codiad.project.getCurrent();
 				e.preventDefault();
-				var newName = $( '#modal-content form input[name="object_name"]' ).val();
+				let newName = $( '#modal-content form input[name="object_name"]' ).val();
 				// Build new path
-				var arr = path.split( '/' );
-				var temp = new Array();
+				let arr = path.split( '/' );
+				let temp = new Array();
 				for( i = 0; i < arr.length - 1; i++ ) {
 					temp.push( arr[i] )
 				}
-				var newPath = temp.join( '/' ) + '/' + newName;
+				let newPath = temp.join( '/' ) + '/' + newName;
 				_this.rename( path, newPath );
 			});
 		},
@@ -1034,9 +1224,9 @@
 			.find( 'a' )
 			.each( function() {
 				// Hit the children, hit 'em hard
-				var curPath = $( this )
+				let curPath = $( this )
 				.attr( 'data-path' );
-				var revisedPath = curPath.replace( oldPath, newPath );
+				let revisedPath = curPath.replace( oldPath, newPath );
 				$( this )
 				.attr( 'data-path', revisedPath );
 			});
@@ -1046,16 +1236,9 @@
 		rescanCounter: 0,
 		
 		rescan: function( path ) {
-			let _this = this;
-			if( this.rescanCounter === 0 ) {
-				// Create array of open directories
-				node = $( '#file-manager a[data-path="' + path + '"]' );
-				node.parent().find( 'a.open' ).each( function() {
-					_this.rescanChildren.push( $( this ).attr( 'data-path' ) );
-				});
-			}
 			
-			this.index( path, true );
+			let _this = this;
+			_this.index( path, true );
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -1072,12 +1255,12 @@
 			
 			callbacks = callbacks || {};
 			let _this = this, action;
-			var notifySaveErr = function() {
+			let notifySaveErr = function() {
 				
 				codiad.message.error( i18n( 'File could not be saved' ) );
 				if( typeof callbacks.error === 'function' ) {
 					
-					var context = callbacks.context || _this;
+					let context = callbacks.context || _this;
 					callbacks.error.apply( context, [data] );
 				}
 			}
@@ -1092,12 +1275,12 @@
 						codiad.message.success( i18n( 'File saved' ) );
 					}
 					if( typeof callbacks.success === 'function' ) {
-						var context = callbacks.context || _this;
+						let context = callbacks.context || _this;
 						callbacks.success.call( context, resp.data.mtime );
 					}
 				} else {
 					if( resp.message == 'Client is out of sync' ) {
-						var reload = confirm(
+						let reload = confirm(
 							"Server has a more updated copy of the file. Would " +
 							"you like to refresh the contents ? Pressing no will " +
 							"cause your changes to override the server's copy upon " +
@@ -1108,7 +1291,7 @@
 							codiad.active.removeDraft( path );
 							_this.openFile( path );
 						} else {
-							var session = codiad.editor.getActive().getSession();
+							let session = codiad.editor.getActive().getSession();
 							session.serverMTime = null;
 							session.untainted = null;
 						}
@@ -1117,7 +1300,7 @@
 					
 					if( typeof callbacks.error === 'function' ) {
 						
-						var context = callbacks.context || _this;
+						let context = callbacks.context || _this;
 						callbacks.error.apply( context, [resp.data] );
 					}
 				}
@@ -1131,7 +1314,7 @@
 					mtime: mtime
 				}, callbacks, alerts );
 			else if( typeof callbacks.success === 'function' ) {
-				var context = callbacks.context || this;
+				let context = callbacks.context || this;
 				callbacks.success.call( context, mtime );
 			}
 		},
@@ -1140,7 +1323,7 @@
 		// saveSearchResults
 		/////////////////////////////////////////////////////////////////
 		saveSearchResults: function( searchText, searchType, fileExtensions, searchResults ) {
-			var lastSearched = {
+			let lastSearched = {
 				searchText: searchText,
 				searchType: searchType,
 				fileExtension: fileExtensions,
@@ -1160,7 +1343,7 @@
 			});
 			
 			codiad.modal.load_process.done( async function() {
-				var lastSearched = JSON.parse( await codiad.settings.get_option( "lastSearched" ) );
+				let lastSearched = JSON.parse( await codiad.settings.get_option( "lastSearched" ) );
 				if( lastSearched ) {
 					
 					$( '#modal-content form input[name="search_string"]' ).val( lastSearched.searchText );
