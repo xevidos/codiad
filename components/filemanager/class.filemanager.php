@@ -358,10 +358,12 @@ class Filemanager extends Common {
 					
 					if( is_dir( $p ) ) {
 						
+						$children = $this->is_empty( $p ) ? null : array();
+						
 						$paths[] = array(
 							
 							"basename" => $path_info["basename"],
-							"children" => $this->index_path( $p ),
+							"children" => $children,
 							"dirname" => str_replace( WORKSPACE . "/", "", $p ),
 							"extension" => null,
 							"filename" => $path_info["filename"],
@@ -388,6 +390,26 @@ class Filemanager extends Common {
 		closedir( $handle );
 		usort( $paths, array( $this, "sorter" ) );
 		return $paths;
+	}
+	
+	function is_empty( $dir ) {
+		
+		$pass = true;
+		
+		if( is_dir( $dir ) ) {
+			
+			$handle = opendir( $dir );
+			while( false !== ( $entry = readdir( $handle ) ) ) {
+				
+				if( $entry != "." && $entry != ".." ) {
+					
+					$pass = false;
+					break;
+				}
+			}
+			closedir( $handle );
+		}
+		return $pass;
 	}
 	
 	function sorter( $a, $b ) {

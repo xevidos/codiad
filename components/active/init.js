@@ -446,7 +446,7 @@
 			
 			var session = this.sessions[path];
 			
-			if( $( '#dropdown-list-active-files' ).has( session.tabThumb ).length > 0 ) {
+			if( session && session.tabThumb && $( '#dropdown-list-active-files' ).has( session.tabThumb ).length > 0 ) {
 				if( moveToTabList ) {
 					/* Get the menu item as a tab, and put the last tab in
 					 * dropdown. */

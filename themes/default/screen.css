@@ -20,7 +20,7 @@
     background-color: #999;
 }
 
-::-webkit-scrollbar-thumb:horizontal {i
+::-webkit-scrollbar-thumb:horizontal {
     width: 5px;
     background-color: #666;
     -webkit-border-radius: 3px;
@@ -816,6 +816,7 @@ table [class^="icon-"], [class*=" icon-"] {
     background: url(loading.gif) no-repeat center;
 }
 
+
     /* Download iFrame */
 #download {
     display: none;
@@ -828,4 +829,30 @@ table [class^="icon-"], [class*=" icon-"] {
 	height: 25px;
 	vertical-align: middle;
 	width: 25px;
+}
+
+.drop-overlay {
+	
+	display: none;
+	
+	border: 2px dashed #fff;
+	border-radius: 10px;
+
+	background: rgba( 255, 255, 255, 0.15 );
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+	z-index: 97;
+}
+
+.drop-overlay-message {
+	
+	text-align: center;
+	position: relative;
+	float: left;
+	top: 50%;
+	left: 50%;
+	transform: translate( -50%, -50% );
 }

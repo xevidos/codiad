@@ -164,7 +164,16 @@ switch( $_GET['action'] ) {
 		<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n("Cancel"); ?></button>
 		<?php
 	break;
-
+	
+	case 'selector':
+		
+		?>
+		<div>
+			<div id="modal-loading" style="display: inline-block;vertical-align: middle;min-width:25px;"></div>
+			<div style="display: inline-block;vertical-align: middle;">Loading File Selector ...</div>
+		</div>
+		<?php
+	break;
 }
 
 ?></form>
