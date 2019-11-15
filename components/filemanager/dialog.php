@@ -174,6 +174,16 @@ switch( $_GET['action'] ) {
 		</div>
 		<?php
 	break;
+	
+	case 'upload':
+		
+		?>
+		<div>
+			<div id="modal-loading" style="display: inline-block;vertical-align: middle;min-width:25px;"></div>
+			<div style="display: inline-block;vertical-align: middle;">Loading Uploader ...</div>
+		</div>
+		<?php
+	break;
 }
 
 ?></form>

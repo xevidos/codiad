@@ -18,7 +18,6 @@
 		clipboard: '',
 		controller: 'components/filemanager/controller.php',
 		dialog: 'components/filemanager/dialog.php',
-		dialogUpload: 'components/filemanager/dialog_upload.php',
 		preview: null,
 		refresh_interval: null,
 		
@@ -85,7 +84,7 @@
 			// Load uploader
 			$.loadScript( "components/filemanager/upload_scripts/jquery.ui.widget.js", true );
 			$.loadScript( "components/filemanager/upload_scripts/jquery.iframe-transport.js", true );
-			$.loadScript( "components/filemanager/upload_scripts/jquery.fileupload.js", true );
+			$.loadScript( "components/filemanager/upload_scripts/jquery.fileupload_data.js", true );
 			
 			$( document ).on( 'dragenter', function( e ) {
 				
@@ -479,6 +478,26 @@
 			return r;
 		},
 		
+		get_index_list: async function( filters = {}, callbacks = [] ) {
+			
+			let _this = codiad.filemanager;
+			let data = [];
+			let response = await _this.get_indexes( codiad.project.getCurrent() );
+			
+			response = codiad.jsend.parse( response );
+			
+			if( response.index ) {
+				
+				data = response.index;
+			}
+			
+			let children = _this.create_indexes( data, null, filters, callbacks );
+			let div = $( '<div class="file-manager"></div>' );
+			
+			div.html( children );
+			return div
+		},
+		
 		find_index: function( path, files ) {
 			
 			let _this = this;
@@ -631,7 +650,7 @@
 			let plus = span.hasClass( 'plus' );
 			let minus = span.hasClass( 'minus' );
 			let trigger = ( plus || span.hasClass( 'none' ) || root || ( rescan && minus ) );
-			_this.trigger_open_close( node.parent(), trigger );
+			_this.toggle_open_close( node.parent(), trigger );
 			
 			console.log( trigger );
 			
@@ -910,40 +929,44 @@
 			//$( drag ).removeClass( "hover" );
 		},
 		
-		open_selector: async function( type, callback ) {
+		open_selector: async function( type, callback, limit ) {
 			
 			let _this = this;
-			
-			codiad.modal.load(
-				300,
-				_this.dialog,
-				{
-					action: 'selector',
-					type: type,
-				},
-				async function( container ) {
-					
-					let _this = codiad.filemanager;
-					let data = [];
-					let response = await _this.get_indexes( codiad.project.getCurrent() );
-					
-					response = codiad.jsend.parse( response );
-					
-					if( response.index ) {
+			return new Promise( function( resolve, reject ) {
+				
+				codiad.modal.load(
+					300,
+					_this.dialog,
+					{
+						action: 'selector',
+						type: type,
+					},
+					async function( container ) {
 						
-						data = response.index;
-					}
-					
-					let children = _this.create_indexes( data, null, {type: 'directories'}, [] );
-					let div = $( '<div class="file-manager"></div>' );
-					
-					div.html( children );
-					container.html( div );
-					
-					_this.selector_listeners( container );
-					console.log( div, children );
-				},
-			);
+						let _this = codiad.filemanager;
+						let div = await _this.get_index_list( {type: type}, [] );
+						_this.selector_listeners( div, limit );
+						container.html( div );
+						
+						let select = $( '<button class="btn-left">Select</button>' );
+						let cancel = $( '<button class="btn-right">Cancel</button>' );
+						
+						container.append( select );
+						container.append( cancel );
+						
+						select.on( 'click', function( e ) {
+							
+							codiad.modal.unload();
+							resolve( _this.selected );
+						});
+						cancel.on( 'click', function( e ) {
+							
+							codiad.modal.unload();
+							reject( null );
+						});
+					},
+				);
+			});
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -1429,7 +1452,7 @@
 		
 		selected: [],
 		
-		selector_listeners: function( node ) {
+		selector_listeners: function( node, limit ) {
 			
 			let _this = this;
 			
@@ -1448,12 +1471,12 @@
 					let ul = $( '<ul></ul>' );
 					let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
 					$( this ).removeClass( 'loading' );
-					_this.trigger_open_close( $( this ).parent(), null );
+					_this.toggle_open_close( $( this ).parent(), null );
 					$( this ).parent().children( 'ul' ).remove();
 					$( this ).parent().append( ul );
 				} else {
 					
-					_this.select_node( $( e.target ) );
+					_this.toggle_select_node( $( e.target ), limit );
 				}
 			})
 			.on( 'click', 'span', async function( e ) {
@@ -1469,10 +1492,10 @@
 				let ul = $( '<ul></ul>' );
 				let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
 				a.removeClass( 'loading' );
-				_this.trigger_open_close( $( this ).parent(), null );
+				_this.toggle_open_close( $( this ).parent(), null );
 				$( this ).parent().children( 'ul' ).remove();
 				$( this ).parent().append( ul );
-		})
+			})
 			.on( 'dblclick', 'a', async function( e ) {
 				
 				let _this = codiad.filemanager
@@ -1488,42 +1511,59 @@
 					let ul = $( '<ul></ul>' );
 					let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
 					$( this ).removeClass( 'loading' );
-					_this.trigger_open_close( $( this ).parent(), null );
+					_this.toggle_open_close( $( this ).parent(), null );
 					$( this ).parent().children( 'ul' ).remove();
 					$( this ).parent().append( ul );
 				} else {
 					
-					_this.select_node( $( e.target ) );
+					_this.toggle_select_node( $( e.target ), limit );
 				}
 			})
 			.on( 'selectstart', false );
 		},
 		
-		select_node: function( node ) {
+		toggle_select_node: function( node, limit = 0 ) {
 			
 			let _this = codiad.filemanager;
 			let selected = false;
 			let path = node.attr( 'data-path' );
+			let i = 1;
 			
-			for( let i = _this.selected.total;i--; ) {
+			console.log( node, limit );
+			
+			for( i = _this.selected.length;i--; ) {
 				
 				if( _this.selected[i] == path ) {
 					
 					selected = true;
+					break;
 				}
 			}
 			
-			if( selected ) {
+			if( limit > 0 && _this.selected.length >= limit ) {
 				
-				node.css( 'background', "" );
+				for( i = _this.selected.length;i--; ) {
+					
+					$( `[data-path='${_this.selected[i]}']` ).css( "background", "" );
+				}
+				_this.selected = [];
+				_this.selected.push( path );
+				node.css( "background", "#fff" );
 			} else {
 				
-				_this.selected.push( path );
-				node.css( 'background', "#fff" );
+				if( selected ) {
+					
+					node.css( "background", "" );
+					_this.selected.splice( i, 1 );
+				} else {
+					
+					_this.selected.push( path );
+					node.css( "background", "#fff" );
+				}
 			}
 		},
 		
-		trigger_open_close: function( node, open ) {
+		toggle_open_close: function( node, open ) {
 			
 			let span = node.children( 'span' );
 			let a = node.children( 'a' );
@@ -1564,7 +1604,43 @@
 		// Upload
 		//////////////////////////////////////////////////////////////////
 		
-		upload: {
+		upload: async function( files, destination = null ) {
+			
+			let _this = this;
+			let uploads = [];
+			
+			if( ! destination ) {
+				
+				destination = await codiad.filemanager.open_selector( 'directories', null, 1 );
+			}
+			
+			if( `${destination}`.charAt( destination.length - 1 ) !== "/" ) {
+				
+				destination = destination + "/";
+			}
+			
+			//form.append( "action", "upload" );
+			
+			for( let i = files.length;i--; ) {
+				
+				let entry = files[i].webkitGetAsEntry();
+				
+				console.log( entry );
+				
+				if( entry.isFile ) {
+					
+					console.log( entry );
+				} else if( entry.isDirectory ) {
+					
+					_this.upload_read_directory( entry, destination );
+				}
+			}
+			
+			console.log( files );
+			console.log( destination );
+		},
+		
+		upload_data: {
 			
 			timers: {
 				off: null,
@@ -1572,10 +1648,31 @@
 			entries: [],
 		},
 		
-		upload_choose_destination: async function( path ) {
+		upload_read_directory: function( item, path ) {
 			
-			let _this = this;
+			let _this = codiad.filemanager;
+			let files = [];
 			
+			if( item.isFile ) {
+				
+				// Get file
+				item.file( function( file ) {
+					
+					console.log("File:", path + file.name);
+				});
+			} else if( item.isDirectory ) {
+				
+				// Get folder contents
+				let dirReader = item.createReader();
+				dirReader.readEntries( function( entries ) {
+					
+					let total = entries.length;
+					for( let i = 0;i < total; i++ ) {
+						
+						_this.upload_read_directory( entries[i], path + item.name + "/" );
+					}
+				});
+			}
 		},
 		
 		upload_drop: function( e ) {
@@ -1586,24 +1683,8 @@
 			let items = e.originalEvent.dataTransfer.items;
 			
 			console.log( e );
-			
-			for( let i = items.length;i--; ) {
-				
-				let entry = items[i].webkitGetAsEntry();
-				
-				console.log( entry );
-				
-				if( entry.isFile ) {
-					
-					
-				} else if( entry.isDirectory ) {
-					
-					
-				}
-			}
-			
 			_this.upload_overlay_off();
-			_this.upload_choose_destination();
+			_this.upload( items )
 		},
 		
 		upload_overlay_off: function() {
@@ -1622,16 +1703,47 @@
 			
 			if( _this.file_.timers.off ) {
 				
-				clearTimeout( _this.upload.timers.off );
+				clearTimeout( _this.upload_data.timers.off );
 			}
 			
-			_this.upload.timers.off = setTimeout( _this.upload_overlay_off, 1500 );
+			_this.upload_data.timers.off = setTimeout( _this.upload_overlay_off, 1500 );
 		},
 		
 		uploadToNode: function( path ) {
-			codiad.modal.load( 500, this.dialogUpload, {
-				path: path
-			});
+			
+			let _this = codiad.filemanager;
+			codiad.modal.load(
+				500,
+				this.dialog, {
+					action: 'upload',
+				},
+				async function( container ) {
+					
+					let text = $( '<p style="max-width: 40vw;"></p>' )
+					let input = $( '<input type="file" multiple style="display: none;">' );
+					
+					text.html( `Codiad has a new file uploader!<br>Drag and drop a file or folder anywhere over the screen at any time <br>( you dont even have to have this window open ) and the upload will prompt for a destination.<br>Or<br>You can click here to upload files.` );
+					
+					
+					input.on( 'change', function( e ) {
+						
+						console.log( e );
+						
+						let items = e.target.files;
+						
+						
+						_this.upload( items, path );
+					});
+					text.on( 'click', function( e ) {
+						
+						input.click();
+					});
+					
+					container.html( '' );
+					container.append( text );
+					container.append( input );
+				}
+			);
 		},
 	};
 })( this, jQuery );
