@@ -1566,9 +1566,23 @@
 		
 		openSort: function() {
 			
-			if( this.getActive() && codiad.active.getSelectedText() != "" ) {
+			let selected = codiad.active.getSelectedText();
+			
+			if( this.getActive() && selected != "" ) {
 				
-				codiad.modal.load( 400, 'components/editor/dialog.php?action=sort' );
+				codiad.modal.load(
+					400,
+					'components/editor/dialog.php?action=sort'
+					{},
+					function( c ) {
+						
+						let textarea = c.find( 'textarea:first' );
+						
+						textarea.val( selected )
+						textarea.focus();
+						codiad.modal.hideOverlay();
+					}
+				);
 				codiad.modal.hideOverlay();
 			} else {
 				
