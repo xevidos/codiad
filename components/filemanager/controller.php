@@ -46,7 +46,7 @@ if( ! isset( $_SESSION['project'] ) ) {
 	require_once('../project/controller.php');
 }
 
-if( isset( $_GET["path"] )  || isset( $_POST["path"] ) ) {
+if( isset( $_GET["path"] ) || isset( $_POST["path"] ) ) {
 	
 	$path = isset( $_GET["path"] ) ? $_GET["path"] : $_POST["path"];
 } else {
@@ -286,8 +286,18 @@ switch( $action ) {
 	break;
 	
 	case 'upload':
+		 
+		if( ! isset( $_POST["blob"] ) ) {
+			
+			$response["status"] = "error";
+			$response["data"] = array(
+				"error" => "No blob given"
+			);
+			exit( json_encode( $response ) );
+		}
 		
-		$response = $Filemanager->upload( $path );
+		$blob = $_POST["blob"];
+		$response = $Filemanager->upload( $path, $blob );
 	break;
 	
 	default:

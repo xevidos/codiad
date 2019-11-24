@@ -611,7 +611,6 @@
 				
 				if( total_saved == 0 ) {
 					
-					root = true;
 					_this.files = result;
 					files = result;
 				} else {
@@ -647,12 +646,15 @@
 				files: files
 			});
 			
+			root = ( node.attr( 'data-type' ) == 'root' );
 			let plus = span.hasClass( 'plus' );
 			let minus = span.hasClass( 'minus' );
 			let trigger = ( plus || span.hasClass( 'none' ) || root || ( rescan && minus ) );
-			_this.toggle_open_close( node.parent(), trigger );
 			
+			console.log( plus, span.hasClass( 'none' ), root, ( rescan && minus ) );
 			console.log( trigger );
+			
+			_this.toggle_open_close( node.parent(), trigger );
 			
 			if( trigger ) {
 				
@@ -1454,26 +1456,30 @@
 		
 		selector_listeners: function( node, limit ) {
 			
-			let _this = this;
+			let _this = codiad.filemanager;
 			
 			$( node )
 			.on( 'click', 'a', async function( e ) {
 				
+				let i = $( e.target );
+				
 				// Select or Expand
 				if( codiad.editor.settings.fileManagerTrigger ) {
 					
-					$( this ).addClass( 'loading' );
-					let result = await _this.get_indexes( $( this ).attr( 'data-path' ) );
-					result = codiad.jsend.parse( result );
-					let indexes = result.index
-					console.log( indexes );
-					
-					let ul = $( '<ul></ul>' );
-					let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
-					$( this ).removeClass( 'loading' );
-					_this.toggle_open_close( $( this ).parent(), null );
-					$( this ).parent().children( 'ul' ).remove();
-					$( this ).parent().append( ul );
+					_this.toggle_open_close( i.parent(), null, async function() {
+						
+						let result = await _this.get_indexes( i.attr( 'data-path' ) );
+						result = codiad.jsend.parse( result );
+						let indexes = result.index;
+						let ul = $( '<ul></ul>' );
+						let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
+						i.parent().children( 'ul' ).remove();
+						i.parent().append( ul );
+					},
+					async function() {
+						
+						i.parent().children( 'ul' ).remove();
+					});
 				} else {
 					
 					_this.toggle_select_node( $( e.target ), limit );
@@ -1481,39 +1487,43 @@
 			})
 			.on( 'click', 'span', async function( e ) {
 				
-				// Select or Expand
-				let a = $( this ).parent().children( 'a' );
-				a.addClass( 'loading' );
-				let result = await _this.get_indexes( a.attr( 'data-path' ) );
-				result = codiad.jsend.parse( result );
-				let indexes = result.index
-				console.log( indexes );
+				let i = $( e.target ).parent().children( 'a' );
 				
-				let ul = $( '<ul></ul>' );
-				let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
-				a.removeClass( 'loading' );
-				_this.toggle_open_close( $( this ).parent(), null );
-				$( this ).parent().children( 'ul' ).remove();
-				$( this ).parent().append( ul );
+				_this.toggle_open_close( i.parent(), null, async function() {
+					
+					let result = await _this.get_indexes( i.attr( 'data-path' ) );
+					result = codiad.jsend.parse( result );
+					let indexes = result.index;
+					let ul = $( '<ul></ul>' );
+					let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
+					i.parent().children( 'ul' ).remove();
+					i.parent().append( ul );
+				},
+				async function() {
+					
+					i.parent().children( 'ul' ).remove();
+				});
 			})
 			.on( 'dblclick', 'a', async function( e ) {
 				
-				let _this = codiad.filemanager
-				// Select or Expand
+				let i = $( e.target );
+				
 				if( ! codiad.editor.settings.fileManagerTrigger ) {
 					
-					$( this ).addClass( 'loading' );
-					let result = await _this.get_indexes( $( this ).attr( 'data-path' ) );
-					result = codiad.jsend.parse( result );
-					let indexes = result.index
-					console.log( indexes );
-					
-					let ul = $( '<ul></ul>' );
-					let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
-					$( this ).removeClass( 'loading' );
-					_this.toggle_open_close( $( this ).parent(), null );
-					$( this ).parent().children( 'ul' ).remove();
-					$( this ).parent().append( ul );
+					_this.toggle_open_close( i.parent(), null, async function() {
+						
+						let result = await _this.get_indexes( i.attr( 'data-path' ) );
+						result = codiad.jsend.parse( result );
+						let indexes = result.index;
+						let ul = $( '<ul></ul>' );
+						let children = _this.create_indexes( indexes, ul, {type: 'directories'}, [] );
+						i.parent().children( 'ul' ).remove();
+						i.parent().append( ul );
+					},
+					async function() {
+						
+						i.parent().children( 'ul' ).remove();
+					});
 				} else {
 					
 					_this.toggle_select_node( $( e.target ), limit );
@@ -1528,8 +1538,6 @@
 			let selected = false;
 			let path = node.attr( 'data-path' );
 			let i = 1;
-			
-			console.log( node, limit );
 			
 			for( i = _this.selected.length;i--; ) {
 				
@@ -1548,22 +1556,21 @@
 				}
 				_this.selected = [];
 				_this.selected.push( path );
-				node.css( "background", "#fff" );
 			} else {
 				
 				if( selected ) {
 					
-					node.css( "background", "" );
 					_this.selected.splice( i, 1 );
 				} else {
 					
 					_this.selected.push( path );
-					node.css( "background", "#fff" );
 				}
 			}
+			
+			console.log( path, _this.selected );
 		},
 		
-		toggle_open_close: function( node, open ) {
+		toggle_open_close: function( node, open, open_callback, close_callback ) {
 			
 			let span = node.children( 'span' );
 			let a = node.children( 'a' );
@@ -1584,6 +1591,11 @@
 					span.addClass( 'minus' );
 				}
 				a.addClass( 'open' );
+				
+				if( typeof open_callback == "function" ) {
+					
+					open_callback();
+				}
 			} else {
 				
 				span.removeClass( 'minus' );
@@ -1596,6 +1608,11 @@
 					node.children( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
 					node.children().find( 'span' ).removeClass( 'minus' ).addClass( 'plus' );
 					node.children().find( 'a' ).removeClass( 'open' );
+					
+					if( typeof close_callback == "function" ) {
+						
+						close_callback();
+					}
 				});
 			}
 		},
@@ -1619,25 +1636,66 @@
 				destination = destination + "/";
 			}
 			
-			//form.append( "action", "upload" );
+			console.log( files );
+			console.log( destination );
 			
 			for( let i = files.length;i--; ) {
 				
-				let entry = files[i].webkitGetAsEntry();
-				
-				console.log( entry );
+				let entry = files[i];
 				
 				if( entry.isFile ) {
 					
-					console.log( entry );
+					entry.file( function( file ) {
+						
+						_this.upload_blobs( file, destination );
+					});
 				} else if( entry.isDirectory ) {
 					
-					_this.upload_read_directory( entry, destination );
+					_this.upload_read_directory( entry, destination, _this.upload_split );
 				}
 			}
+		},
+		
+		upload_blob: async function( blob, path ) {
 			
-			console.log( files );
-			console.log( destination );
+			
+		},
+		
+		upload_blobs: function( file, path ) {
+			
+			console.log( file, path );
+			let _this = codiad.filemanager;
+			let blob_size = 1024;
+			let total_size = file.size;
+			let current = 0 + blob_size;
+			let reader = new FileReader();
+			let blob = file.slice( current, current + blob_size );
+			let upload_status = null;
+			let file_path = path;
+			
+			if( path.charAt( path.length - 1 ) !== '/' ) {
+				
+				file_path = file_path + '/';
+			}
+			
+			
+			reader.onload = async function( e ) {
+				
+				upload_status = await _this.upload_blob( blob, file_path );
+				console.log( upload_status );
+				
+				while( current <= total_size && typeof upload_status === "Boolean" ) {
+					
+					console.log( ( current / total_size ) * 100 );
+					blob = file.slice( current, current + blob_size );
+					let upload_status = await _this.upload_blob( blob, file_path );
+					
+					console.log( upload_status );
+					
+					reader.readAsBinaryString( blob );
+				}
+			};
+			reader.readAsBinaryString( blob );
 		},
 		
 		upload_data: {
@@ -1648,43 +1706,20 @@
 			entries: [],
 		},
 		
-		upload_read_directory: function( item, path ) {
-			
-			let _this = codiad.filemanager;
-			let files = [];
-			
-			if( item.isFile ) {
-				
-				// Get file
-				item.file( function( file ) {
-					
-					console.log("File:", path + file.name);
-				});
-			} else if( item.isDirectory ) {
-				
-				// Get folder contents
-				let dirReader = item.createReader();
-				dirReader.readEntries( function( entries ) {
-					
-					let total = entries.length;
-					for( let i = 0;i < total; i++ ) {
-						
-						_this.upload_read_directory( entries[i], path + item.name + "/" );
-					}
-				});
-			}
-		},
-		
 		upload_drop: function( e ) {
 			
 			let _this = codiad.filemanager;
-			let data = null;
+			let data = [];
 			let drop = $( '.drop-overlay' );
 			let items = e.originalEvent.dataTransfer.items;
 			
-			console.log( e );
+			for( let i = items.length;i--; ) {
+				
+				data.push( items[i].webkitGetAsEntry() );
+			}
+			
 			_this.upload_overlay_off();
-			_this.upload( items )
+			_this.upload( data )
 		},
 		
 		upload_overlay_off: function() {
@@ -1707,6 +1742,33 @@
 			}
 			
 			_this.upload_data.timers.off = setTimeout( _this.upload_overlay_off, 1500 );
+		},
+		
+		upload_read_directory: function( item, path, file_callback ) {
+			
+			let _this = codiad.filemanager;
+			let files = [];
+			
+			if( item.isFile ) {
+				
+				// Get file
+				item.file( function( file ) {
+					
+					file_callback( file, path );
+				});
+			} else if( item.isDirectory ) {
+				
+				// Get folder contents
+				let dirReader = item.createReader();
+				dirReader.readEntries( function( entries ) {
+					
+					let total = entries.length;
+					for( let i = 0;i < total; i++ ) {
+						
+						_this.upload_read_directory( entries[i], path + item.name + "/", file_callback );
+					}
+				});
+			}
 		},
 		
 		uploadToNode: function( path ) {

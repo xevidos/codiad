@@ -736,40 +736,47 @@ class Filemanager extends Common {
 	// UPLOAD (Handles uploads to the specified directory)
 	//////////////////////////////////////////////////////////////////
 	
-	public function upload( $path ) {
+	public function upload( $path, $blob ) {
 		
 		// Check that the path is a directory
+		if( ! Permissions::has_write( $path ) ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "You do not have access to write to this file.";
+			return $response;
+		}
+		
+		if( ! common::isAbsPath( $path ) ) {
+			
+			$path = WORKSPACE . "/$path";
+		}
+		
 		$response = array(
 			"status" => "none",
 			"message" => "",
-			"files" => array(),
 		);
-		if ( is_file( $path ) ) {
+		$dirname = dirname( $path );
+		$name = basename( $path );
+		
+		if( ! is_dir( $dirname ) ) {
+			
+			mkdir( $dirname, 0755, true );
+		}
+		
+		$status = file_put_contents( $path, $blob, FILE_APPEND );
+		
+		if( $status === false ) {
 			
 			$response["status"] = "error";
-			$response["message"] = "Path Not A Directory";
+			$response["message"] = "File could not be written to.";
 		} else {
 			
-			foreach( $_FILES['upload']['name'] as $key => $value ) {
-				
-				if ( ! empty( $value ) ) {
-					
-					$filename = $value;
-					$filepath = $path . "/$filename";
-					if ( @move_uploaded_file( $_FILES['upload']['tmp_name'][$key], $filepath ) ) {
-						
-						$info[] = array(
-							"name" => $filename,
-							"size" => filesize( $filepath ),
-							"url" => $filepath,
-							"thumbnail_url" => $filepath,
-							"delete_url" => $filepath,
-							"delete_type" => 'DELETE'
-						);
-					}
-				}
-			}
+			$response["status"] = "success";
+			$response["path"] = $path;
+			$response["bytes"] = $status;
+			$response["message"] = "$status bytes written to file.";
 		}
+		
 		return $response;
 	}
 }

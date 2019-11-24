@@ -1572,7 +1572,7 @@
 				
 				codiad.modal.load(
 					400,
-					'components/editor/dialog.php?action=sort'
+					'components/editor/dialog.php?action=sort',
 					{},
 					function( c ) {
 						
