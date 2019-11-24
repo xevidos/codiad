@@ -286,8 +286,11 @@ switch( $action ) {
 	break;
 	
 	case 'upload':
-		 
-		if( ! isset( $_POST["blob"] ) ) {
+		
+		echo var_dump( $_GET );
+		echo var_dump( $_POST );
+		
+		if( ! isset( $_POST["data"] ) ) {
 			
 			$response["status"] = "error";
 			$response["data"] = array(
@@ -296,7 +299,7 @@ switch( $action ) {
 			exit( json_encode( $response ) );
 		}
 		
-		$blob = $_POST["blob"];
+		$blob = $_POST["data"];
 		$response = $Filemanager->upload( $path, $blob );
 	break;
 	

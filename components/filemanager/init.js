@@ -1658,7 +1658,21 @@
 		
 		upload_blob: async function( blob, path ) {
 			
+			let _this = codiad.filemanager;
+			let form = new FormData();
 			
+			form.append( 'path', path );
+			form.append( 'data', blob );
+			$.ajax({
+				type: 'POST',
+				url: _this.controller + '?action=upload',
+				data: form,
+				processData: false,
+				contentType: false,
+			}).done( function( data ) {
+				
+				console.log( data );
+			});
 		},
 		
 		upload_blobs: function( file, path ) {
