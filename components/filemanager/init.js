@@ -1647,7 +1647,7 @@
 					
 					entry.file( function( file ) {
 						
-						_this.upload_blobs( file, destination );
+						_this.upload_blobs( file, destination + file.name );
 					});
 				} else if( entry.isDirectory ) {
 					
@@ -1656,60 +1656,80 @@
 			}
 		},
 		
-		upload_blob: async function( blob, path ) {
+		upload_blob: function( blob, path ) {
 			
-			let _this = codiad.filemanager;
-			let form = new FormData();
-			
-			form.append( 'path', path );
-			form.append( 'data', blob );
-			$.ajax({
-				type: 'POST',
-				url: _this.controller + '?action=upload',
-				data: form,
-				processData: false,
-				contentType: false,
-			}).done( function( data ) {
+			return new Promise( function( resolve, reject ) {
 				
-				console.log( data );
+				let _this = codiad.filemanager;
+				let form = new FormData();
+				
+				form.append( 'path', path );
+				form.append( 'data', blob );
+				$.ajax({
+					type: 'POST',
+					url: _this.controller + '?action=upload',
+					data: form,
+					processData: false,
+					contentType: false,
+					success: function( data ) {
+						
+						resolve( data );
+					},
+					error: function( data ) {
+						
+						reject( data );
+					},
+				});
 			});
 		},
 		
-		upload_blobs: function( file, path ) {
+		upload_blobs: function( file, path, start = 0, status = null ) {
 			
 			console.log( file, path );
 			let _this = codiad.filemanager;
-			let blob_size = 1024;
+			let blob_size = 1024*1024;
 			let total_size = file.size;
-			let current = 0 + blob_size;
+			
+			if( total_size < blob_size ) {
+				
+				blob_size = total_size;
+			}
+			
+			let current = start + blob_size;
 			let reader = new FileReader();
 			let blob = file.slice( current, current + blob_size );
 			let upload_status = null;
-			let file_path = path;
 			
-			if( path.charAt( path.length - 1 ) !== '/' ) {
+			if( status === null ) {
 				
-				file_path = file_path + '/';
+				status = $().toastmessage( 'showToast', {
+					text: 'Uploading blobs 0%',
+					sticky: true,
+					position: 'top-right',
+					type: 'warning',
+				});
 			}
-			
 			
 			reader.onload = async function( e ) {
 				
-				upload_status = await _this.upload_blob( blob, file_path );
-				console.log( upload_status );
-				
-				while( current <= total_size && typeof upload_status === "Boolean" ) {
+				upload_status = await _this.upload_blob( e.target.result, path );
+				try {
 					
-					console.log( ( current / total_size ) * 100 );
-					blob = file.slice( current, current + blob_size );
-					let upload_status = await _this.upload_blob( blob, file_path );
+					console.log( upload_status )
 					
-					console.log( upload_status );
+					let result = JSON.parse( upload_status );
+					if( result.bytes > 0 && current <= total_size ) {
+						
+						status.text( ( ( current / total_size )*100 ).toFixed( 2 ) + '%' );
+						_this.upload_blobs( file, path, current, status );
+					}
+				} catch( exception ) {
 					
-					reader.readAsBinaryString( blob );
+					console.log( 'done?', upload_status );
+					console.log( exception )
 				}
 			};
-			reader.readAsBinaryString( blob );
+			reader.readAsDataURL( blob );
 		},
 		
 		upload_data: {
