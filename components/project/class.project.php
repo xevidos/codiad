@@ -414,7 +414,7 @@ class Project extends Common {
 			}
 			if ( $path != '' ) {
 				
-				$user_path = WORKSPACE . '/' . preg_replace( '/[^\w-]/', '', strtolower( $_SESSION["user"] ) );
+				$user_path = WORKSPACE . '/' . preg_replace( Filemanager::PATH_REGEX, '', strtolower( $_SESSION["user"] ) );
 				
 				if( ! $this->isAbsPath( $path ) ) {
 					
@@ -433,7 +433,7 @@ class Project extends Common {
 						
 						if( ! is_dir( WORKSPACE . '/' . $path ) ) {
 							
-							mkdir( WORKSPACE . '/' . $path );
+							mkdir( WORKSPACE . '/' . $path, 0755, true );
 						}
 					} else {
 						
@@ -576,13 +576,13 @@ class Project extends Common {
 	public function SanitizePath() {
 		
 		$sanitized = str_replace( " ", "_", $this->path );
-		return preg_replace( '/[^\w-]/', '', strtolower( $sanitized ) );
+		return preg_replace( Filemanager::PATH_REGEX, '', strtolower( $sanitized ) );
 	}
 	
 	public function sanitize_path( $path ) {
 		
 		$sanitized = str_replace( " ", "_", $path );
-		return preg_replace( '/[^\w-]/', '', strtolower( $sanitized ) );
+		return preg_replace( Filemanager::PATH_REGEX, '', strtolower( $sanitized ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////

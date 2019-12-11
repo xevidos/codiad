@@ -602,7 +602,7 @@
 				
 				let data = await _this.get_indexes( path );
 				let response = codiad.jsend.parse( data );
-				let result = null;
+				let result = [];
 				
 				if( response != 'error' ) {
 					

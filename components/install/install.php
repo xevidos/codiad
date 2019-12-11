@@ -5,6 +5,8 @@ require_once( __DIR__ . "/../settings/class.settings.php" );
 
 class Install {
 	
+	const PATH_REGEX = '/[^\w\-\._@]/';
+	
 	public $active = "";
 	public $config = "";
 	public $db_types = array();
@@ -84,7 +86,7 @@ class Install {
 	
 	function clean_username( $username ) {
 		
-		return strtolower( preg_replace( '/[^\w\-\._@]/', '-', $username ) );
+		return strtolower( preg_replace( self::PATH_REGEX, '-', $username ) );
 	}
 	
 	function create_config() {
@@ -157,7 +159,7 @@ define("WSURL", BASE_URL . "/workspace");
 		
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
-			$project_path = preg_replace( '/[^\w\-._@]/', '-', $project_path );
+			$project_path = preg_replace( self::PATH_REGEX, '-', $project_path );
 			$project_path = $this->username . "/" . $project_path;
 			
 			if( ! is_dir( $this->workspace . "/" . $project_path ) ) {
