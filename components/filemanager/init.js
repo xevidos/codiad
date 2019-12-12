@@ -18,6 +18,7 @@
 		clipboard: '',
 		controller: 'components/filemanager/controller.php',
 		dialog: 'components/filemanager/dialog.php',
+		post_max_size: ( 1024*1024 ),
 		preview: null,
 		refresh_interval: null,
 		
@@ -110,6 +111,35 @@
 				e.stopPropagation();
 				codiad.filemanager.upload_drop( e );
 			});
+			
+			
+			( async function( global, $ ) {
+				
+				let _this = codiad.filemanager;
+				let result = await codiad.system.get_ini_setting( 'post_max_size' );
+				result = result.toLowerCase()
+				
+				console.log( result, result.includes( 'g' ), result.includes( 'm' ), result.includes( 'k' ) );
+				
+				if( result.includes( 'g' ) ) {
+					
+					let integer = result.replace( /\D/g, '' );
+					
+					console.log( integer, 1024*1024*1024*integer );
+					result = 1024*1024*1024*integer;
+				} else if( result.includes( 'm' ) ) {
+					
+					let integer = result.replace( /^\D+/g, '' );
+					result = 1024*1024*integer;
+				} else if( result.includes( 'k' ) ) {
+					
+					let integer = result.replace( /^\D+/g, '' );
+					result = 1024*integer;
+				}
+				
+				_this.post_max_size = result;
+				console.log( _this.post_max_size );
+			})( this, jQuery );
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -1687,18 +1717,37 @@
 			
 			console.log( file, path );
 			let _this = codiad.filemanager;
-			let blob_size = 1024*1024;
+			let blob_size = 0;
 			let total_size = file.size;
+			let current = 0;
+			let reader = new FileReader();
+			let blob = null
+			let upload_status = null;
+			let total_blobs = 0;
 			
-			if( total_size < blob_size ) {
+			if( _this.post_max_size > ( 1024*1024*8 ) ) {
 				
-				blob_size = total_size;
+				blob_size = ( 1024*1024*8 );
+			} else {
+				
+				blob_size = _this.post_max_size;
 			}
 			
-			let current = start + blob_size;
-			let reader = new FileReader();
-			let blob = file.slice( current, current + blob_size );
-			let upload_status = null;
+			console.log( total_size, blob_size, ( total_size / blob_size ) );
+			
+			if( total_size <= blob_size ) {
+				
+				blob_size = total_size;
+				current = start + blob_size;
+				blob = file;
+			} else {
+				
+				total_blobs = ( Math.round( ( total_size / blob_size ) ) );
+				current = start + blob_size;
+				blob = file.slice( current, current + blob_size );
+			}
+			
+			console.log( current, blob_size, total_blobs );
 			
 			if( status === null ) {
 				
@@ -1721,7 +1770,11 @@
 					if( result.bytes > 0 && current <= total_size ) {
 						
 						status.text( ( ( current / total_size )*100 ).toFixed( 2 ) + '%' );
-						_this.upload_blobs( file, path, current, status );
+						
+						if( current < total_size ) {
+							
+							_this.upload_blobs( file, path, current, status );
+						}
 					}
 				} catch( exception ) {
 					

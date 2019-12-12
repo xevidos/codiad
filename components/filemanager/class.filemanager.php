@@ -765,7 +765,11 @@ class Filemanager extends Common {
 			mkdir( $dirname, 0755, true );
 		}
 		
-		$status = file_put_contents( $path, $blob, FILE_APPEND );
+		$handle = fopen( $path, "a" );
+		$status = fwrite( $handle, $blob );
+		fclose( $handle );
+		
+		//$status = file_put_contents( $path, $blob, FILE_APPEND );
 		
 		if( $status === false ) {
 			
