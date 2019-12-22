@@ -7,6 +7,7 @@
 */
 
 require_once( '../../common.php' );
+require_once( '../filemanager/class.filemanager.php' );
 
 class Project extends Common {
 	

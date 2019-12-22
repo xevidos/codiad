@@ -41,7 +41,7 @@ class User {
 			$this->set_default_options( $username );
 			$pass = true;
 		}
-		return false;
+		return $pass;
 	}
 	
 	public function delete_user( $username ) {
@@ -323,10 +323,10 @@ class User {
 	public function Password() {
 		
 		global $sql;
-		$this->EncryptPassword();
+		$password = $this->encrypt_password( $this->password );
 		$query = "UPDATE users SET password=? WHERE username=?;";
-		$bind_variables = array( $this->password, $this->username );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		$bind_variables = array( $password, $this->username );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount", "exception" );
 		
 		if( $return > 0 ) {
 			

@@ -270,8 +270,13 @@ class Common {
 		Common::construct();
 		
 		//Set a Session Name
-		session_name( md5( BASE_PATH ) );
-		session_save_path( SESSIONS_PATH );
+		try {
+			
+			session_name( md5( BASE_PATH ) );
+			session_save_path( SESSIONS_PATH );
+		} catch( exception $e ) {
+		}
+		
 		session_start();
 		
 		if( ! defined( 'SESSION_ID' ) ) {
@@ -296,7 +301,7 @@ class Common {
 	}
 	
 	public static function return( $output, $action = "return" ) {
-			
+		
 		switch( $action ) {
 			
 			case( "exit" ):

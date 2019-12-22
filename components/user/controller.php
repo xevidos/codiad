@@ -142,6 +142,9 @@ if( $_GET['action'] == 'create' ) {
 		if( $result ) {
 			
 			exit( formatJSEND( "success", "User successfully created." ) );
+		} else {
+			
+			exit( formatJSEND( "error", "User could not be created." ) );
 		}
 	}
 }

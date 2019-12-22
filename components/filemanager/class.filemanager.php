@@ -6,9 +6,9 @@
 *  [root]/license.txt for more. This information must remain intact.
 */
 
-require_once('../../lib/diff_match_patch.php');
-require_once('../../common.php');
-require_once('./class.archive.php');
+require_once( '../../lib/diff_match_patch.php' );
+require_once( '../../common.php' );
+require_once( __DIR__ . '/class.archive.php' );
 
 class Filemanager extends Common {
 	

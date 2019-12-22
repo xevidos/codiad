@@ -85,7 +85,6 @@
 			// Load uploader
 			$.loadScript( "components/filemanager/upload_scripts/jquery.ui.widget.js", true );
 			$.loadScript( "components/filemanager/upload_scripts/jquery.iframe-transport.js", true );
-			$.loadScript( "components/filemanager/upload_scripts/jquery.fileupload_data.js", true );
 			
 			$( document ).on( 'dragenter', function( e ) {
 				
@@ -665,7 +664,7 @@
 			//Add Legacy support for new file layout
 			for( let i = files.length;i--; ) {
 				
-				files[i].name = files[i].basename;
+				files[i].name = files[i].path;
 			}
 			
 			console.log( file, files );
