@@ -277,6 +277,11 @@ class Common {
 		} catch( exception $e ) {
 		}
 		
+		if( ! is_dir( SESSIONS_PATH ) ) {
+			
+			mkdir( SESSIONS_PATH );
+		}
+		
 		session_start();
 		
 		if( ! defined( 'SESSION_ID' ) ) {

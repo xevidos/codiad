@@ -55,7 +55,12 @@ class User {
 			$query = "
 			DELETE FROM projects
 			WHERE owner=( SELECT id FROM users WHERE username=? )
-			AND ( SELECT COUNT(*) FROM access WHERE project = projects.id AND WHERE user <> ( SELECT id FROM users WHERE username=? ) );";
+			AND (
+				SELECT COUNT(*)
+				FROM access
+				WHERE project = projects.id
+				AND user <> ( SELECT id FROM users WHERE username=? )
+			) = 0;";
 			$bind_variables = array(
 				$username,
 				$username
@@ -70,18 +75,18 @@ class User {
 				
 				if( $return > 0 ) {
 					
-					echo formatJSEND( "success", null );
+					exit( formatJSEND( "success", null ) );
 				} else {
 					
-					echo formatJSEND( "error", "Error deleting user information." );
+					exit( formatJSEND( "error", "Error deleting user information." ) );
 				}
 			} else {
 				
-				echo formatJSEND( "error", "Error deleting user project information." );
+				exit( formatJSEND( "error", "Error deleting user project information." ) );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Error deleting user option information." );
+			exit( formatJSEND( "error", "Error deleting user option information." ) );
 		}
 	}
 	
