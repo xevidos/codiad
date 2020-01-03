@@ -89,6 +89,7 @@
 			$( document ).on( 'dragenter', function( e ) {
 				
 				$( '.drop-overlay' ).css( 'display', 'block' );
+				$( document ).on( 'keypress', codiad.filemanager.upload_overlay_off );
 			});
 			
 			$( '.drop-overlay' ).on( 'drag dragstart dragend dragover dragenter dragleave drop', function( e ) {
@@ -129,10 +130,12 @@
 				} else if( result.includes( 'm' ) ) {
 					
 					let integer = result.replace( /^\D+/g, '' );
+					console.log( integer, 1024*1024*integer );
 					result = 1024*1024*integer;
 				} else if( result.includes( 'k' ) ) {
 					
 					let integer = result.replace( /^\D+/g, '' );
+					console.log( integer, 1024*integer );
 					result = 1024*integer;
 				}
 				
@@ -1680,7 +1683,7 @@
 					});
 				} else if( entry.isDirectory ) {
 					
-					_this.upload_read_directory( entry, destination, _this.upload_split );
+					_this.upload_read_directory( entry, destination, _this.upload_blobs );
 				}
 			}
 		},
@@ -1724,17 +1727,17 @@
 			let upload_status = null;
 			let total_blobs = 0;
 			
-			if( _this.post_max_size > ( 1024*1024*8 ) ) {
+			if( isNaN( _this.post_max_size ) || _this.post_max_size > ( 1024*1024*2 ) ) {
 				
-				blob_size = ( 1024*1024*8 );
+				blob_size = ( 1024*1024*2 );
 			} else {
 				
-				blob_size = _this.post_max_size;
+				blob_size = ( _this.post_max_size / 4 ) * 3;
 			}
 			
 			console.log( total_size, blob_size, ( total_size / blob_size ) );
 			
-			if( total_size <= blob_size ) {
+			if( total_size < blob_size ) {
 				
 				blob_size = total_size;
 				current = start + blob_size;
@@ -1760,6 +1763,7 @@
 			
 			reader.onload = async function( e ) {
 				
+				console.log( path, current, total_size )
 				upload_status = await _this.upload_blob( e.target.result, path );
 				try {
 					
@@ -1774,6 +1778,10 @@
 							
 							_this.upload_blobs( file, path, current, status );
 						}
+					} else {
+						
+						$().toastmessage( 'removeToast', status );
+						_this.rescan( path.substring( 0, path.lastIndexOf( "/" ) ) );
 					}
 				} catch( exception ) {
 					
@@ -1811,6 +1819,7 @@
 		upload_overlay_off: function() {
 			
 			$( '.drop-overlay' ).css( 'display', 'none' );
+			$( document ).off( 'keypress', codiad.filemanager.upload_overlay_off );
 		},
 		
 		upload_overlay_on: function( e ) {
@@ -1840,7 +1849,7 @@
 				// Get file
 				item.file( function( file ) {
 					
-					file_callback( file, path );
+					file_callback( file, path + file.name );
 				});
 			} else if( item.isDirectory ) {
 				

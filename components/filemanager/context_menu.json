@@ -12,18 +12,6 @@
         "onclick": "codiad.filemanager.createNode($('#context-menu').attr('data-path'),'directory');"
     },
     {
-        "title": "Archive",
-        "icon": "icon-archive",
-        "applies-to" : "directory-only non-root",
-        "onclick": "codiad.filemanager.archive( $('#context-menu').attr('data-path') );"
-    },
-    {
-        "title": "Unarchive",
-        "icon": "icon-archive",
-        "applies-to" : "file-only non-root",
-        "onclick": "codiad.filemanager.unarchive( $('#context-menu').attr('data-path') );"
-    },
-    {
         "title": "Break",
         "icon": null,
         "applies-to" : "directory-only",
@@ -57,6 +45,24 @@
         "title": "Break",
         "icon": null,
         "applies-to" : "file-only no-external",
+        "onclick": null
+    },
+    {
+        "title": "Archive",
+        "icon": "icon-archive",
+        "applies-to" : "directory-only non-root",
+        "onclick": "codiad.filemanager.archive( $('#context-menu').attr('data-path') );"
+    },
+    {
+        "title": "Unarchive",
+        "icon": "icon-archive",
+        "applies-to" : "file-only non-root",
+        "onclick": "codiad.filemanager.unarchive( $('#context-menu').attr('data-path') );"
+    },
+    {
+        "title": "Break",
+        "icon": null,
+        "applies-to" : "directory-only",
         "onclick": null
     },
     {

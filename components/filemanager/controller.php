@@ -53,6 +53,8 @@ if( isset( $_GET["path"] ) || isset( $_POST["path"] ) ) {
 	
 	$response["status"] = "error";
 	$response["message"] = "Missing path.";
+	$response["GET"] = $_GET;
+	$response["POST"] = $_POST;
 	exit( json_encode( $response ) );
 }
 
