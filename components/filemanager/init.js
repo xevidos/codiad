@@ -132,7 +132,7 @@
 			console.log( _this.post_max_size );
 		},
 		
-		context_menu_track_mouse: function() {
+		context_menu_track_mouse: function( e ) {
 			
 			let _this = codiad.filemanager;
 			let offset = $( '#context-menu' ).offset();
@@ -403,6 +403,38 @@
 			return path.split( '.' ).pop();
 		},
 		
+		get_index: function( path, files ) {
+			
+			let _this = codiad.filemanager;
+			
+			return new Promise( async function( resolve, reject ) {
+				
+				let index = {};
+				let total = ( !!files ) ? files.length : 0;
+				
+				for( let i = 0;i < total;i++ ) {
+					
+					if( path == files[i].dirname ) {
+						
+						index = files[i];
+						break;
+					} else {
+						
+						if( files[i].children !== undefined ) {
+							
+							index = await _this.get_index( path, files[i].children );
+							
+							if( Object.keys( index ).length > 0 ) {
+								
+								break;
+							}
+						}
+					}
+				}
+				resolve( index );
+			});
+		},
+		
 		get_indexes: async function( path ) {
 			
 			let r = await $.get( this.controller + '?action=index&path=' + encodeURIComponent( path ) );
@@ -466,11 +498,17 @@
 			let root = false;
 			let span = node.prev();
 			let total_saved = _this.files.length;
-			
+			let file = await _this.get_index( path );
 			rescan = !!rescan;
 			
 			node.addClass( 'loading' );
 			
+			if( Object.keys( file ).length == 0 ) {
+				
+				children = file.children;
+			}
+			
+			console.log( file.children, file )
 			if( rescan || total_saved == 0 || ! children ) {
 				
 				let data = await _this.get_indexes( path );
@@ -496,7 +534,7 @@
 				files = file.children;
 			}
 			
-			files = _this.get_opened_indexes( files );
+			files = await _this.get_opened_indexes( files );
 			_this.index_nodes(
 				path,
 				node,
@@ -513,6 +551,7 @@
 				path: path,
 				files: files
 			});
+			return true;
 		},
 		
 		index_directory_callback: function( entry, container, i, files ) {
@@ -560,7 +599,7 @@
 				
 				if( v.type == "file" ) {
 					
-					if( filters.type == "directories" ) {
+					if( filters.type == "directory" ) {
 						
 						continue;
 					}
@@ -571,6 +610,11 @@
 					link.addClass( ext );
 					
 				} else if( v.type == "directory" ) {
+					
+					if( filters.type == "file" ) {
+						
+						continue;
+					}
 					
 					if( v.children ) {
 						
@@ -583,9 +627,14 @@
 							node_class = "plus";
 						}
 					}
+					
+					name = v.basename;
+					type = 'directory';
 				}
 				
-				span.addClass( nodeClass );
+				console.log( v.path, v.type );
+				
+				span.addClass( node_class );
 				link.addClass( type );
 				link.attr( "data-type", type );
 				link.attr( "data-path", v.path );
@@ -625,7 +674,7 @@
 				ul.replaceWith( container );
 			} else {
 				
-				$( container ).insertAfter( node );
+				container.insertAfter( node );
 			}
 			
 			node.removeClass( 'loading' );
@@ -654,10 +703,10 @@
 					
 					if( $( this ).hasClass( 'directory' ) ) {
 						
-						_this.index( $( this ).attr( 'data-path' ) );
+						_this.toggle_directory( $( this ).attr( 'data-path' ) );
 					} else {
 						
-						_this.openFile( $( this ).attr( 'data-path' ) );
+						_this.open_file( $( this ).attr( 'data-path' ) );
 					}
 				}
 			})
@@ -666,7 +715,7 @@
 				// Open or Expand
 				if( $( this ).parent().children( "a" ).attr( 'data-type' ) == 'directory' ) {
 					
-					_this.index( $( this ).parent().children( "a" ).attr( 'data-path' ) );
+					_this.toggle_directory( $( this ).parent().children( "a" ).attr( 'data-path' ) );
 				} else {
 					
 					_this.openFile( $( this ).parent().children( "a" ).attr( 'data-path' ) );
@@ -691,10 +740,10 @@
 					
 					if( $( this ).hasClass( 'directory' ) ) {
 						
-						_this.index( $( this ).attr( 'data-path' ) );
+						_this.toggle_directory( $( this ).attr( 'data-path' ) );
 					} else {
 						
-						_this.openFile( $( this ).attr( 'data-path' ) );
+						_this.open_file( $( this ).attr( 'data-path' ) );
 					}
 				}
 			})
@@ -710,7 +759,7 @@
 			
 			let _this = codiad.filemanager;
 			let node = $( '#file-manager a[data-path="' + path + '"]' );
-			let ext = _this.getExtension( path );
+			let ext = _this.get_extension( path );
 			
 			if( $.inArray( ext.toLowerCase(), _this.noOpen ) < 0 ) {
 				
@@ -768,7 +817,7 @@
 		
 		rename_node: function( path, new_path ) {
 			
-			let shortName = this.getShortName( path );
+			let shortName = this.get_short_name( path );
 			let type = this.getType( path );
 			let _this = this;
 			let project = codiad.project.getCurrent();
@@ -883,6 +932,95 @@
 			return index;
 		},
 		
+		set_index: function( path, files, data ) {
+			
+			let _this = codiad.filemanager;
+			let index = false;
+			let total = ( !!files ) ? files.length : 0;
+			
+			for( let i = 0;i < total;i++ ) {
+				
+				if( path == files[i].dirname ) {
+					
+					files[i] = data;
+					index = files[i];
+					break;
+				} else {
+					
+					if( files[i].children !== undefined ) {
+						
+						index = _this.set_index( path, files[i].children, data );
+						
+						if( index ) {
+							
+							break;
+						}
+					}
+				}
+			}
+			return index;
+		},
+		
+		toggle_directory: async function( path, open_callback, close_callback ) {
+			
+			let _this = codiad.filemanager;
+			let node = $( '#file-manager a[data-path="' + path + '"]' );
+			
+			node.addClass( "loading" );
+			
+			let i = await _this.get_index( path, _this.files );
+			let span = node.parent().children( 'span' );
+			let link = node.parent().children( 'a' );
+			
+			console.log( i );
+			
+			if( Object.keys( i ).length == 0 ) {
+				
+				let result = await _this.index( path );
+				i = {
+					open: false,
+				}
+			}
+			
+			if( i.open ) {
+				
+				node.parent().children( 'ul' )
+				.slideUp( 300, function() {
+					
+					$( this ).remove();
+					
+					span.removeClass( 'minus' );
+					node.removeClass( 'open' );
+					
+					span.addClass( 'plus' );
+					
+					if( typeof close_callback == "function" ) {
+						
+						close_callback();
+					}
+				});
+				
+				if( typeof open_callback == "function" ) {
+					
+					close_callback( node );
+				}
+			} else {
+				
+				span.removeClass( 'plus' );
+				
+				span.addClass( 'minus' );
+				link.addClass( 'open' );
+				
+				_this.index( path );
+			}
+			
+			i.open = !i.open
+			_this.set_index( path, _this.files, i );
+			
+			console.log( i, await _this.get_index( path, _this.files ) );
+			node.removeClass( "loading" );
+		},
+		
 		unarchive: function( path ) {
 			
 			let _this = this;
@@ -903,13 +1041,12 @@
 		//Compatibility functions
 		
 		copyNode: this.copy_node,
-		createNode: this.create_node,
-		createObject: this.create_object,
+		createNode: function( path, type ) {return this.create_node( path, type )},
 		deleteNode: this.delete_node,
-		getExtension: this.get_extension,
-		getShortName: this.get_short_name,
-		getType: this.get_type,
-		openFile: this.open_file,
+		getExtension: function( path ) {return this.create_node( path )},
+		getShortName: function( path ) {return this.get_short_name( path )},
+		getType: function( path ) {return this.get_type( path )},
+		openFile: function( path ) {return this.open_file( path )},
 		openInBrowser: this.preview,
 		pasteNode: this.paste_node,
 		renameNode: this.rename_node,

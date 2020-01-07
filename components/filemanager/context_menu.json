@@ -3,13 +3,13 @@
         "title": "New File",
         "icon": "icon-doc-text",
         "applies-to" : "directory-only",
-        "onclick": "codiad.filemanager.createNode($('#context-menu').attr('data-path'),'file');"
+        "onclick": "codiad.filemanager.create_node($('#context-menu').attr('data-path'),'file');"
     },
     {
         "title": "New Folder",
         "icon": "icon-folder",
         "applies-to" : "directory-only",
-        "onclick": "codiad.filemanager.createNode($('#context-menu').attr('data-path'),'directory');"
+        "onclick": "codiad.filemanager.create_node($('#context-menu').attr('data-path'),'directory');"
     },
     {
         "title": "Break",
