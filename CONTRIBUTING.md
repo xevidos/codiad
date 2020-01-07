@@ -6,11 +6,13 @@ Your contributions are welcome and we're very open about how contributions are m
 * Submit an issue for bugs and feature additions before you start with it
 * Familiarize yourself with the documentation in the [Wiki](https://gitlab.com/xevidos/codiad/wikis/home)
 
-There is an established format for `components` which utilizes one JS (`init.js`) and one CSS (`screen.css`) which is handled by the loader file. Any other resources used should be loaded or accessed from one of these.
+**Merge Requests** All merge requests should be submitted for merging into the development branch.  All tests and checks are run on that branch before merging into master to form a release.
+
+There is an established format for `components` which utilizes one JS (`init.js`) and one CSS (`screen.css`) which is handled by the loader file. Any other resources used should be loaded or accessed from one of these.  Plugins and Themes made for Codiad do not need to follow our formatting styles below, but any contributions to the core should.
 
 **Don't Reinvent the Wheel!** There's an API and a defined, easy-to-understand set of methods for a reason - use them.
 
-Stick to the conventions defined in other components as closely as possible. 
+Stick to the conventions defined in other components as closely as possible.
 
 * Utilize the same commenting structure
 * Use underscores in namespaces instead of camelCase
