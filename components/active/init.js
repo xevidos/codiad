@@ -557,9 +557,11 @@
 		//////////////////////////////////////////////////////////////////
 		
 		remove: function( path ) {
+			
+			console.log( "remove file", this.isOpen( path ), session.listThumb.hasClass( 'changed' ), closeFile );
 			if( !this.isOpen( path ) ) return;
-			var session = this.sessions[path];
-			var closeFile = true;
+			let session = this.sessions[path];
+			let closeFile = true;
 			if( session.listThumb.hasClass( 'changed' ) ) {
 				codiad.modal.load( 450, 'components/active/dialog.php?action=confirm&path=' + encodeURIComponent( path ) );
 				closeFile = false;
