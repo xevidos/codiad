@@ -71,9 +71,9 @@ if ( ! Permissions::check_access( "read", $access ) ) {
 	exit( json_encode( $response ) );
 }
 
-if( isset( $_GET["destination"] ) ) {
+if( isset( $_GET["destination"] ) || isset( $_POST["destination"] ) ) {
 	
-	$destination = $_GET["destination"];
+	$destination = isset( $_GET["destination"] ) ? $_GET["destination"] : $_POST["destination"];
 
 	if ( ! checkPath( $destination ) ) {
 		

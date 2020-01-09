@@ -46,6 +46,67 @@
 			],
 		},
 		files: [],
+		node: {
+			
+			accept: function( e, i ) {
+				
+				return true;
+			},
+			
+			drag: function( e, i ) {
+				
+			},
+			
+			drop: function( e, i ) {
+				
+				let _this = codiad.filemanager;
+				let drag = i.helper[0];
+				let drop = e.target;
+				
+				$( drop ).removeClass( "drag_over" );
+				
+				console.log( drop );
+				console.log( drag );
+				
+				let drop_path = $( drop ).attr( "data-path" );
+				let drag_path = $( drag ).children( "a" ).attr( "data-path" );
+				let path = drag_path;
+				let newPath = `${drop_path}/` + path.split( "/" ).pop();
+				
+				console.log( path, newPath );
+				_this.rename_node( path, newPath );
+			},
+			
+			out: function( e, i ) {
+				
+				let drag = i.helper[0];
+				let drop = e.target;
+				
+				$( drop ).removeClass( "drag_over" );
+			},
+			
+			over: function( e, i ) {
+				
+				let drag = i.helper[0];
+				let drop = e.target;
+				
+				$( drop ).addClass( "drag_over" );
+			},
+			
+			start: function( e, i ) {
+				
+				let drag = i.helper[0];
+				$( drag ).addClass( "drag_start" );
+				$( drag ).children( 'a' ).removeClass( "a:hover" );
+			},
+			
+			stop: function( e, i ) {
+				
+				let drag = i.helper[0];
+				$( drag ).removeClass( "drag_start" );
+				//$( drag ).removeClass( "hover" );
+			},
+		},
 		opened_folders: [],
 		post_max_size: ( 1024*1024 ),
 		preview: null,
@@ -165,40 +226,44 @@
 				action: 'create',
 				type: type,
 				path: path
-			});
-			$( '#modal-content form' )
-			.on( 'submit', function( e ) {
+			},
+			function( container ) {
 				
-				e.preventDefault();
-				let shortName = $( '#modal-content form input[name="object_name"]' ).val();
-				let path = $( '#modal-content form input[name="path"]' ).val();
-				let type = $( '#modal-content form input[name="type"]' ).val();
-				let createPath = path + '/' + shortName;
-				
-				$.get( codiad.filemanager.controller + '?action=create&path=' + encodeURIComponent( createPath ) + '&type=' + type, function( data ) {
+				$( '#modal-content form' )
+				.on( 'submit', function( e ) {
 					
-					let createResponse = codiad.jsend.parse( data );
-					if( createResponse != 'error' ) {
+					e.preventDefault();
+					e.stopPropagation();
+					
+					let shortName = $( '#modal-content form input[name="object_name"]' ).val();
+					let path = $( '#modal-content form input[name="path"]' ).val();
+					let type = $( '#modal-content form input[name="type"]' ).val();
+					let createPath = path + '/' + shortName;
+					
+					$.get( codiad.filemanager.controller + '?action=create&path=' + encodeURIComponent( createPath ) + '&type=' + type, function( data ) {
 						
-						codiad.message.success( type.charAt( 0 )
-						.toUpperCase() + type.slice( 1 ) + ' Created' );
-						codiad.modal.unload();
-						
-						codiad.filemanager.rescan( path );
-						
-						if( type == 'file' ) {
+						let createResponse = codiad.jsend.parse( data );
+						if( createResponse != 'error' ) {
 							
-							codiad.filemanager.openFile( createPath, true );
+							codiad.message.success( type.charAt( 0 )
+							.toUpperCase() + type.slice( 1 ) + ' Created' );
+							codiad.modal.unload();
+							
+							if( type == 'file' ) {
+								
+								codiad.filemanager.openFile( createPath, true );
+							}
+							codiad.filemanager.rescan( path );
+							
+							/* Notify listeners. */
+							amplify.publish( 'filemanager.onCreate', {
+								createPath: createPath,
+								path: path,
+								shortName: shortName,
+								type: type
+							});
 						}
-						
-						/* Notify listeners. */
-						amplify.publish( 'filemanager.onCreate', {
-							createPath: createPath,
-							path: path,
-							shortName: shortName,
-							type: type
-						});
-					}
+					});
 				});
 			});
 		},
@@ -260,7 +325,6 @@
 				
 				e.preventDefault();
 				$.get( _this.controller + '?action=delete_children&path=' + encodeURIComponent( path ), function( data ) {
-					
 					
 					let response = codiad.jsend.parse( data );
 					if( response != 'error' ) {
@@ -407,6 +471,11 @@
 			
 			let _this = codiad.filemanager;
 			
+			if( ! files ) {
+				
+				files = _this.files;
+			}
+			
 			return new Promise( async function( resolve, reject ) {
 				
 				let index = {};
@@ -449,14 +518,24 @@
 				
 				files[i].name = files[i].path;
 				
-				if( files[i].type == "directory" && _this.opened_folders.includes( files[i].path ) ) {
+				if( files[i].type == "directory" ) {
 					
-					files[i].opened = true;
+					let existing_data = await _this.get_index( files[i].path );
 					
-					let data = await _this.get_indexes( files[i].path );
-					let response = codiad.jsend.parse( data );
-					let children = _this.get_opened_indexes( response );
-					_this.set_children( path, children, response );
+					console.log( "opened?", existing_data, files[i] );
+					
+					if( existing_data.open ) {
+						
+						files[i].open = true;
+						let data = await _this.get_indexes( files[i].path );
+						let response = codiad.jsend.parse( data );
+						_this.set_children( files[i].path, files, response.index );
+						
+						let children = await _this.get_opened_indexes( response.index );
+					} else {
+						
+						files[i].open = false;
+					}
 				}
 			}
 			return files;
@@ -486,20 +565,39 @@
 			amplify.publish( 'context-menu.onHide' );
 		},
 		
-		index: async function( path, rescan = false ) {
+		index: async function( path, rescan = false, node = null, filters = {}, callbacks = {} ) {
 			
 			let _this = codiad.filemanager;
-			
 			let children = 0;
 			let container = $( '<ul></ul>' );
 			let files = [];
-			let node = $( '#file-manager a[data-path="' + path + '"]' );
-			let parentNode = node.parent();
 			let root = false;
-			let span = node.prev();
 			let total_saved = _this.files.length;
 			let file = await _this.get_index( path );
 			rescan = !!rescan;
+			
+			if( node === null ) {
+				
+				node = $( '#file-manager a[data-path="' + path + '"]' );
+			} else if( node == 'create' ) {
+				
+				node = $( "<a></a>" )
+				.attr( "data-path", path )
+				.attr( "data-type", "directory" );
+			}
+			
+			let parentNode = node.parent();
+			let span = node.prev();
+			
+			if( ! callbacks.directory ) {
+				
+				callbacks.directory = [_this.index_directory_callback];
+			} 
+			
+			if( ! callbacks.file ) {
+				
+				callbacks.file = [_this.index_file_callback];
+			}
 			
 			node.addClass( 'loading' );
 			
@@ -520,30 +618,30 @@
 					result = response.index;
 				}
 				
-				if( total_saved == 0 ) {
-					
-					_this.files = result;
-					files = result;
-				} else {
-					
-					_this.set_children( path, _this.files, result );
-					files = result;
-				}
+				files = result;
 			} else {
 				
 				files = file.children;
 			}
 			
 			files = await _this.get_opened_indexes( files );
+			
+			if( total_saved == 0 ) {
+				
+				_this.files = files;
+			} else {
+				
+				_this.set_children( path, _this.files, files );
+			}
+			
+			console.log( _this.files, files )
+			
 			_this.index_nodes(
 				path,
 				node,
 				files,
-				{},
-				{
-					directory: [_this.index_directory_callback],
-					file: [_this.index_file_callback],
-				}
+				filters,
+				callbacks,
 			);
 			
 			/* Notify listener */
@@ -551,17 +649,17 @@
 				path: path,
 				files: files
 			});
-			return true;
+			return files;
 		},
 		
 		index_directory_callback: function( entry, container, i, files ) {
 			
 			let _this = codiad.filemanager;
-			entry.children( 'a' ).droppable({
-				accept: _this.object_accept,
-				drop: _this.object_drop,
-				over: _this.object_over,
-				out: _this.object_out
+			entry.droppable({
+				accept: _this.node.accept,
+				drop: _this.node.drop,
+				over: _this.node.over,
+				out: _this.node.out
 			});
 		},
 		
@@ -569,22 +667,21 @@
 			
 			let _this = codiad.filemanager;
 			entry.draggable({
-				
 				opacity: 0.85,
 				revert: true,
-				start: _this.object_start,
-				stop: _this.object_stop,
+				start: _this.node.start,
+				stop: _this.node.stop,
 				zIndex: 100
 			});
 		},
 		
 		index_nodes: function( path, node, files, filters, callbacks ) {
 			
+			let _this = codiad.filemanager;
 			let container = $( '<ul></ul>' );
 			let total_files = files.length;
-			
-			let link = node.children( 'a' );
-			let ul = node.parent( 'li' ).children( 'ul' );
+			let parent = node.parent();
+			let ul = parent.children( 'ul' );
 			
 			for( let i = 0;i < total_files;i++ ) {
 				
@@ -596,6 +693,8 @@
 				let span = $( "<span></span>" );
 				let link = $( "<a></a>" );
 				let type = null;
+				
+				entry.append( span, link );
 				
 				if( v.type == "file" ) {
 					
@@ -621,6 +720,7 @@
 						if( v.open ) {
 							
 							node_class = "minus";
+							console.log( "loading children", v.path, link, v.children, filters, callbacks, link.parent() );
 							_this.index_nodes( v.path, link, v.children, filters, callbacks );
 						} else {
 							
@@ -640,7 +740,6 @@
 				link.attr( "data-path", v.path );
 				link.text( name );
 				
-				entry.append( span, link );
 				container.append( entry );
 				
 				if( typeof callbacks == "function" ) {
@@ -703,7 +802,7 @@
 					
 					if( $( this ).hasClass( 'directory' ) ) {
 						
-						_this.toggle_directory( $( this ).attr( 'data-path' ) );
+						_this.toggle_directory( $( this ) );
 					} else {
 						
 						_this.open_file( $( this ).attr( 'data-path' ) );
@@ -715,7 +814,7 @@
 				// Open or Expand
 				if( $( this ).parent().children( "a" ).attr( 'data-type' ) == 'directory' ) {
 					
-					_this.toggle_directory( $( this ).parent().children( "a" ).attr( 'data-path' ) );
+					_this.toggle_directory( $( this ).parent().children( "a" ) );
 				} else {
 					
 					_this.openFile( $( this ).parent().children( "a" ).attr( 'data-path' ) );
@@ -740,7 +839,7 @@
 					
 					if( $( this ).hasClass( 'directory' ) ) {
 						
-						_this.toggle_directory( $( this ).attr( 'data-path' ) );
+						_this.toggle_directory( $( this ) );
 					} else {
 						
 						_this.open_file( $( this ).attr( 'data-path' ) );
@@ -791,7 +890,105 @@
 			}
 		},
 		
+		open_file_selector: function( path, filters = {}, limit = 1, callbacks ) {
+			
+			let _this = this;
+			return new Promise( function( resolve, reject ) {
+				
+				codiad.modal.load(
+					300,
+					_this.dialog,
+					{
+						action: 'selector',
+					},
+					async function( container ) {
+						
+						let _this = codiad.filemanager;
+						let div = $( "<div></div>" );
+						let select = $( '<button class="btn-left">Select</button>' );
+						let cancel = $( '<button class="btn-right">Cancel</button>' );
+						
+						if( ! path ) {
+							
+							path = codiad.project.getCurrent();
+						}
+						
+						if( Object.keys( filters ).length == 0 ) {
+							
+							filters = {
+								
+								type: 'directory',
+							}
+						}
+						
+						_this.selector_listeners( container, filters, callbacks );
+						
+						let result = await _this.index(
+							path,
+							false,
+							"create",
+							filters,
+							directory_callbacks,
+							file_callbacks,
+						);
+						
+						container.html( div );
+						container.append( select );
+						container.append( cancel );
+						
+						select.on( 'click', function( e ) {
+							
+							codiad.modal.unload();
+							resolve( _this.selected );
+						});
+						cancel.on( 'click', function( e ) {
+							
+							codiad.modal.unload();
+							reject({
+								status: "error",
+								message: "User canceled action."
+							});
+						});
+					},
+				);
+			});
+		},
+		
+		open_rename: function( path ) {
+			
+			let _this = codiad.filemanager;
+			let shortName = this.get_short_name( path );
+			let type = this.getType( path );
+			
+			codiad.modal.load( 250, this.dialog, {
+				action: 'rename',
+				path: path,
+				short_name: shortName,
+				type: type
+			},
+			function( content ) {
+				
+				$( content ).find( 'form' )
+				.on( 'submit', function( e ) {
+					
+					e.preventDefault();
+					
+					let new_name = $( '#modal-content form input[name="object_name"]' ).val();
+					let arr = path.split( '/' );
+					let temp = new Array();
+					for( i = 0; i < arr.length - 1; i++ ) {
+						temp.push( arr[i] )
+					}
+					let new_path = temp.join( '/' ) + '/' + new_name;
+					_this.rename_node( path, new_path );
+					codiad.modal.unload();
+				});
+			});
+		},
+		
 		rename: function( path, new_path ) {
+			
+			let _this = codiad.filemanager;
 			
 			return new Promise( function( resolve, reject ) {
 				
@@ -801,7 +998,7 @@
 					data: {
 						
 						path: path,
-						destination: newPath
+						destination: new_path
 					},
 					success: function( data ) {
 						
@@ -815,75 +1012,64 @@
 			});
 		},
 		
-		rename_node: function( path, new_path ) {
+		rename_node: async function( path, new_path ) {
 			
-			let shortName = this.get_short_name( path );
+			let short_name = this.get_short_name( path );
 			let type = this.getType( path );
 			let _this = this;
 			let project = codiad.project.getCurrent();
 			
-			codiad.modal.load( 250, this.dialog, {
-				action: 'rename',
-				path: path,
-				short_name: shortName,
-				type: type
-			});
+			let arr = path.split( '/' );
+			let message = "Successfully Renamed."
+			let new_parent = new_path.split( '/' );
+			let parent = path.split( '/' );
+			let temp = [];
 			
-			$( '#modal-content form' )
-			.on( 'submit', async function( e ) {
+			parent.pop();
+			new_parent.pop();
+			
+			for( i = 0; i < arr.length - 1; i++ ) {
 				
-				e.preventDefault();
-				let arr = path.split( '/' );
-				let message = "Successfully Renamed."
-				let newName = $( '#modal-content form input[name="object_name"]' ).val();
-				let newParent = newPath.split( '/' );
-				let parent = path.split( '/' );
-				let temp = [];
+				temp.push( arr[i] )
+			}
+			
+			let result = codiad.jsend.parse( await _this.rename( path, new_path ) );
+			
+			if( result != 'error' ) {
 				
-				for( i = 0; i < arr.length - 1; i++ ) {
-					temp.push( arr[i] )
-				}
-				
-				
-				let newPath = temp.join( '/' ) + '/' + newName;
-				let result = codiad.jsend.parse( await _this.rename( path, newPath ) );
-				codiad.modal.unload();
-				
-				if( result != 'error' ) {
+				if( type !== undefined ) {
 					
-					if( type !== undefined ) {
+					let node = $( '#file-manager a[data-path="' + path + '"]' );
+					
+					node.attr( 'data-path', new_path ).html( new_path.split( "/" ).pop() );
+					message = type.charAt( 0 ).toUpperCase() + type.slice( 1 ) + ' Renamed'
+					codiad.message.success( message );
+					
+					// Change icons for file
+					let current_class = 'ext-' + _this.get_extension( path );
+					let new_class = 'ext-' + _this.get_extension( new_path );
+					
+					$( '#file-manager a[data-path="' + new_path + '"]' )
+					.removeClass( current_class )
+					.addClass( new_class );
+					codiad.active.rename( path, new_path );
+					
+					codiad.filemanager.rescan( parent.join( '/' ) );
+					
+					if( parent !== new_parent ) {
 						
-						let node = $( '#file-manager a[data-path="' + path + '"]' );
-						
-						
-						node.attr( 'data-path', newPath ).html( newPath.split( "/" ).pop() );
-						message = type.charAt( 0 ).toUpperCase() + type.slice( 1 ) + ' Renamed'
-						codiad.message.success( message );
-						
-						// Change icons for file
-						let current_class = 'ext-' + _this.get_extension( path );
-						let new_class = 'ext-' + _this.get_extension( newPath );
-						
-						$( '#file-manager a[data-path="' + newPath + '"]' )
-						.removeClass( current_class )
-						.addClass( new_class );
-						codiad.active.rename( path, newPath );
-						
-						parent = parent.pop();
-						newParent = newParent.pop();
-						
-						codiad.filemanager.rescan( parent.join( '/' ) );
-						codiad.filemanager.rescan( newParent.join( '/' ) );
-						
-						/* Notify listeners. */
-						amplify.publish( 'filemanager.onRename', {
-							path: path,
-							newPath: newPath,
-							project: project
-						});
+						console.log( parent, new_parent );
+						codiad.filemanager.rescan( new_parent.join( '/' ) );
 					}
+					
+					/* Notify listeners. */
+					amplify.publish( 'filemanager.onRename', {
+						path: path,
+						newPath: new_path,
+						project: project
+					});
 				}
-			});
+			}
 		},
 		
 		preview_path: function( path ) {
@@ -932,6 +1118,44 @@
 			return index;
 		},
 		
+		selector_listeners: function( node, filters, callbacks ) {
+			
+			let _this = codiad.filemanager;
+			
+			$( node )
+			.on( 'click', 'a', async function( e ) {
+				
+				let i = $( e.target );
+				
+				// Select or Expand
+				if( codiad.editor.settings.fileManagerTrigger ) {
+					
+					_this.toggle_directory( $( i ), filters, callbacks );
+				} else {
+					
+					_this.toggle_select_node( $( e.target ), limit );
+				}
+			})
+			.on( 'click', 'span', async function( e ) {
+				
+				let i = $( e.target ).parent().children( 'a' );
+				_this.toggle_directory( $( i ), {type: 'directory'} );
+			})
+			.on( 'dblclick', 'a', async function( e ) {
+				
+				let i = $( e.target );
+				
+				if( ! codiad.editor.settings.fileManagerTrigger ) {
+					
+					_this.toggle_directory( $( i ), {type: 'directory'} );
+				} else {
+					
+					_this.toggle_select_node( $( e.target ), limit );
+				}
+			})
+			.on( 'selectstart', false );
+		},
+		
 		set_index: function( path, files, data ) {
 			
 			let _this = codiad.filemanager;
@@ -961,13 +1185,12 @@
 			return index;
 		},
 		
-		toggle_directory: async function( path, open_callback, close_callback ) {
+		toggle_directory: async function( node, filters, callbacks, open ) {
 			
 			let _this = codiad.filemanager;
-			let node = $( '#file-manager a[data-path="' + path + '"]' );
 			
 			node.addClass( "loading" );
-			
+			let path = node.attr( "data-path" );
 			let i = await _this.get_index( path, _this.files );
 			let span = node.parent().children( 'span' );
 			let link = node.parent().children( 'a' );
@@ -982,7 +1205,7 @@
 				}
 			}
 			
-			if( i.open ) {
+			if( i.open || open ) {
 				
 				node.parent().children( 'ul' )
 				.slideUp( 300, function() {
@@ -1043,7 +1266,7 @@
 		copyNode: this.copy_node,
 		createNode: function( path, type ) {return this.create_node( path, type )},
 		deleteNode: this.delete_node,
-		getExtension: function( path ) {return this.create_node( path )},
+		getExtension: function( path ) {return this.get_extension( path )},
 		getShortName: function( path ) {return this.get_short_name( path )},
 		getType: function( path ) {return this.get_type( path )},
 		openFile: function( path ) {return this.open_file( path )},

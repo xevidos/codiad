@@ -93,7 +93,7 @@
         "title": "Rename",
         "icon": "icon-pencil",
         "applies-to" : "non-root",
-        "onclick": "codiad.filemanager.renameNode($('#context-menu').attr('data-path'));"
+        "onclick": "codiad.filemanager.open_rename($('#context-menu').attr('data-path'));"
     },
     {
         "title": "Rename Project",

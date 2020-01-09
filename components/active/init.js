@@ -558,7 +558,7 @@
 		
 		remove: function( path ) {
 			
-			console.log( "remove file", this.isOpen( path ), session.listThumb.hasClass( 'changed' ), closeFile );
+			console.log( "remove file", this.isOpen( path ) );
 			if( !this.isOpen( path ) ) return;
 			let session = this.sessions[path];
 			let closeFile = true;
