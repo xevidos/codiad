@@ -18,7 +18,7 @@
 		clipboard: '',
 		controller: 'components/filemanager/controller.php',
 		dialog: 'components/filemanager/dialog.php',
-		filelist: {
+		file_previewlist: {
 			
 			audio: [
 				'aac',
@@ -226,8 +226,8 @@
 				action: 'create',
 				type: type,
 				path: path
-			},
-			function( container ) {
+			})
+			.then( function( container ) {
 				
 				$( '#modal-content form' )
 				.on( 'submit', function( e ) {
@@ -274,43 +274,45 @@
 			codiad.modal.load( 400, this.dialog, {
 				action: 'delete',
 				path: path
-			});
-			$( '#modal-content form' )
-			.live( 'submit', function( e ) {
+			})
+			.then( function( container ) {
 				
-				e.preventDefault();
-				$.get( _this.controller + '?action=delete&path=' + encodeURIComponent( path ), function( data ) {
+				$( '#modal-content form' )
+				.on( 'submit', function( e ) {
 					
-					
-					let response = codiad.jsend.parse( data );
-					if( response != 'error' ) {
+					e.preventDefault();
+					$.get( _this.controller + '?action=delete&path=' + encodeURIComponent( path ), function( data ) {
 						
-						let node = $( '#file-manager a[data-path="' + path + '"]' );
-						let parent_path = node.parent().parent().children( 'a' ).attr( 'data-path' );
-						node.parent( 'li' ).remove();
-						
-						// Close any active files
-						$( '#active-files a' ).each( function() {
+						let response = codiad.jsend.parse( data );
+						if( response != 'error' ) {
 							
-							let curPath = $( this ).attr( 'data-path' );
+							let node = $( '#file-manager a[data-path="' + path + '"]' );
+							let parent_path = node.parent().parent().children( 'a' ).attr( 'data-path' );
+							node.parent( 'li' ).remove();
 							
-							console.log( curPath, curPath.indexOf( path ) );
-							
-							if( curPath.indexOf( path ) == 0 ) {
+							// Close any active files
+							$( '#active-files a' ).each( function() {
 								
-								codiad.active.remove( curPath );
-							}
-						});
-						
-						/* Notify listeners. */
-						amplify.publish( 'filemanager.onDelete', {
-							deletePath: path,
-							path: parent_path
-						});
-					}
-					codiad.modal.unload();
+								let curPath = $( this ).attr( 'data-path' );
+								
+								console.log( curPath, curPath.indexOf( path ) );
+								
+								if( curPath.indexOf( path ) == 0 ) {
+									
+									codiad.active.remove( curPath );
+								}
+							});
+							
+							/* Notify listeners. */
+							amplify.publish( 'filemanager.onDelete', {
+								deletePath: path,
+								path: parent_path
+							});
+						}
+						codiad.modal.unload();
+					});
 				});
-			});
+			})
 		},
 		
 		delete_children_nodes: function( path ) {
@@ -539,6 +541,13 @@
 				}
 			}
 			return files;
+		},
+		
+		get_parent: function( path ) {
+			
+			let parent = path.split( '/' );
+			parent.pop();
+			return parent.join( '/' );
 		},
 		
 		get_short_name: function( path ) {
@@ -881,7 +890,7 @@
 						_this.download( path );
 					} else {
 						
-						_this.openInModal( path );
+						_this.open_in_modal( path );
 					}
 				} else {
 					
@@ -900,57 +909,77 @@
 					_this.dialog,
 					{
 						action: 'selector',
-					},
-					async function( container ) {
+					}
+				)
+				.then( async function( container ) {
+					
+					let _this = codiad.filemanager;
+					let div = $( "<div></div>" );
+					let select = $( '<button class="btn-left">Select</button>' );
+					let cancel = $( '<button class="btn-right">Cancel</button>' );
+					
+					if( ! path ) {
 						
-						let _this = codiad.filemanager;
-						let div = $( "<div></div>" );
-						let select = $( '<button class="btn-left">Select</button>' );
-						let cancel = $( '<button class="btn-right">Cancel</button>' );
+						path = codiad.project.getCurrent();
+					}
+					
+					if( Object.keys( filters ).length == 0 ) {
 						
-						if( ! path ) {
+						filters = {
 							
-							path = codiad.project.getCurrent();
+							type: 'directory',
 						}
+					}
+					
+					_this.selector_listeners( container, filters, callbacks );
+					
+					let result = await _this.index(
+						path,
+						false,
+						"create",
+						filters,
+						directory_callbacks,
+						file_callbacks,
+					);
+					
+					container.html( div );
+					container.append( select );
+					container.append( cancel );
+					
+					select.on( 'click', function( e ) {
 						
-						if( Object.keys( filters ).length == 0 ) {
-							
-							filters = {
-								
-								type: 'directory',
-							}
-						}
+						codiad.modal.unload();
+						resolve( _this.selected );
+					});
+					cancel.on( 'click', function( e ) {
 						
-						_this.selector_listeners( container, filters, callbacks );
-						
-						let result = await _this.index(
-							path,
-							false,
-							"create",
-							filters,
-							directory_callbacks,
-							file_callbacks,
-						);
-						
-						container.html( div );
-						container.append( select );
-						container.append( cancel );
-						
-						select.on( 'click', function( e ) {
-							
-							codiad.modal.unload();
-							resolve( _this.selected );
+						codiad.modal.unload();
+						reject({
+							status: "error",
+							message: "User canceled action."
 						});
-						cancel.on( 'click', function( e ) {
-							
-							codiad.modal.unload();
-							reject({
-								status: "error",
-								message: "User canceled action."
-							});
-						});
-					},
-				);
+					});
+				})
+				.error( reject );
+			});
+		},
+		
+		open_in_modal: function( path ) {
+			
+			let type = "";
+			let ext = this.getExtension( path ).toLowerCase();
+			
+			if( this.file_previewlist.images.includes( ext ) ) {
+				
+				type = 'music_preview';
+			} else if( this.file_previewlist.images.includes( ext ) ) {
+				
+				type = 'preview';
+			}
+			
+			codiad.modal.load( 250, this.dialog, {
+				action: type,
+				path: path
 			});
 		},
 		
@@ -965,8 +994,8 @@
 				path: path,
 				short_name: shortName,
 				type: type
-			},
-			function( content ) {
+			})
+			.then( function( content ) {
 				
 				$( content ).find( 'form' )
 				.on( 'submit', function( e ) {
@@ -984,6 +1013,165 @@
 					codiad.modal.unload();
 				});
 			});
+		},
+		
+		paste_node: function( path ) {
+			
+			let _this = this;
+			let overwrite = false;
+			
+			if( this.clipboard == '' ) {
+				
+				codiad.message.error( i18n( 'Nothing in Your Clipboard' ) );
+			} else if( path == this.clipboard ) {
+				
+				codiad.message.error( i18n( 'Cannot Paste Directory Into Itself' ) );
+			} else {
+				
+				let short_name = _this.get_short_name( _this.clipboard );
+				let new_path = path + '/' + short_name
+				
+				if( $( '#file-manager a[data-path="' + new_path + '"]' ).length ) {
+					
+					// Confirm overwrite?
+					codiad.modal.load( 400, this.dialog, {
+						action: 'overwrite',
+						path: new_path
+					});
+					$( '#modal-content form' )
+					.on( 'submit', function( e ) {
+						
+						e.preventDefault();
+						codiad.modal.unload();
+						
+						if( $( '#modal-content form select[name="or_action"]' ).val() == 1 ) {
+							
+							overwrite = true;
+						}
+						
+						$.ajax({
+							type: 'POST',
+							url: _this.controller + '?action=copy',
+							data: {
+								
+								path: path,
+								destination: new_path,
+								overwrite: overwrite,
+							},
+							success: async function( data ) {
+								
+								
+								amplify.publish( 'filemanager.onPaste', {
+									path: path,
+									shortName: shortName,
+									duplicate: duplicate
+								});
+								
+								let dir = await _this.is_dir( new_path );
+								
+								if( dir ) {
+									
+									_this.rescan( new_path );
+								} else {
+									
+									_this.rescan( _this.get_parent( new_path ) );
+								}
+								
+								if( path !== new_path ) {
+									
+									_this.rescan( path );
+								}
+							},
+							error: function( data ) {
+								
+								console.log( data );
+							},
+						});
+					});
+				} else {
+					
+					$.ajax({
+						type: 'POST',
+						url: _this.controller + '?action=copy',
+						data: {
+							
+							path: path,
+							destination: new_path,
+							overwrite: overwrite,
+						},
+						success: async function( data ) {
+							
+							
+							amplify.publish( 'filemanager.onPaste', {
+								path: path,
+								shortName: shortName,
+								duplicate: duplicate
+							});
+							
+							let dir = await _this.is_dir( new_path );
+							
+							if( dir ) {
+								
+								_this.rescan( new_path );
+							} else {
+								
+								_this.rescan( _this.get_parent( new_path ) );
+							}
+							
+							if( path !== new_path ) {
+								
+								_this.rescan( path );
+							}
+						},
+						error: function( data ) {
+							
+							console.log( data );
+						},
+					});
+				}
+			}
+		},
+		
+		refresh_preview: function( event ) {
+			
+			let _this = codiad.filemanager;
+			
+			/**
+			 * When reloading after every change, we encounter performance issues
+			 * in the editor.  Therefore, we implement the same logic as the
+			 * auto_save module where we only reload after the user has finished
+			 * changing their document.
+			 */
+			
+			if( _this.refresh_interval !== null ) {
+				
+				clearTimeout( _this.refresh_interval );
+				_this.refresh_interval = null;
+			}
+			_this.refresh_interval = setTimeout( function() {
+				
+				if( _this.preview == null ) {
+					
+					return;
+				}
+				
+				try {
+					
+					if( ( typeof _this.preview.location.reload ) == "undefined" ) {
+						
+						_this.preview = null;
+						codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+						return;
+					}
+					_this.preview.location.reload( true );
+				} catch ( e ) {
+					
+					console.log( e );
+					codiad.message.error( 'Please close your previously opened preview window.' );
+					_this.preview = null;
+					codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+				}
+			}, 500 );
 		},
 		
 		rename: function( path, new_path ) {
@@ -1083,11 +1271,148 @@
 			_this.index( path, true );
 		},
 		
-		save_file: function() {},
+		save_file: function( path, data, display_messages = true ) {
+			
+			return new Promise( function( resolve, reject ) {
+				
+				let _this = codiad.filemanager;
+				
+				$.ajax({
+					type: 'POST',
+					url: _this.controller + '?action=modify',
+					data: {
+						
+						path: path,
+						data: JSON.stringify( data ),
+					},
+					success: function( data ) {
+						
+						console.log( data );
+						let r = JSON.parse( data );
+						
+						if( r.status === "success" ) {
+							
+							if( display_messages === true ) {
+								
+								codiad.message.success( i18n( 'File saved' ) );
+							}
+							resolve( data );
+						} else if( r.message == 'Client is out of sync' ) {
+							
+							let reload = confirm(
+								"Server has a more updated copy of the file. Would " +
+								"you like to refresh the contents ? Pressing no will " +
+								"cause your changes to override the server's copy upon " +
+								"next save."
+							);
+							if( reload ) {
+								
+								codiad.active.close( path );
+								codiad.active.removeDraft( path );
+								_this.openFile( path );
+							} else {
+								
+								let session = codiad.editor.getActive().getSession();
+								session.serverMTime = null;
+								session.untainted = null;
+							}
+							resolve( data );
+						} else {
+							
+							codiad.message.error( i18n( r.message ) );
+							reject( data );
+						}
+					},
+					error: function( data ) {
+						
+						codiad.message.error( i18n( 'File could not be saved' ) );
+						reject( data );
+					},
+				});
+			});
+		},
 		
-		save_modifications: function() {},
-		
-		save_patch: function() {},
+		search: async function( path ) {
+			
+			let _this = this;
+			let container = await codiad.modal.load( 500, this.dialog, {
+				action: 'search',
+				path: path
+			});
+			codiad.modal.hideOverlay();
+			let last_searched = JSON.parse( await codiad.settings.get_option( "lastSearched" ) );
+			if( last_searched ) {
+				
+				$( '#modal-content form input[name="search_string"]' ).val( lastSearched.searchText );
+				$( '#modal-content form input[name="search_file_type"]' ).val( lastSearched.fileExtension );
+				$( '#modal-content form select[name="search_type"]' ).val( lastSearched.searchType );
+				if( lastSearched.searchResults != '' ) {
+					$( '#filemanager-search-results' ).slideDown().html( lastSearched.searchResults );
+				}
+			}
+			
+			$( '#modal-content form' )
+			.on( 'submit', function( e ) {
+				
+				$( '#filemanager-search-processing' ).show();
+				e.preventDefault();
+				searchString = $( '#modal-content form input[name="search_string"]' ).val();
+				fileExtensions = $( '#modal-content form input[name="search_file_type"]' ).val();
+				searchFileType = $.trim( fileExtensions );
+				if( searchFileType != '' ) {
+					//season the string to use in find command
+					searchFileType = "\\(" + searchFileType.replace( /\s+/g, "\\|" ) + "\\)";
+				}
+				searchType = $( '#modal-content form select[name="search_type"]' )
+				.val();
+				let options = {
+					filetype: fileExtensions,
+				};
+				$.post( _this.controller + '?action=search', {
+					path: path,
+					query: searchString,
+					options: JSON.stringify( options )
+				}, function( data ) {
+					
+					let searchResponse = codiad.jsend.parse( data );
+					let results = '';
+					
+					console.log( data );
+					console.log( searchResponse );
+					
+					if( searchResponse != 'error' ) {
+						$.each( searchResponse.index, function( key, val ) {
+							// Cleanup file format
+							if( val['file'].substr( -1 ) == '/' ) {
+								val['file'] = val['file'].substr( 0, str.length - 1 );
+							}
+							val['file'] = val['file'].replace( '//', '/' );
+							// Add result
+							results += '<div><a onclick="codiad.filemanager.openFile(\'' + val['result'] + '\');setTimeout( function() { codiad.active.gotoLine(' + val['line'] + '); }, 500);codiad.modal.unload();">Line ' + val['line'] + ': ' + val['file'] + '</a></div>';
+						});
+						$( '#filemanager-search-results' )
+						.slideDown()
+						.html( results );
+					} else {
+						$( '#filemanager-search-results' )
+						.slideUp();
+					}
+					
+					codiad.settings.update_option(
+						"lastSearched",
+						JSON.stringify({
+							searchText: searchText,
+							searchType: searchType,
+							fileExtension: fileExtensions,
+							searchResults: searchResults
+						})
+					)
+					_this.saveSearchResults( searchString, searchType, fileExtensions, results );
+					$( '#filemanager-search-processing' )
+					.hide();
+				});
+			});
+		},
 		
 		set_children: function( path, files, children ) {
 			
@@ -1261,18 +1586,54 @@
 		
 		upload: function() {},
 		
-		//Compatibility functions
+		upload_to_node: function( path ) {
+			
+			let _this = codiad.filemanager;
+			codiad.modal.load(
+				500,
+				this.dialog, {
+					action: 'upload',
+				}
+			)
+			.then( function( container ) {
+					
+					let text = $( '<p style="max-width: 40vw;"></p>' );
+					let input = $( '<input type="file" multiple style="display: none;">' );
+					
+					text.html( `<h2>Drag and drop files or folders anywhere or click here to upload a file!</h2>` );
+					
+					input.on( 'change', function( e ) {
+						
+						console.log( e );
+						
+						let items = e.target.files;
+						_this.upload( items, path );
+					});
+					text.on( 'click', function( e ) {
+						
+						input.click();
+					});
+					
+					container.html( '' );
+					container.append( text );
+					container.append( input );
+			});
+		},
 		
-		copyNode: this.copy_node,
+		//Compatibility functions
+		//these may be needed more after updating the new functions to newer standards
+		
+		copyNode: function( path ) {return this.copy_node( path )},
 		createNode: function( path, type ) {return this.create_node( path, type )},
-		deleteNode: this.delete_node,
+		deleteNode: function( path ) {return this.delete_node( path )},
 		getExtension: function( path ) {return this.get_extension( path )},
 		getShortName: function( path ) {return this.get_short_name( path )},
 		getType: function( path ) {return this.get_type( path )},
 		openFile: function( path ) {return this.open_file( path )},
-		openInBrowser: this.preview,
-		pasteNode: this.paste_node,
-		renameNode: this.rename_node,
-		saveFile: this.save_file,
+		openInBrowser: function( path ) {return this.preview( path )},
+		pasteNode: function( path ) {return this.paste_node( path )},
+		renameNode: function( path ) {return this.rename_node( path )},
+		saveFile: function( path, data, display_messages ) {return this.save_file( path, data, display_messages )},
+		uploadToNode: function( path ) {return this.upload_to_node( path )},
 	};
 })( this, jQuery );

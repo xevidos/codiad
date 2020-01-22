@@ -436,7 +436,7 @@ class Filemanager extends Common {
 	// MODIFY (Modifies a file name/contents or directory name)
 	//////////////////////////////////////////////////////////////////
 	
-	public function modify( $path, $content, $patch=false, $mtime=0 ) {
+	public function modify( $path, $content, $patch = false, $mtime = 0 ) {
 		
 		// Change content
 		$response = array(
@@ -734,11 +734,74 @@ class Filemanager extends Common {
 		return $response;
 	}
 	
+	public function stitch( $path ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => "",
+		);
+		
+		if( ! Permissions::has_write( $path ) ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "You do not have access to write to this file.";
+			return $response;
+		}
+		
+		if( ! common::isAbsPath( $path ) ) {
+			
+			$path = WORKSPACE . "/$path";
+		}
+		
+		$path = $_POST["path"];
+		$tmp = DATA . "tmp/$path/";
+		$dir = dirname( $path );
+		$name = basename( $path );
+		$files = scandir( $tmp );
+		
+		if( ! is_dir( $dir ) ) {
+			
+			mkdir( $dir, 0755, true );
+		}
+		
+		foreach( $files as $id => $file ) {
+			
+			if( $file !== "." && $file !== ".." ) {
+				
+				$data = file_get_contents( $cache_path . $file );
+				$handle = fopen( $path, "a" );
+				$status = fwrite( $handle, $data );
+				fclose( $handle );
+				unlink( $cache_path . $file );
+			}
+		}
+		
+		$tmp_array = explode( "/", $path );
+		$remove = array();
+		
+		while( count( $tmp_array ) > 0 ) {
+			
+			$remove[] = DATA . "tmp/" . implode( "/", $tmp_array );
+			array_pop( $tmp_array );
+		}
+		
+		foreach( $tmp_array as $id => $i ) {
+			
+			rmdir( $i );
+		}
+		return $response;
+	}
+	
 	//////////////////////////////////////////////////////////////////
 	// UPLOAD (Handles uploads to the specified directory)
 	//////////////////////////////////////////////////////////////////
 	
 	public function upload( $path, $blob ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => "",
+		);
 		
 		// Check that the path is a directory
 		if( ! Permissions::has_write( $path ) ) {
@@ -753,23 +816,26 @@ class Filemanager extends Common {
 			$path = WORKSPACE . "/$path";
 		}
 		
+		$dirname = dirname( $path );
+		$name = basename( $path );
+		
+		$blob = @file_get_contents( $_POST["data"] );
+		$path = $_POST["path"];
+		$index = $_POST["index"];
 		$response = array(
 			"status" => "none",
 			"message" => "",
 		);
-		$dirname = dirname( $path );
-		$name = basename( $path );
+		$tmp = DATA . "tmp/";
 		
-		if( ! is_dir( $dirname ) ) {
+		if( ! is_dir( $tmp . $path ) ) {
 			
-			mkdir( $dirname, 0755, true );
+			mkdir( $tmp . $path, 0755, true );
 		}
 		
-		$handle = fopen( $path, "a" );
+		$handle = fopen( "$tmp$path/$index", "a" );
 		$status = fwrite( $handle, $blob );
 		fclose( $handle );
-		
-		//$status = file_put_contents( $path, $blob, FILE_APPEND );
 		
 		if( $status === false ) {
 			
@@ -782,7 +848,6 @@ class Filemanager extends Common {
 			$response["bytes"] = $status;
 			$response["message"] = "$status bytes written to file.";
 		}
-		
 		return $response;
 	}
 }

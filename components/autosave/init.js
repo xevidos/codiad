@@ -228,7 +228,11 @@
 			
 			_this.content = content;
 			codiad.active.save;
-			codiad.filemanager.saveFile( path, content, localStorage.removeItem( path ), false );
+			codiad.filemanager.save_file( path, {content: content}, false )
+			.then( function( i ) {
+				
+				localStorage.removeItem( path );
+			});
 			let session = codiad.active.sessions[path];
 			if( typeof session != 'undefined' ) {
 				

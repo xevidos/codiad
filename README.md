@@ -64,6 +64,8 @@ Task List:
 * Clean up update script
 * Fix broken themes
 * Re Add the custom language recognition system after recode
+* Remove all old and unneeded dependencies
+* Update all current components to use more current standards ( async await and .then in favor over callbacks )
 
 
 Completed:

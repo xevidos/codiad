@@ -522,20 +522,30 @@
 					original: session.untainted,
 					changed: newContent
 				}, function( success, patch ) {
+					
+					console.log( "diff test", success, patch );
+					
 					if( success ) {
-						codiad.filemanager.savePatch( path, patch, session.serverMTime, {
-							success: handleSuccess
-						}, alerts );
+						if( patch.length > 0 ) {
+							
+							codiad.filemanager.save_file( path, {
+								patch: patch,
+								mtime: session.serverMTime
+							}, alerts )
+							.then( handleSuccess );
+						}
 					} else {
-						codiad.filemanager.saveFile( path, newContent, {
-							success: handleSuccess
-						}, alerts );
+						
+						console.log( "calling save while failed diff", path, newContent, alerts );
+						codiad.filemanager.save_file( path, newContent, alerts )
+						.then( handleSuccess );
 					}
 				}, this );
 			} else {
-				codiad.filemanager.saveFile( path, newContent, {
-					success: handleSuccess
-				}, alert );
+				
+				console.log( "calling save without mtime and untainted", path, newContent, alerts );
+				codiad.filemanager.save_file( path, newContent, alerts )
+				.then( handleSuccess );
 			}
 		},
 		

@@ -260,6 +260,11 @@ switch( $action ) {
 		}
 	break;
 	
+	case( "stitch" ):
+		
+		$response = $Filemanager->stitch( $path );
+	break;
+	
 	case 'unarchive':
 		
 		if( ! isset( $path ) ) {

@@ -19,44 +19,44 @@
 			.hide();
 		},
 		
-		load: function( width, url, data, callback = null ) {
+		load: function( width, url, data ) {
 			
-			data = data || {};
-			let bounds = this._getBounds( width );
-			let content = $( '#modal-content' )
-			$('#modal')
-			.css({
-				'top': bounds.top,
-				'left': bounds.left,
-				'min-width': width + 'px',
-				'margin-left': '-' + Math.ceil( width / 2 ) + 'px'
-			})
-			.draggable({
-				handle: '#drag-handle'
-			});
-			content.html('<div id="modal-loading"></div>');
-			
-			this.load_process = $.get( url, data, function( data ) {
+			return new Promise( function( resolve, reject ) {
 				
-				content.html( data );
-				// Fix for Firefox autofocus goofiness
-				$('#modal-content input[autofocus="autofocus"]').focus();
+				data = data || {};
+				let _this = codiad.modal;
+				let bounds = _this._getBounds( width );
+				let content = $( '#modal-content' )
+				$('#modal')
+				.css({
+					'top': bounds.top,
+					'left': bounds.left,
+					'min-width': width + 'px',
+					'margin-left': '-' + Math.ceil( width / 2 ) + 'px'
+				})
+				.draggable({
+					handle: '#drag-handle'
+				});
+				content.html('<div id="modal-loading"></div>');
 				
-				if( callback ) {
+				_this.load_process = $.get( url, data, function( data ) {
 					
-					callback( content );
-				}
-			});
-			
-			let event = {animationPerformed: false};
-			amplify.publish( 'modal.onLoad', event );      
-			
-			// If no plugin has provided a custom load animation
-			if( ! event.animationPerformed ) {
+					content.html( data );
+					// Fix for Firefox autofocus goofiness
+					$('#modal-content input[autofocus="autofocus"]').focus();
+					resolve( content );
+				}).error( reject );
 				
-				$('#modal, #modal-overlay').fadeIn(200);
-			}
-			codiad.sidebars.modalLock = true;
+				let event = {animationPerformed: false};
+				amplify.publish( 'modal.onLoad', event );      
+				
+				// If no plugin has provided a custom load animation
+				if( ! event.animationPerformed ) {
+					
+					$('#modal, #modal-overlay').fadeIn(200);
+				}
+				codiad.sidebars.modalLock = true;
+			});
 		},
 		
 		show_loading: function() {
