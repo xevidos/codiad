@@ -18,7 +18,7 @@
 		clipboard: '',
 		controller: 'components/filemanager/controller.php',
 		dialog: 'components/filemanager/dialog.php',
-		file_previewlist: {
+		file_preview_list: {
 			
 			audio: [
 				'aac',
@@ -64,6 +64,11 @@
 				let drop = e.target;
 				
 				$( drop ).removeClass( "drag_over" );
+				
+				if( ! $( drop ).attr( "data-path" ) ) {
+					
+					drop = $( drop ).children( 'a' );
+				}
 				
 				console.log( drop );
 				console.log( drag );
@@ -144,8 +149,42 @@
 				connections and a more stable upload for slower connections.
 			*/
 			_this.calculate_upload_variables();
-			
 			_this.node_listeners();
+			
+			$( document ).on( 'dragenter', function( e ) {
+				
+				console.log( e );
+				console.log( e.originalEvent.dataTransfer );
+			});
+			
+			
+			$( document ).on( 'drag dragstart dragend dragover dragenter dragleave drop', function( e ) {
+				
+				//e.preventDefault();
+				//e.stopPropagation();
+				console.log( 'drag dragstart dragend dragover dragenter dragleave drop', e );
+				console.log( e.originalEvent.dataTransfer );
+			})
+			.on( 'dragover dragenter', function( e ) {
+				
+				console.log( 'dragover dragenter', e );
+				console.log( e.originalEvent.dataTransfer );
+			})
+			.on( 'dragleave dragend drop', function( e ) {
+				
+				//$( '.drop-overlay' ).css( 'display', 'none' );
+				console.log( 'dragleave dragend drop', e );
+				console.log( e.originalEvent.dataTransfer );
+			})
+			.on( 'drop', function( e ) {
+				
+				//e.preventDefault();
+				//e.stopPropagation();
+				//codiad.filemanager.upload_drop( e );
+				console.log( 'drop', e );
+				console.log( e.originalEvent.dataTransfer );
+			});
+			
 		},
 		
 		archive: function( path ) {
@@ -491,7 +530,10 @@
 						break;
 					} else {
 						
-						if( files[i].children !== undefined ) {
+						if( files[i].children !== undefined && files[i].children !== null ) {
+							
+							console.log( path );
+							console.log( files[i] );
 							
 							index = await _this.get_index( path, files[i].children );
 							
@@ -598,6 +640,16 @@
 			let parentNode = node.parent();
 			let span = node.prev();
 			
+			if( node.attr( 'data-type' ) == "root" ) {
+				
+				node.droppable({
+					accept: _this.node.accept,
+					drop: _this.node.drop,
+					over: _this.node.over,
+					out: _this.node.out
+				});
+			}
+			
 			if( ! callbacks.directory ) {
 				
 				callbacks.directory = [_this.index_directory_callback];
@@ -668,7 +720,10 @@
 				accept: _this.node.accept,
 				drop: _this.node.drop,
 				over: _this.node.over,
-				out: _this.node.out
+				out: _this.node.out,
+				
+				start: _this.node.start,
+				stop: _this.node.stop,
 			});
 		},
 		
@@ -680,7 +735,7 @@
 				revert: true,
 				start: _this.node.start,
 				stop: _this.node.stop,
-				zIndex: 100
+				zIndex: 100,
 			});
 		},
 		
@@ -868,8 +923,16 @@
 			let _this = codiad.filemanager;
 			let node = $( '#file-manager a[data-path="' + path + '"]' );
 			let ext = _this.get_extension( path );
+			let preview = [];
 			
-			if( $.inArray( ext.toLowerCase(), _this.noOpen ) < 0 ) {
+			$.each( _this.file_preview_list, function( id, value ) {
+				
+				preview.concat( value );
+			});
+			
+			console.log( ext, preview );
+			
+			if( $.inArray( ext.toLowerCase(), preview ) < 0 ) {
 				
 				node.addClass( 'loading' );
 				$.get( _this.controller + '?action=open&path=' + encodeURIComponent( path ), function( data ) {
@@ -885,7 +948,10 @@
 				
 				if( ! codiad.project.isAbsPath( path ) ) {
 					
-					if( $.inArray( ext.toLowerCase(), _this.noBrowser ) < 0 ) {
+					let download = [];
+					download.concat( files );
+					
+					if( $.inArray( ext.toLowerCase(), download ) < 0 ) {
 						
 						_this.download( path );
 					} else {
@@ -969,10 +1035,10 @@
 			let type = "";
 			let ext = this.getExtension( path ).toLowerCase();
 			
-			if( this.file_previewlist.images.includes( ext ) ) {
+			if( this.file_preview_list.images.includes( ext ) ) {
 				
 				type = 'music_preview';
-			} else if( this.file_previewlist.images.includes( ext ) ) {
+			} else if( this.file_preview_list.images.includes( ext ) ) {
 				
 				type = 'preview';
 			}
@@ -1296,7 +1362,7 @@
 								
 								codiad.message.success( i18n( 'File saved' ) );
 							}
-							resolve( data );
+							resolve( r );
 						} else if( r.message == 'Client is out of sync' ) {
 							
 							let reload = confirm(
@@ -1316,7 +1382,7 @@
 								session.serverMTime = null;
 								session.untainted = null;
 							}
-							resolve( data );
+							resolve( r );
 						} else {
 							
 							codiad.message.error( i18n( r.message ) );

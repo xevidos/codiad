@@ -500,11 +500,11 @@
 			.getSession();
 			var content = session.getValue();
 			var path = session.path;
-			var handleSuccess = function( mtime ) {
+			var handleSuccess = function( result ) {
 				var session = codiad.active.sessions[path];
 				if( typeof session != 'undefined' ) {
 					session.untainted = newContent;
-					session.serverMTime = mtime;
+					session.serverMTime = result.data.mtime;
 					if( session.listThumb ) session.listThumb.removeClass( 'changed' );
 					if( session.tabThumb ) session.tabThumb.removeClass( 'changed' );
 				}
