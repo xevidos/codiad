@@ -81,7 +81,7 @@
         "title": "Paste",
         "icon": "icon-docs",
         "applies-to" : "directory-only",
-        "onclick": "codiad.filemanager.pasteNode($('#context-menu').attr('data-path'));"
+        "onclick": "codiad.filemanager.paste_node($('#context-menu').attr('data-path'));"
     },
     {
         "title": "Break",

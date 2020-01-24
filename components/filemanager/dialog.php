@@ -101,12 +101,12 @@ switch( $_GET['action'] ) {
 	break;
 	
 	//////////////////////////////////////////////////////////////////
-	// Overwrite
+	// replace
 	//////////////////////////////////////////////////////////////////
-	case 'overwrite':
+	case 'replace':
 		?>
 		<input type="hidden" name="path" value="<?php echo($_GET['path']); ?>">
-		<label><?php i18n("Would you like to overwrite or duplicate the following:"); ?></label>
+		<label><?php i18n("Would you like to replace or duplicate the following:"); ?></label>
 		<pre>
 			<?php
 			if( ! FileManager::isAbsPath( $_GET['path'] ) ) {

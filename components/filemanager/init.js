@@ -114,7 +114,7 @@
 		},
 		opened_folders: [],
 		post_max_size: ( 1024*1024 ),
-		preview: null,
+		preview_window: null,
 		refresh_interval: null,
 		selected: [],
 		
@@ -139,7 +139,7 @@
 				
 				if( _this.auto_reload && editor !== null ) {
 					
-					codiad.editor.getActive().addEventListener( "change", _this.refreshPreview );
+					codiad.editor.getActive().addEventListener( "change", _this.refresh_preview );
 				}
 			});
 			
@@ -671,6 +671,9 @@
 			if( rescan || total_saved == 0 || ! children ) {
 				
 				let data = await _this.get_indexes( path );
+				
+				console.log( data );
+				
 				let response = codiad.jsend.parse( data );
 				let result = [];
 				
@@ -716,7 +719,7 @@
 		index_directory_callback: function( entry, container, i, files ) {
 			
 			let _this = codiad.filemanager;
-			entry.droppable({
+			entry.children( 'a' ).droppable({
 				accept: _this.node.accept,
 				drop: _this.node.drop,
 				over: _this.node.over,
@@ -724,6 +727,13 @@
 				
 				start: _this.node.start,
 				stop: _this.node.stop,
+			});
+			entry.draggable({
+				opacity: 0.85,
+				revert: true,
+				start: _this.node.start,
+				stop: _this.node.stop,
+				zIndex: 100,
 			});
 		},
 		
@@ -881,7 +891,7 @@
 					_this.toggle_directory( $( this ).parent().children( "a" ) );
 				} else {
 					
-					_this.openFile( $( this ).parent().children( "a" ).attr( 'data-path' ) );
+					_this.open_file( $( this ).parent().children( "a" ).attr( 'data-path' ) );
 				}
 			})
 			.on( "contextmenu", 'a', function( e ) {
@@ -1084,74 +1094,82 @@
 		paste_node: function( path ) {
 			
 			let _this = this;
-			let overwrite = false;
+			let replace = false;
+			let clipboard = this.clipboard;
+			console.log( path, clipboard )
 			
-			if( this.clipboard == '' ) {
+			if( clipboard == '' ) {
 				
 				codiad.message.error( i18n( 'Nothing in Your Clipboard' ) );
-			} else if( path == this.clipboard ) {
+			} else if( path == clipboard ) {
 				
 				codiad.message.error( i18n( 'Cannot Paste Directory Into Itself' ) );
 			} else {
 				
-				let short_name = _this.get_short_name( _this.clipboard );
+				let short_name = _this.get_short_name( clipboard );
 				let new_path = path + '/' + short_name
+				let existing_node = $( '#file-manager a[data-path="' + new_path + '"]' );
 				
-				if( $( '#file-manager a[data-path="' + new_path + '"]' ).length ) {
+				console.log( existing_node );
+				
+				if( existing_node.length ) {
 					
-					// Confirm overwrite?
+					// Confirm replace?
 					codiad.modal.load( 400, this.dialog, {
-						action: 'overwrite',
+						action: 'replace',
 						path: new_path
-					});
-					$( '#modal-content form' )
-					.on( 'submit', function( e ) {
+					})
+					.then( function( container ) {
 						
-						e.preventDefault();
-						codiad.modal.unload();
-						
-						if( $( '#modal-content form select[name="or_action"]' ).val() == 1 ) {
+						$( '#modal-content form' )
+						.on( 'submit', function( e ) {
 							
-							overwrite = true;
-						}
-						
-						$.ajax({
-							type: 'POST',
-							url: _this.controller + '?action=copy',
-							data: {
+							e.preventDefault();
+							codiad.modal.unload();
+							
+							if( $( '#modal-content form select[name="or_action"]' ).val() == 1 ) {
 								
-								path: path,
-								destination: new_path,
-								overwrite: overwrite,
-							},
-							success: async function( data ) {
-								
-								
-								amplify.publish( 'filemanager.onPaste', {
-									path: path,
-									shortName: shortName,
-									duplicate: duplicate
-								});
-								
-								let dir = await _this.is_dir( new_path );
-								
-								if( dir ) {
+								replace = true;
+							}
+							
+							$.ajax({
+								type: 'POST',
+								url: _this.controller + '?action=copy',
+								data: {
 									
-									_this.rescan( new_path );
-								} else {
+									path: clipboard,
+									destination: new_path,
+									replace: replace,
+								},
+								success: async function( data ) {
 									
-									_this.rescan( _this.get_parent( new_path ) );
-								}
-								
-								if( path !== new_path ) {
 									
-									_this.rescan( path );
-								}
-							},
-							error: function( data ) {
-								
-								console.log( data );
-							},
+									amplify.publish( 'filemanager.onPaste', {
+										path: path,
+										shortName: shortName,
+										duplicate: duplicate
+									});
+									
+									let dir = await _this.is_dir( new_path );
+									
+									if( dir ) {
+										
+										_this.rescan( new_path );
+									} else {
+										
+										_this.rescan( _this.get_parent( new_path ) );
+									}
+									
+									if( path !== new_path ) {
+										
+										_this.rescan( path );
+									}
+								},
+								error: function( data ) {
+									
+									console.log( data );
+								},
+							});
 						});
 					});
 				} else {
@@ -1161,9 +1179,9 @@
 						url: _this.controller + '?action=copy',
 						data: {
 							
-							path: path,
+							path: clipboard,
 							destination: new_path,
-							overwrite: overwrite,
+							replace: replace,
 						},
 						success: async function( data ) {
 							
@@ -1216,28 +1234,28 @@
 			}
 			_this.refresh_interval = setTimeout( function() {
 				
-				if( _this.preview == null ) {
+				if( _this.preview_window == null ) {
 					
 					return;
 				}
 				
 				try {
 					
-					if( ( typeof _this.preview.location.reload ) == "undefined" ) {
+					if( ( typeof _this.preview_window.location.reload ) == "undefined" ) {
 						
-						_this.preview = null;
-						codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+						_this.preview_window = null;
+						codiad.editor.getActive().removeEventListener( "change", _this.refresh_preview );
 						return;
 					}
-					_this.preview.location.reload( true );
+					_this.preview_window.location.reload( true );
 				} catch ( e ) {
 					
 					console.log( e );
 					codiad.message.error( 'Please close your previously opened preview window.' );
-					_this.preview = null;
-					codiad.editor.getActive().removeEventListener( "change", _this.refreshPreview );
+					_this.preview_window = null;
+					codiad.editor.getActive().removeEventListener( "change", _this.refresh_preview );
 				}
-			}, 500 );
+			}, 1000 );
 		},
 		
 		rename: function( path, new_path ) {
@@ -1326,7 +1344,7 @@
 			}
 		},
 		
-		preview_path: function( path ) {
+		preview: function( path ) {
 			
 			
 		},
@@ -1406,20 +1424,8 @@
 				path: path
 			});
 			codiad.modal.hideOverlay();
-			let last_searched = JSON.parse( await codiad.settings.get_option( "lastSearched" ) );
-			if( last_searched ) {
-				
-				$( '#modal-content form input[name="search_string"]' ).val( lastSearched.searchText );
-				$( '#modal-content form input[name="search_file_type"]' ).val( lastSearched.fileExtension );
-				$( '#modal-content form select[name="search_type"]' ).val( lastSearched.searchType );
-				if( lastSearched.searchResults != '' ) {
-					$( '#filemanager-search-results' ).slideDown().html( lastSearched.searchResults );
-				}
-			}
-			
 			$( '#modal-content form' )
 			.on( 'submit', function( e ) {
-				
 				$( '#filemanager-search-processing' ).show();
 				e.preventDefault();
 				searchString = $( '#modal-content form input[name="search_string"]' ).val();
@@ -1463,17 +1469,6 @@
 						$( '#filemanager-search-results' )
 						.slideUp();
 					}
-					
-					codiad.settings.update_option(
-						"lastSearched",
-						JSON.stringify({
-							searchText: searchText,
-							searchType: searchType,
-							fileExtension: fileExtensions,
-							searchResults: searchResults
-						})
-					)
-					_this.saveSearchResults( searchString, searchType, fileExtensions, results );
 					$( '#filemanager-search-processing' )
 					.hide();
 				});

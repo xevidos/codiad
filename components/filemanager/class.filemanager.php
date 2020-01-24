@@ -69,6 +69,63 @@ class Filemanager extends Common {
 	}
 	
 	//////////////////////////////////////////////////////////////////
+	// DUPLICATE (Creates a duplicate of the object - (cut/copy/paste)
+	//////////////////////////////////////////////////////////////////
+	
+	public function copy( $source, $destination, $replace = false ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		
+		$source = self::formatPath( $source );
+		$destination = self::formatPath( $destination );
+		$new_destination = $destination;
+		$path_parts = pathinfo( $destination );
+		$i = 1;
+		
+		if( ! $replace ) {
+			
+			do {
+				
+				if( is_dir( $new_destination ) ) {
+					
+					$new_destination = rtrim( $destination, "/" ) . " $i/";
+				} elseif( is_file( $new_destination ) ) {
+					
+					if( isset( $path_parts["extension"] ) ) {
+						
+						$new_destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $destination );
+					} else {
+						
+						$new_destination = $destination . " $i";
+					}
+				}
+				$i++;
+			} while( ( is_file( $new_destination ) || is_dir( $new_destination ) ) );
+		}
+		
+		if( file_exists( $source ) ) {
+			
+			if( is_file( $source ) ) {
+				
+				copy( $source, $new_destination );
+				$response["status"] = "success";
+			} else {
+				
+				self::recursive_copy( $source, $new_destination );
+				$response["status"] = "success";
+			}
+		} else {
+			
+			$response["status"] = "error";
+			$response["message"] = "Invalid Source";
+		}
+		return $response;
+	}
+	
+	//////////////////////////////////////////////////////////////////
 	// CREATE (Creates a new file or directory)
 	//////////////////////////////////////////////////////////////////
 	
@@ -155,60 +212,6 @@ class Filemanager extends Common {
 				$response["status"] = "error";
 				$response["message"] = "Path Does Not Exist ";
 			}
-		}
-		return $response;
-	}
-	
-	//////////////////////////////////////////////////////////////////
-	// DUPLICATE (Creates a duplicate of the object - (cut/copy/paste)
-	//////////////////////////////////////////////////////////////////
-	
-	public function duplicate( $source, $destination ) {
-		
-		$response = array(
-			"status" => "none",
-			"message" => null,
-		);
-		
-		$source = self::formatPath( $source );
-		$destination = self::formatPath( $destination );
-		$new_destination = $destination;
-		$path_parts = pathinfo( $destination );
-		$i = 1;
-		
-		do {
-			
-			if( is_dir( $new_destination ) ) {
-				
-				$new_destination = rtrim( $destination, "/" ) . " $i/";
-			} elseif( is_file( $new_destination ) ) {
-				
-				if( isset( $path_parts["extension"] ) ) {
-					
-					$new_destination = str_replace( ".{$path_parts["extension"]}", " {$i}.{$path_parts["extension"]}", $destination );
-				} else {
-					
-					$new_destination = $destination . " $i";
-				}
-			}
-			$i++;
-		} while( ( is_file( $new_destination ) || is_dir( $new_destination ) ) );
-		
-		if( file_exists( $source ) ) {
-			
-			if( is_file( $source ) ) {
-				
-				copy( $source, $new_destination );
-				$response["status"] = "success";
-			} else {
-				
-				self::recursive_copy( $source, $new_destination );
-				$response["status"] = "success";
-			}
-		} else {
-			
-			$response["status"] = "error";
-			$response["message"] = "Invalid Source";
 		}
 		return $response;
 	}
@@ -634,7 +637,7 @@ class Filemanager extends Common {
 				
 				if ( is_dir( $source . '/' . $file ) ) {
 					
-					self::recurse_copy( $source . '/' . $file, $destination . '/' . $file );
+					self::recursive_copy( $source . '/' . $file, $destination . '/' . $file );
 				} else {
 					
 					copy( $source . '/' . $file, $destination . '/' . $file );
@@ -729,6 +732,9 @@ class Filemanager extends Common {
 				$response["status"] = "success";
 				$response["data"] = array();
 				$response["data"]["index"] = $return;
+				$response["data"]["cmd"] = $cmd;
+				$response["data"]["output"] = $output;
+				$response["data"]["output_array"] = $output_arr;
 			}
 		}
 		return $response;

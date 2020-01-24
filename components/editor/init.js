@@ -1368,7 +1368,8 @@
 					400,
 					'components/editor/dialog.php?action=search&type=' + type,
 					{},
-					function( c ) {
+				)
+				.then( function( c ) {
 						
 						let input = c.find( 'input:first' );
 						let textarea = c.find( 'textarea:first' );

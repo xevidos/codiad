@@ -118,6 +118,19 @@ switch( $action ) {
 		exit( $response );
 	break;
 	
+	case( 'copy' ):
+		
+		if( isset( $_POST["replace"] ) ) {
+			
+			$replace = $_POST["replace"];
+		} else {
+			
+			$replace = false;
+		}
+		
+		$response = $Filemanager->copy( $path, $destination, $replace );
+	break;
+	
 	case 'create':
 		
 		if( isset( $_GET["type"] ) ) {
@@ -139,11 +152,6 @@ switch( $action ) {
 	case 'deleteInner':
 		
 		$response = $Filemanager->delete( $path, true, true );
-	break;
-	
-	case 'duplicate':
-		
-		$response = $Filemanager->duplicate( $path, $destination );
 	break;
 	
 	case 'find':
