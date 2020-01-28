@@ -1346,7 +1346,36 @@
 		
 		preview: function( path ) {
 			
+			let _this = this;
 			
+			$.ajax({
+				type: 'GET',
+				url: _this.controller + '?action=preview&path=' + encodeURIComponent( path ),
+				success: function( data ) {
+					
+					console.log( data );
+					let r = JSON.parse( data );
+					
+					if( r.status === "success" ) {
+						
+						_this.preview = window.open( r.data, '_newtab' );
+						
+						let editor = codiad.editor.getActive();
+						
+						if( _this.auto_reload && editor !== null ) {
+							
+							editor.addEventListener( "change", _this.refresh_preview );
+						}
+					} else {
+						
+						codiad.message.error( i18n( r.message ) );
+					}
+				},
+				error: function( data ) {
+					
+					codiad.message.error( i18n( r.message ) );
+				},
+			});
 		},
 		
 		rescan: function( path ) {

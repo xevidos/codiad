@@ -229,9 +229,9 @@ switch( $action ) {
 		$response = $Filemanager->open( $path );
 	break;
 	
-	case 'open_in_browser':
+	case 'preview':
 		
-		$response = $Filemanager->openinbrowser( $path );
+		$response = $Filemanager->preview( $path );
 	break;
 	
 	case 'rename':

@@ -537,14 +537,14 @@
 					} else {
 						
 						console.log( "calling save while failed diff", path, newContent, alerts );
-						codiad.filemanager.save_file( path, newContent, alerts )
+						codiad.filemanager.save_file( path, {content: newContent}, alerts )
 						.then( handleSuccess );
 					}
 				}, this );
 			} else {
 				
 				console.log( "calling save without mtime and untainted", path, newContent, alerts );
-				codiad.filemanager.save_file( path, newContent, alerts )
+				codiad.filemanager.save_file( path, {content: newContent}, alerts )
 				.then( handleSuccess );
 			}
 		},

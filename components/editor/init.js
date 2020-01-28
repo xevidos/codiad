@@ -297,7 +297,7 @@
 					
 					let path = codiad.active.getPath();
 					$( e.target ).attr( 'data-path', path );
-					codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor' );
+					codiad.filemanager.display_context_menu( e, path, 'editor', 'editor' );
 					$( this ).addClass( 'context-menu-active' );
 				}
 			});

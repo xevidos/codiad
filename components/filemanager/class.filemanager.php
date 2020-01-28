@@ -606,7 +606,7 @@ class Filemanager extends Common {
 	// OPEN IN BROWSER (Return URL)
 	//////////////////////////////////////////////////////////////////
 	
-	public function openinbrowser( $path ) {
+	public function preview( $path ) {
 		
 		$protocol = ( ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] != 'off' ) || $_SERVER['SERVER_PORT'] == 443 ) ? "https://" : "http://";
 		$domainName = $_SERVER['HTTP_HOST'];
