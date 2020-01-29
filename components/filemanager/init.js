@@ -1797,6 +1797,7 @@
 				if( total_size < blob_size ) {
 					
 					blob_size = total_size;
+					total_blobs = 1;
 				} else {
 					
 					total_blobs = ( Math.round( ( total_size / blob_size ) ) );
