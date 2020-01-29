@@ -96,6 +96,17 @@ class Common {
 			define( "LANGUAGE", "en" );
 		}
 		
+		if( ! defined( 'UPLOAD_CACHE' ) ) {
+			
+			if( ! is_dir( sys_get_temp_dir() ) ) {
+				
+				define( "UPLOAD_CACHE", DATA . "/uploads" );
+			} else {
+				
+				define( "UPLOAD_CACHE", rtrim( sys_get_temp_dir(), "/" ) );
+			}
+		}
+		
 		require_once( COMPONENTS . "/permissions/class.permissions.php" );
 		require_once( COMPONENTS . "/update/class.update.php" );
 		require_once( COMPONENTS . "/sql/class.sql.php" );

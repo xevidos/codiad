@@ -649,6 +649,13 @@ class Filemanager extends Common {
 	
 	static function recursive_delete( $path, $follow, $keep_parent = false ) {
 		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+			"keep_parent" => $keep_parent,
+		);
+		$status = "none";
+		
 		if ( is_file( $path ) ) {
 			
 			unlink( $path );
@@ -657,30 +664,70 @@ class Filemanager extends Common {
 			$files = array_diff( scandir( $path ), array( '.', '..' ) );
 			foreach ( $files as $file ) {
 				
-				if ( is_link( $path . "/" . $file ) ) {
+				if( is_link( $path . "/" . $file ) ) {
 					
-					if ( $follow ) {
+					if( $follow ) {
 						
-						self::recursive_delete( $path . "/" . $file, $follow, false);
+						$status = self::recursive_delete( $path . "/" . $file, $follow, false );
 					}
-					unlink( $path . "/" . $file );
-				} elseif ( is_dir( $path . "/" . $file ) ) {
+					$status = unlink( $path . "/" . $file );
+				} elseif( is_dir( $path . "/" . $file ) ) {
 					
-					self::recursive_delete( $path . "/" . $file, $follow, false );
+					$status = self::recursive_delete( $path . "/" . $file, $follow, false );
 				} else {
 					
-					unlink( $path . "/" . $file );
+					$status = unlink( $path . "/" . $file );
 				}
 			}
+			
 			if( $keep_parent === false ) {
 				
-				rmdir( $path );
-				return;
-			} else {
-				
-				return;
+				$status = rmdir( $path );
 			}
 		}
+		
+		$response["message"] = "Removed $path";
+		$response["status"] = $status;
+		return $response;
+	}
+	
+	function reverse_recursive_delete( $start, $stop, $files ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => null,
+		);
+		$path_array = explode( "/", $start );
+		
+		do {
+			
+			$p = implode( "/", $path_array );
+			
+			if( is_dir( $p ) && $p !== $stop ) {
+				
+				if( $files ) {
+					
+					$this->recursive_delete( $p, true );
+				} else {
+					
+					$files = array_diff( scandir( $p ), array( '.', '..' ) );
+					
+					if( count( $files ) == 0 ) {
+						
+						$this->recursive_delete( $p, true );
+					} else {
+						
+						break;
+					}
+				}
+			} else {
+				
+				break;
+			}
+			array_pop( $path_array );
+		} while( count( $path_array ) > 1 );
+		
+		return $response;
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -802,14 +849,13 @@ class Filemanager extends Common {
 	// UPLOAD (Handles uploads to the specified directory)
 	//////////////////////////////////////////////////////////////////
 	
-	public function upload( $path, $blob ) {
+	public function upload_blob( $path, $index, $blob ) {
 		
 		$response = array(
 			"status" => "none",
 			"message" => "",
 		);
 		
-		// Check that the path is a directory
 		if( ! Permissions::has_write( $path ) ) {
 			
 			$response["status"] = "error";
@@ -822,24 +868,12 @@ class Filemanager extends Common {
 			$path = WORKSPACE . "/$path";
 		}
 		
-		$dirname = dirname( $path );
-		$name = basename( $path );
-		
-		$blob = @file_get_contents( $_POST["data"] );
-		$path = $_POST["path"];
-		$index = $_POST["index"];
-		$response = array(
-			"status" => "none",
-			"message" => "",
-		);
-		$tmp = DATA . "tmp/";
-		
-		if( ! is_dir( $tmp . $path ) ) {
+		if( ! is_dir( UPLOAD_CACHE . "$path/" ) ) {
 			
-			mkdir( $tmp . $path, 0755, true );
+			mkdir( UPLOAD_CACHE . "$path/", 0755, true );
 		}
 		
-		$handle = fopen( "$tmp$path/$index", "a" );
+		$handle = fopen( UPLOAD_CACHE . "$path/$index", "a" );
 		$status = fwrite( $handle, $blob );
 		fclose( $handle );
 		
@@ -855,5 +889,71 @@ class Filemanager extends Common {
 			$response["message"] = "$status bytes written to file.";
 		}
 		return $response;
+	}
+	
+	public function upload_stitch( $path ) {
+		
+		$response = array(
+			"status" => "none",
+			"message" => "",
+		);
+		$status = true;
+		
+		if( ! Permissions::has_write( $path ) ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "You do not have access to write to this file.";
+			return $response;
+		}
+		
+		if( ! common::isAbsPath( $path ) ) {
+			
+			$path = WORKSPACE . "/$path";
+		}
+		
+		$cache_path = UPLOAD_CACHE . "$path/";
+		$dir = dirname( $path );
+		$name = basename( $path );
+		
+		if( ! is_dir( $dir ) ) {
+			
+			mkdir( $dir, 0755, true );
+		}
+		
+		$files = scandir( $cache_path );
+		
+		foreach( $files as $id => $file ) {
+			
+			if( $file !== "." && $file !== ".." ) {
+				
+				$data = file_get_contents( $cache_path . $file );
+				$handle = fopen( $path, "a" );
+				$status = fwrite( $handle, $data );
+				fclose( $handle );
+				unlink( $cache_path . $file );
+			}
+		}
+		
+		$rm_status = $this->reverse_recursive_delete( $cache_path, UPLOAD_CACHE, false );
+		
+		if( $status === false ) {
+			
+			$response["status"] = "error";
+			$response["message"] = "File could not be written to.";
+		} else {
+			
+			$response["status"] = "success";
+			$response["path"] = $path;
+			$response["bytes"] = $status;
+			$response["message"] = "$status bytes written to file.";
+			$response["remove"] = $rm_status;
+		}
+		return $response;
+	}
+	
+	public function upload_clean_stitches() {
+		
+		$path = UPLOAD_CACHE;
+		
 	}
 }

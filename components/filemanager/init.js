@@ -45,6 +45,7 @@
 				'bmp',
 			],
 		},
+		file_reader: null,
 		files: [],
 		node: {
 			
@@ -120,7 +121,7 @@
 		
 		init: async function() {
 			
-			let _this = this;
+			let _this = codiad.filemanager;
 			
 			/* Reload the page when saving auto reload preview */
 			amplify.subscribe( 'settings.save', async function() {
@@ -153,38 +154,88 @@
 			
 			$( document ).on( 'dragenter', function( e ) {
 				
-				console.log( e );
-				console.log( e.originalEvent.dataTransfer );
+				let d = e.originalEvent.dataTransfer;
+				
+				if( d ) {
+					
+					let files = d.files;
+					let items = d.items;
+					
+					console.log( 'dragenter', files, items );
+					_this.upload_overlay_on();
+				}
 			});
 			
-			
-			$( document ).on( 'drag dragstart dragend dragover dragenter dragleave drop', function( e ) {
+			$( '.drop-overlay' ).on( 'drag dragstart dragend dragover dragenter dragleave drop', function( e ) {
 				
-				//e.preventDefault();
-				//e.stopPropagation();
-				console.log( 'drag dragstart dragend dragover dragenter dragleave drop', e );
-				console.log( e.originalEvent.dataTransfer );
+				//console.log( 'drag dragstart dragend dragover dragenter dragleave drop', e );
 			})
 			.on( 'dragover dragenter', function( e ) {
 				
-				console.log( 'dragover dragenter', e );
-				console.log( e.originalEvent.dataTransfer );
+				e.preventDefault();
+				e.stopPropagation();
+				//console.log( 'dragover dragenter', e );
 			})
-			.on( 'dragleave dragend drop', function( e ) {
-				
-				//$( '.drop-overlay' ).css( 'display', 'none' );
-				console.log( 'dragleave dragend drop', e );
-				console.log( e.originalEvent.dataTransfer );
-			})
-			.on( 'drop', function( e ) {
+			.on( 'dragleave dragend drop dragdrop', function( e ) {
 				
 				//e.preventDefault();
 				//e.stopPropagation();
-				//codiad.filemanager.upload_drop( e );
-				console.log( 'drop', e );
-				console.log( e.originalEvent.dataTransfer );
+				_this.upload_overlay_off();
+			})
+			.on( 'drop dragdrop', async function( e ) {
+				
+				e.preventDefault();
+				e.stopPropagation();
+				
+				let d = e.originalEvent.dataTransfer;
+				
+				if( d ) {
+					
+					let files = [];
+					let items = [];
+					
+					let file_list = d.files;
+					let item_list = d.items;
+					let total_items = item_list.length;
+					
+					if( item_list && item_list[0].webkitGetAsEntry ) {
+						
+						for( let i = 0;i < total_items;i++ ) {
+							
+							items.push( item_list[i].webkitGetAsEntry() );
+						}
+					}
+					
+					console.log( files, items );
+					
+					let project = $( '#file-manager a[data-type="root"]' ).attr( 'data-path' );
+					let path = await _this.open_file_selector( project, {type: "directory"}, 1, {} );
+					
+					if( items.length ) {
+						
+						for( let i = items.length;i--; ) {
+							
+							let j = await _this.upload_load_files( items[i], path );
+							files = files.concat( j );
+						}
+					} else {
+						
+						files = file_list;
+					}
+					
+					for( let i = files.length;i--; ) {
+						
+						let status = await _this.upload( files[i] );
+						console.log( status );
+					}
+					console.log( 'drop', files, items );
+				} else {
+					
+					codiad.message.error( i18n( 'Your browser does not seem to support dragging and dropping files' ) );
+				}
 			});
 			
+			$( '.drop-overlay' ).on( 'click', _this.upload_overlay_off );
 		},
 		
 		archive: function( path ) {
@@ -360,39 +411,45 @@
 			codiad.modal.load( 400, this.dialog, {
 				action: 'delete',
 				path: path
-			});
-			$( '#modal-content form' )
-			.on( 'submit', function( e ) {
+			})
+			.then( function() {
 				
-				e.preventDefault();
-				$.get( _this.controller + '?action=delete_children&path=' + encodeURIComponent( path ), function( data ) {
+				$( '#modal-content form' )
+				.on( 'submit', function( e ) {
 					
-					let response = codiad.jsend.parse( data );
-					if( response != 'error' ) {
+					e.preventDefault();
+					$.get( _this.controller + '?action=delete_children&path=' + encodeURIComponent( path ), function( data ) {
 						
-						let node = $( '#file-manager a[data-path="' + path + '"]' );
-						let parent_path = node.parent().parent().prev().attr( 'data-path' );
-						node.parent( 'li' ).remove();
-						
-						// Close any active files
-						$( '#active-files a' ).each( function() {
+						console.log( data );
+						let response = codiad.jsend.parse( data );
+						if( response != 'error' ) {
 							
-							let curPath = $( this ).attr( 'data-path' );
+							let node = $( '#file-manager a[data-path="' + path + '"]' );
+							let parent_path = node.parent().parent().prev().attr( 'data-path' );
 							
-							console.log( curPath, curPath.indexOf( path ) );
+							_this.toggle_directory( node, [], [], true );
+							node.parent( 'li' ).children( 'span' ).remove();
 							
-							if( path.indexOf( curPath ) == 0 ) {
+							// Close any active files
+							$( '#active-files a' ).each( function() {
 								
-								codiad.active.remove( curPath );
-							}
-						});
-						
-						/* Notify listeners. */
-						amplify.publish( 'filemanager.onDelete', {
-							path: path
-						});
-					}
-					codiad.modal.unload();
+								let curPath = $( this ).attr( 'data-path' );
+								
+								console.log( curPath, curPath.indexOf( path ) );
+								
+								if( path.indexOf( curPath ) == 0 ) {
+									
+									codiad.active.remove( curPath );
+								}
+							});
+							
+							/* Notify listeners. */
+							amplify.publish( 'filemanager.onDelete', {
+								path: path
+							});
+						}
+						codiad.modal.unload();
+					});
 				});
 			});
 		},
@@ -592,6 +649,17 @@
 			return parent.join( '/' );
 		},
 		
+		get_file_reader: function() {
+			
+			let _this = codiad.filemanager;
+			
+			if( ! _this.reader ) {
+				
+				_this.reader = new FileReader();
+			}
+			return _this.reader;
+		},
+		
 		get_short_name: function( path ) {
 			
 			return path.split( '/' ).pop();
@@ -630,11 +698,6 @@
 			if( node === null ) {
 				
 				node = $( '#file-manager a[data-path="' + path + '"]' );
-			} else if( node == 'create' ) {
-				
-				node = $( "<a></a>" )
-				.attr( "data-path", path )
-				.attr( "data-type", "directory" );
 			}
 			
 			let parentNode = node.parent();
@@ -990,7 +1053,7 @@
 				.then( async function( container ) {
 					
 					let _this = codiad.filemanager;
-					let div = $( "<div></div>" );
+					let div = null;
 					let select = $( '<button class="btn-left">Select</button>' );
 					let cancel = $( '<button class="btn-right">Cancel</button>' );
 					
@@ -1007,16 +1070,21 @@
 						}
 					}
 					
-					_this.selector_listeners( container, filters, callbacks );
+					_this.selector_listeners( container, limit, filters, callbacks );
+					
+					div = $( '#file-manager a[data-path="' + path + '"]' ).parent().parent().parent().clone();
+					div.attr( "id", "" );
+					let node = $( div ).find( 'a[data-path="' + path + '"]' );
 					
 					let result = await _this.index(
 						path,
 						false,
-						"create",
+						node,
 						filters,
-						directory_callbacks,
-						file_callbacks,
+						callbacks,
 					);
+					
+					console.log( result );
 					
 					container.html( div );
 					container.append( select );
@@ -1036,7 +1104,7 @@
 						});
 					});
 				})
-				.error( reject );
+				.catch( reject );
 			});
 		},
 		
@@ -1533,7 +1601,7 @@
 			return index;
 		},
 		
-		selector_listeners: function( node, filters, callbacks ) {
+		selector_listeners: function( node, limit, filters, callbacks ) {
 			
 			let _this = codiad.filemanager;
 			
@@ -1659,6 +1727,44 @@
 			node.removeClass( "loading" );
 		},
 		
+		toggle_select_node: function( node, limit = 0 ) {
+			
+			let _this = codiad.filemanager;
+			let selected = false;
+			let path = node.attr( 'data-path' );
+			let i = 1;
+			
+			for( i = _this.selected.length;i--; ) {
+				
+				if( _this.selected[i] == path ) {
+					
+					selected = true;
+					break;
+				}
+			}
+			
+			if( limit > 0 && _this.selected.length >= limit ) {
+				
+				for( i = _this.selected.length;i--; ) {
+					
+					$( `[data-path='${_this.selected[i]}']` ).css( "background", "" );
+				}
+				_this.selected = [];
+				_this.selected.push( path );
+			} else {
+				
+				if( selected ) {
+					
+					_this.selected.splice( i, 1 );
+				} else {
+					
+					_this.selected.push( path );
+				}
+			}
+			
+			console.log( path, _this.selected );
+		},
+		
 		unarchive: function( path ) {
 			
 			let _this = this;
@@ -1674,7 +1780,220 @@
 			});
 		},
 		
-		upload: function() {},
+		upload: function( file ) {
+			
+			let _this = codiad.filemanager;
+			let blob_size = 1024*1024*4;
+			let total_size = file.size;
+			let upload_status = null;
+			let total_blobs = 0;
+			let current = 0;
+			let index = 0;
+			
+			console.log( file, file.size );
+			
+			return new Promise( function( resolve, reject ) {
+				
+				if( total_size < blob_size ) {
+					
+					blob_size = total_size;
+				} else {
+					
+					total_blobs = ( Math.round( ( total_size / blob_size ) ) );
+				}
+				
+				console.log( blob_size, _this.uploads.cache, total_size );
+				
+				let timeout = setInterval( function() {
+					
+					if( ( index == total_blobs || current == total_size ) && _this.uploads.cache.length == 0 ) {
+						
+						_this.upload_stitch( file.path );
+						clearTimeout( timeout );
+						resolve( true );
+					} else if( ( index != total_blobs && current != total_size ) && _this.uploads.cache.length < _this.uploads.max ) {
+						
+						console.log( "Adding new blob: ", ( index + 1 ) + "/" + total_blobs, current + blob_size + "/" + total_size );
+						let reader = new FileReader();
+						let blob = file.slice( current, current + blob_size );
+						reader.onload = async function( e ) {
+							
+							current = current + blob_size;
+							_this.uploads.cache.push({
+								
+								blob: e.target.result,
+								path: file.path,
+								status: "queued",
+								index: index,
+							});
+							index++;
+							_this.upload_clear_cache();
+						}
+						reader.readAsDataURL( blob );
+					} else {
+						
+						_this.upload_clear_cache();
+					}
+				}, 100 );
+				
+			});
+		},
+		
+		uploads: {
+			
+			cache: [],
+			max: 4,
+		},
+		
+		upload_blob: function( blob, path, index, o ) {
+			
+			return new Promise( function( resolve, reject ) {
+				
+				let _this = codiad.filemanager;
+				let form = new FormData();
+				
+				form.append( 'path', path );
+				form.append( 'index', index );
+				form.append( 'data', blob );
+				
+				$.ajax({
+					type: 'POST',
+					url: _this.controller + "?action=upload_blob",
+					data: form,
+					processData: false,
+					contentType: false,
+					success: function( data ) {
+						
+						
+						console.log( data );
+						let d = JSON.parse( data );
+						
+						if( d.status == "success" ) {
+							
+							o.status = "success";
+							resolve( data );
+						} else {
+							
+							o.status = "error";
+							reject( data );
+						}
+					},
+					error: function( data ) {
+						
+						o.status = "error";
+						reject( data );
+					},
+				});
+			});
+		},
+		
+		upload_clear_cache: function() {
+			
+			let _this = codiad.filemanager;
+			for( let i = _this.uploads.cache.length;i--; ) {
+				
+				if( _this.uploads.cache[i].status == "success" ) {
+					
+					_this.uploads.cache.splice( i, 1 );
+				} else if( _this.uploads.cache[i].status == "error" ) {
+					
+					_this.uploads.cache[i].status = "retrying";
+					_this.upload_blob( _this.uploads.cache[i].blob, _this.uploads.cache[i].path, _this.uploads.cache[i].index, _this.uploads.cache[i] );
+				} else if( _this.uploads.cache[i].status == "queued" ) {
+					
+					_this.uploads.cache[i].status = "uploading";
+					_this.upload_blob( _this.uploads.cache[i].blob, _this.uploads.cache[i].path, _this.uploads.cache[i].index, _this.uploads.cache[i] );
+				}
+			}
+		},
+		
+		upload_load_files: async function( item, path, files = null ) {
+			
+			let _this = codiad.filemanager;
+			
+			if( files === null ) {
+				
+				files = [];
+			}
+			
+			return new Promise( function( resolve, reject ) {
+				
+				if( item.isFile ) {
+					
+					// Get file
+					item.file( function( file ) {
+						
+						if( ( `${path}` ).charAt( path.length - 1 ) != "/" ) {
+							
+							path += "/";
+						}
+						
+						file.path = path + file.name;
+						files.push( file );
+						resolve( files );
+					});
+				} else if( item.isDirectory ) {
+					
+					// Get folder contents
+					let dirReader = item.createReader();
+					dirReader.readEntries( async function( entries ) {
+						
+						if( ( `${path}` ).charAt( path.length - 1 ) != "/" ) {
+							
+							path += "/";
+						}
+						
+						let total = entries.length;
+						for( let i = 0;i < total; i++ ) {
+							
+							let children = await _this.upload_load_files( entries[i], path + item.name + "/", files );
+							files.concat( children );
+						}
+						resolve( files );
+					}, reject );
+				}
+			});
+		},
+		
+		upload_overlay_off: function() {
+			
+			$( '.drop-overlay' ).css( 'display', 'none' );
+		},
+		
+		upload_overlay_on: function( e ) {
+			
+			$( '.drop-overlay' ).css( 'display', 'block' );
+		},
+		
+		upload_stitch: function( path ) {
+			
+			let _this = codiad.filemanager;
+			let form = new FormData();
+			
+			form.append( 'path', path );
+			
+			$.ajax({
+				type: 'POST',
+				url: _this.controller + "?action=upload_stitch",
+				data: form,
+				processData: false,
+				contentType: false,
+				success: function( data ) {
+					
+					console.log( data );
+					parent = path.split( '/' );
+					parent.pop();
+					
+					console.log( path, parent.join( '/' ) );
+					
+					_this.rescan( parent.join( '/' ) );
+				},
+				error: function( data ) {
+					
+					console.log( data );
+				},
+			});
+		},
 		
 		upload_to_node: function( path ) {
 			

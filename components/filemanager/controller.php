@@ -149,7 +149,7 @@ switch( $action ) {
 		$response = $Filemanager->delete( $path, true );
 	break;
 	
-	case 'deleteInner':
+	case 'delete_children':
 		
 		$response = $Filemanager->delete( $path, true, true );
 	break;
@@ -300,7 +300,7 @@ switch( $action ) {
 		exit( $response );
 	break;
 	
-	case 'upload':
+	case 'upload_blob':
 		
 		if( ! isset( $_POST["data"] ) ) {
 			
@@ -311,20 +311,34 @@ switch( $action ) {
 			exit( json_encode( $response ) );
 		}
 		
-		if( $_POST["data"] !== "data:" ) {
-			
-			$blob = @file_get_contents( $_POST["data"] );
-		} else {
+		if( ! isset( $_POST["path"] ) ) {
 			
 			$response["status"] = "error";
 			$response["data"] = array(
-				"error" => "No blob given",
-				"data" => $_POST["data"],
+				"error" => "No path given"
 			);
 			exit( json_encode( $response ) );
 		}
 		
-		$response = $Filemanager->upload( $path, $blob );
+		if( ! isset( $_POST["index"] ) ) {
+			
+			$response["status"] = "error";
+			$response["data"] = array(
+				"error" => "No index given"
+			);
+			exit( json_encode( $response ) );
+		}
+		
+		$blob = @file_get_contents( $_POST["data"] );
+		$path = $_POST["path"];
+		$index = $_POST["index"];
+		
+		$response = $Filemanager->upload_blob( $path, $index, $blob );
+	break;
+	
+	case 'upload_stitch':
+		
+		$Filemanager->upload_stitch( $path );
 	break;
 	
 	default:

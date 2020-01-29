@@ -117,7 +117,7 @@
 		"title": "Delete Contents",
 		"icon": "icon-cancel-circled",
 		"applies-to": "directory-only",
-		"onclick": "codiad.filemanager.deleteInnerNode($('#context-menu').attr('data-path'));"
+		"onclick": "codiad.filemanager.delete_children_nodes($('#context-menu').attr('data-path'));"
 	},
 	{
 		"title": "Break",
