@@ -29,10 +29,10 @@ class Archive {
 	
 	const SUPPORTED_TYPES = array(
 		
-		"gz",
-		"rar",
-		"tar",
-		"tar.gz",
+		//"gz",
+		//"rar",
+		//"tar",
+		//"tar.gz",
 		"zip",
 	);
 	

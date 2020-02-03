@@ -156,12 +156,12 @@
 				
 				let d = e.originalEvent.dataTransfer;
 				
-				if( d ) {
+				if( d && e.target.className !== "ace_scroller" ) {
 					
 					let files = d.files;
 					let items = d.items;
 					
-					console.log( 'dragenter', files, items );
+					console.log( 'dragenter', e, e.target, files, items, items[0].webkitGetAsEntry() );
 					_this.upload_overlay_on();
 				}
 			});
@@ -226,7 +226,7 @@
 					for( let i = files.length;i--; ) {
 						
 						let status = await _this.upload( files[i] );
-						console.log( status );
+						//console.log( status );
 					}
 					console.log( 'drop', files, items );
 				} else {
@@ -589,8 +589,8 @@
 						
 						if( files[i].children !== undefined && files[i].children !== null ) {
 							
-							console.log( path );
-							console.log( files[i] );
+							//console.log( path );
+							//console.log( files[i] );
 							
 							index = await _this.get_index( path, files[i].children );
 							
@@ -623,7 +623,7 @@
 					
 					let existing_data = await _this.get_index( files[i].path );
 					
-					console.log( "opened?", existing_data, files[i] );
+					//console.log( "opened?", existing_data, files[i] );
 					
 					if( existing_data.open ) {
 						
@@ -686,6 +686,8 @@
 		
 		index: async function( path, rescan = false, node = null, filters = {}, callbacks = {} ) {
 			
+			path.replace( /\/$/, '' );
+			
 			let _this = codiad.filemanager;
 			let children = 0;
 			let container = $( '<ul></ul>' );
@@ -730,12 +732,13 @@
 				children = file.children;
 			}
 			
-			console.log( file.children, file )
+			//console.log( file.children, file )
+			
 			if( rescan || total_saved == 0 || ! children ) {
 				
 				let data = await _this.get_indexes( path );
 				
-				console.log( data );
+				//console.log( data );
 				
 				let response = codiad.jsend.parse( data );
 				let result = [];
@@ -761,7 +764,7 @@
 				_this.set_children( path, _this.files, files );
 			}
 			
-			console.log( _this.files, files )
+			//console.log( _this.files, files )
 			
 			_this.index_nodes(
 				path,
@@ -869,7 +872,7 @@
 					type = 'directory';
 				}
 				
-				console.log( v.path, v.type );
+				//console.log( v.path, v.type );
 				
 				span.addClass( node_class );
 				link.addClass( type );
@@ -1070,11 +1073,15 @@
 						}
 					}
 					
-					_this.selector_listeners( container, limit, filters, callbacks );
-					
 					div = $( '#file-manager a[data-path="' + path + '"]' ).parent().parent().parent().clone();
-					div.attr( "id", "" );
 					let node = $( div ).find( 'a[data-path="' + path + '"]' );
+					
+					console.log( div, node );
+					
+					node.off();
+					node.children().off();
+					
+					_this.selector_listeners( div, limit, filters, callbacks );
 					
 					let result = await _this.index(
 						path,
@@ -1449,7 +1456,7 @@
 		rescan: function( path ) {
 			
 			let _this = codiad.filemanager;
-			_this.index( path, true );
+			return _this.index( path, true );
 		},
 		
 		save_file: function( path, data, display_messages = true ) {
@@ -1613,7 +1620,7 @@
 				// Select or Expand
 				if( codiad.editor.settings.fileManagerTrigger ) {
 					
-					_this.toggle_directory( $( i ), filters, callbacks );
+					_this.toggle_directory( i, filters, callbacks );
 				} else {
 					
 					_this.toggle_select_node( $( e.target ), limit );
@@ -1622,7 +1629,7 @@
 			.on( 'click', 'span', async function( e ) {
 				
 				let i = $( e.target ).parent().children( 'a' );
-				_this.toggle_directory( $( i ), {type: 'directory'} );
+				_this.toggle_directory( i, {type: 'directory'} );
 			})
 			.on( 'dblclick', 'a', async function( e ) {
 				
@@ -1630,10 +1637,10 @@
 				
 				if( ! codiad.editor.settings.fileManagerTrigger ) {
 					
-					_this.toggle_directory( $( i ), {type: 'directory'} );
+					_this.toggle_directory( i, {type: 'directory'} );
 				} else {
 					
-					_this.toggle_select_node( $( e.target ), limit );
+					_this.toggle_select_node( i, limit );
 				}
 			})
 			.on( 'selectstart', false );
@@ -1983,6 +1990,8 @@
 					
 					console.log( data );
 					parent = path.split( '/' );
+					
+					parent.pop();
 					parent.pop();
 					
 					console.log( path, parent.join( '/' ) );
