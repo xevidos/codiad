@@ -467,6 +467,34 @@ table [class^="icon-"], [class*=" icon-"] {
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0.29, rgb(120,120,120)),color-stop(0.77, rgb(77,77,77)));
     cursor: row-resize;
 }
+
+#uploads-button {
+	
+	bottom: 4px;
+	color: #999;
+	font-size: 12px;
+	position: absolute;
+	right: 100px;
+	z-index: 2;
+}
+
+.uploads-container {
+	
+	background: #1a1a1a;
+	bottom: 25px;
+	cursor: pointer;
+	display: none;
+	height: 50%;
+	position: absolute;
+	right: 100px;
+	width: 250px;
+	z-index: 2;
+}
+
+.upload-container {}
+
+.upload-progress {}
+
 #cursor-position {
     position: absolute;
     right: 30px;

@@ -1296,7 +1296,12 @@
 				' &middot; ' + i18n( 'Col' ) + ': ' +
 				i.getCursorPosition().column
 			);
-			
+			amplify.publish( 'editor.changeCursor', {
+				i: i,
+				row: i.getCursorPosition().row,
+				column: i.getCursorPosition().column,
+			});
+		
 			//Register the changecursor function so updates continue
 			i.selection.on( "changeCursor", function( e ) {
 				
@@ -1307,6 +1312,12 @@
 					' &middot; ' + i18n( 'Col' ) + ': ' +
 					i.getCursorPosition().column
 				);
+				
+				amplify.publish( 'editor.changeCursor', {
+					i: i,
+					row: i.getCursorPosition().row,
+					column: i.getCursorPosition().column,
+				});
 			});
 		},
 		
@@ -1574,16 +1585,16 @@
 				codiad.modal.load(
 					400,
 					'components/editor/dialog.php?action=sort',
-					{},
-					function( c ) {
+					{}
+				)
+				.then( function( c ) {
 						
 						let textarea = c.find( 'textarea:first' );
 						
 						textarea.val( selected )
 						textarea.focus();
 						codiad.modal.hideOverlay();
-					}
-				);
+				});
 				codiad.modal.hideOverlay();
 			} else {
 				

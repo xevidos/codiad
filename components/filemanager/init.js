@@ -236,6 +236,17 @@
 			});
 			
 			$( '.drop-overlay' ).on( 'click', _this.upload_overlay_off );
+			
+			$( "#uploads-button" ).on( 'click' , _this.toggle_uploads );
+			$( "#uploads-close" ).on( 'click', function() {
+				
+				$( ".uploads-container" ).slideUp();
+			});
+			
+			amplify.subscribe( 'editor.changeCursor', function() {
+				
+				$( "#uploads-button" ).css( "right", ( $( "#cursor-position" ).width() + 36 ) + 'px' );
+			});
 		},
 		
 		archive: function( path ) {
@@ -707,6 +718,7 @@
 			
 			if( node.attr( 'data-type' ) == "root" ) {
 				
+				node.addClass( "open" );
 				node.droppable({
 					accept: _this.node.accept,
 					drop: _this.node.drop,
@@ -861,6 +873,7 @@
 							
 							node_class = "minus";
 							console.log( "loading children", v.path, link, v.children, filters, callbacks, link.parent() );
+							link.addClass( "open" );
 							_this.index_nodes( v.path, link, v.children, filters, callbacks );
 						} else {
 							
@@ -1681,6 +1694,7 @@
 			
 			node.addClass( "loading" );
 			let path = node.attr( "data-path" );
+			let type = node.attr( "data-type" );
 			let i = await _this.get_index( path, _this.files );
 			let span = node.parent().children( 'span' );
 			let link = node.parent().children( 'a' );
@@ -1695,7 +1709,21 @@
 				}
 			}
 			
-			if( i.open || open ) {
+			if( type == "root" ) {
+				
+				console.log( node.parent().children( 'ul' ).find( ".open" ) );
+				
+				node.parent().children( 'ul' ).find( ".open" ).each( function( id, n ) {
+					
+					console.log( id, n );
+					
+					let i = $( n );
+					_this.toggle_directory( i, [], [], true );
+				});
+				
+				node.removeClass( "loading" );
+				return;
+			} else if( i.open || open ) {
 				
 				node.parent().children( 'ul' )
 				.slideUp( 300, function() {
@@ -1770,6 +1798,20 @@
 			}
 			
 			console.log( path, _this.selected );
+		},
+		
+		toggle_uploads: function() {
+			
+			let b = $( "#uploads-button" );
+			let c = $( ".uploads-container" );
+			
+			if( c.css( "display" ) == "none" ) {
+				
+				c.slideDown();
+			} else {
+				
+				c.slideUp();
+			}
 		},
 		
 		unarchive: function( path ) {

@@ -335,7 +335,18 @@ if( defined( "SITE_NAME" ) && ! ( SITE_NAME === "" || SITE_NAME === null ) ) {
 						<span>||</span>
 					</div>
 				</div>
-				<div id="cursor-position"><?php i18n("Ln"); ?>: 0 &middot; <?php i18n("Col"); ?>: 0</div>
+				<div>
+					<div class="uploads-container">
+						<div class="project-list-title" style="">
+							<h2><?php i18n( "Uploads" );?></h2>
+							<a id="uploads-close" class="icon-down-dir icon" alt="Collapse"></a>
+						</div>
+					</div>
+				</div>
+				<div id="uploads-button"><?php i18n("Uploads");?></div>
+				<div id="cursor-position">
+					<?php i18n("Ln"); ?>: 0 &middot; <?php i18n("Col"); ?>: 0
+				</div>
 				<div id="editor-region">
 					<div id="editor-top-bar">
 						<ul id="tab-list-active-files"></ul>
