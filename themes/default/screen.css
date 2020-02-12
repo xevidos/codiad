@@ -491,9 +491,80 @@ table [class^="icon-"], [class*=" icon-"] {
 	z-index: 2;
 }
 
-.upload-container {}
+.uploads-container .project-list-title {
+	
+	position: unset;
+	margin-bottom: 5px;
+}
 
-.upload-progress {}
+.uploads-content {
+	
+	height: 100%;
+	overflow-y: auto;
+	text-align: center;
+	width: 100%;
+}
+
+.upload-container {
+	
+	display: inline-block;
+	height: auto;
+	width: 95%;
+}
+
+.upload-title {
+	
+	display: inline-block;
+	left: -45px;
+	max-width: 75%;
+	position: relative;
+	width: auto;
+}
+
+.upload-progress-text {
+	
+	display: inline-block;
+	position: relative;
+	right: -45px;
+	width: auto;
+}
+
+.upload-progress {
+	
+	width: 75%;
+	margin: 10px auto;
+	height: 20px;
+	border: 1px solid #666;
+	background: #262626;
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.upload-progress .bar {
+	
+	width: 0;
+	height: 20px;
+	background-image: url( filemanager/images/progress_bar.png );
+}
+
+.upload-dismiss {
+	
+	display: inline-block;
+	left: -45px;
+	max-width: 75%;
+	position: relative;
+	text-decoration: underline;
+	width: auto;
+}
+
+.upload-cancel {
+	
+	color: red;
+	display: inline-block;
+	position: relative;
+	right: -45px;
+	width: auto;
+}
 
 #cursor-position {
     position: absolute;

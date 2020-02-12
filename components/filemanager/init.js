@@ -198,6 +198,8 @@
 					let item_list = d.items;
 					let total_items = item_list.length;
 					
+					let c = $( ".uploads-content" );
+					
 					if( item_list && item_list[0].webkitGetAsEntry ) {
 						
 						for( let i = 0;i < total_items;i++ ) {
@@ -222,6 +224,52 @@
 						
 						files = file_list;
 					}
+					
+					for( let i = files.length;i--; ) {
+						
+						//Add files to gui and then wait for progress
+						
+						console.log( "Upload - GUI", files[i] );
+						
+						let div = $( `<div class="upload-container" data-path="${files[i].path}"></div>` );
+						let title = $( `<div class="upload-title">${files[i].name}</div>` );
+						let progress = $( `<div class="upload-progress"></div>` );
+						let bar = $( `<div class="bar"></div>` );
+						let progress_text = $( `<div class="upload-progress-text">0%</div>` );
+						let span = $( `<span style="text-align: left;"></span>` );
+						let bottom_span = $( `<span style="text-align: left;"></span>` );
+						
+						let cancel = $( `<div class="upload-cancel">Cancel</div>` );
+						let dismiss = $( `<div class="upload-dismiss">Dismiss</div>` );
+						
+						cancel.on( "click", function( e ) {
+							
+							files[i].cancel = true;
+						});
+						
+						dismiss.on( "click", function( e ) {
+							
+							if( files[i].finished === true ) {
+								
+								div.slideUp();
+							}
+						});
+						
+						span.append( title );
+						span.append( progress_text );
+						
+						progress.append( bar );
+						
+						bottom_span.append( cancel );
+						bottom_span.append( dismiss );
+						
+						div.append( span );
+						div.append( progress );
+						div.append( bottom_span );
+						c.append( div );
+					}
+					
+					$( '.uploads-container' ).slideDown();
 					
 					for( let i = files.length;i--; ) {
 						
@@ -1839,6 +1887,9 @@
 			let current = 0;
 			let index = 0;
 			
+			let uc = $( `div.upload-container[data-path="${file.path}"]` );
+			let upt = uc.find( ".upload-progress-text" );
+			let upb = uc.find( ".bar" );
 			console.log( file, file.size );
 			
 			return new Promise( function( resolve, reject ) {
@@ -1856,12 +1907,29 @@
 				
 				let timeout = setInterval( function() {
 					
-					if( ( index == total_blobs || current == total_size ) && _this.uploads.cache.length == 0 ) {
+					let progress = Math.round( ( current / total_size ) * 100 );
+					upt.text( progress + "%" );
+					upb.css( "width", progress + "%" );
+					
+					console.log( progress, uc, upt, upb );
+					
+					if( file.cancel && _this.uploads.cache.length == 0 ) {
+						
+						/**
+						 * If canceling we must make sure we clear out the cache
+						 * so no leftovers are stored in memory, or screw up a
+						 * future upload.
+						 */
+						_this.upload_cancel( file.path );
+						clearTimeout( timeout );
+						resolve( true );
+						return;
+					} else if( ( index == total_blobs || current == total_size ) && _this.uploads.cache.length == 0 ) {
 						
 						_this.upload_stitch( file.path );
 						clearTimeout( timeout );
 						resolve( true );
-					} else if( ( index != total_blobs && current != total_size ) && _this.uploads.cache.length < _this.uploads.max ) {
+					} else if( ( index != total_blobs && current != total_size ) && _this.uploads.cache.length < _this.uploads.max && ! file.cancel ) {
 						
 						console.log( "Adding new blob: ", ( index + 1 ) + "/" + total_blobs, current + blob_size + "/" + total_size );
 						let reader = new FileReader();
@@ -1937,6 +2005,38 @@
 			});
 		},
 		
+		upload_cancel: function( path ) {
+			
+			let _this = codiad.filemanager;
+			let form = new FormData();
+			
+			form.append( 'path', path );
+			
+			$.ajax({
+				type: 'POST',
+				url: _this.controller + "?action=upload_cancel",
+				data: form,
+				processData: false,
+				contentType: false,
+				success: function( data ) {
+					
+					console.log( data );
+					parent = path.split( '/' );
+					
+					parent.pop();
+					parent.pop();
+					
+					console.log( path, parent.join( '/' ) );
+					
+					_this.rescan( parent.join( '/' ) );
+				},
+				error: function( data ) {
+					
+					console.log( data );
+				},
+			});
+		},
+		
 		upload_clear_cache: function() {
 			
 			let _this = codiad.filemanager;
@@ -1979,6 +2079,9 @@
 						}
 						
 						file.path = path + file.name;
+						file.cancel = false;
+						file.finished = false;
+						
 						files.push( file );
 						resolve( files );
 					});
