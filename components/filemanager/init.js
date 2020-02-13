@@ -251,7 +251,7 @@
 							
 							if( files[i].finished === true ) {
 								
-								div.slideUp();
+								$( `div.upload-container[data-path="${files[i].path}"]` ).slideUp();
 							}
 						});
 						
@@ -285,6 +285,9 @@
 			
 			$( '.drop-overlay' ).on( 'click', _this.upload_overlay_off );
 			
+			$( ".uploads-container" ).resizable({
+				handles: "n, e, w, ne, nw",
+			});
 			$( "#uploads-button" ).on( 'click' , _this.toggle_uploads );
 			$( "#uploads-close" ).on( 'click', function() {
 				
@@ -1913,15 +1916,24 @@
 					
 					console.log( progress, uc, upt, upb );
 					
-					if( file.cancel && _this.uploads.cache.length == 0 ) {
+					if( file.cancel ) {
 						
 						/**
 						 * If canceling we must make sure we clear out the cache
 						 * so no leftovers are stored in memory, or screw up a
 						 * future upload.
 						 */
+						_this.uploads.cache = [];
 						_this.upload_cancel( file.path );
 						clearTimeout( timeout );
+						
+						upt.css( "color", "red" );
+						upb.css( "color", "red" );
+						
+						upt.text( "Canceled" );
+						
+						uc.find( ".upload-cancel" ).slideUp();
+						
 						resolve( true );
 						return;
 					} else if( ( index == total_blobs || current == total_size ) && _this.uploads.cache.length == 0 ) {
