@@ -482,9 +482,9 @@ table [class^="icon-"], [class*=" icon-"] {
 	
 	background: #1a1a1a;
 	bottom: 25px;
-	cursor: pointer;
 	display: none;
 	height: 50%;
+	overflow-y: auto;
 	position: absolute;
 	right: 100px;
 	width: 250px;
@@ -500,7 +500,6 @@ table [class^="icon-"], [class*=" icon-"] {
 .uploads-content {
 	
 	height: 100%;
-	overflow-y: auto;
 	text-align: center;
 	width: 100%;
 }
@@ -515,18 +514,14 @@ table [class^="icon-"], [class*=" icon-"] {
 .upload-title {
 	
 	display: inline-block;
-	left: -45px;
 	max-width: 75%;
-	position: relative;
-	width: auto;
+	width: 80%;
 }
 
 .upload-progress-text {
 	
 	display: inline-block;
-	position: relative;
-	right: -45px;
-	width: auto;
+	width: 20%;
 }
 
 .upload-progress {
@@ -708,6 +703,7 @@ table [class^="icon-"], [class*=" icon-"] {
     left: 0;
     right: 10px;
     bottom: 276px;
+    background-color: #1a1a1a;
 }
 
 .sb-left-projects {
