@@ -81,13 +81,23 @@ switch( $_GET['action'] ) {
 		<div>
 			<?php
 			
-			$source = str_replace( BASE_PATH . "/", "", WORKSPACE ) . "/" . $_GET['path'];
-			$type = mime_content_type( $source );
+			$path = $_GET['path'];
 			
-			if( strpos( "audio", $type ) !== false ) {
+			if( FileManager::isAbsPath( $path ) ) {
+				
+				$path = FileManager::cleanPath( $path );
+			} else {
+				
+				$path = WORKSPACE . "/" . FileManager::cleanPath( $path );
+			}
+			
+			$type = mime_content_type( $path );
+			$source = str_replace( BASE_PATH . "/", "", $path );
+			
+			if( strpos( $type, "audio" ) !== false ) {
 				
 				?><audio controls><source src="<?php echo $source;?>"></audio><?php
-			} elseif( strpos( "image", $type ) !== false ) {
+			} elseif( strpos( $type, "image" ) !== false ) {
 				
 				?><img src="<?php echo $source;?>"><?php
 			} else {

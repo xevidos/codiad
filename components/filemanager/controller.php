@@ -68,6 +68,7 @@ if ( ! Permissions::check_access( "read", $access ) ) {
 	
 	$response["status"] = "error";
 	$response["message"] = "Invalid access to path";
+	$response["path"] = $path;
 	exit( json_encode( $response ) );
 }
 

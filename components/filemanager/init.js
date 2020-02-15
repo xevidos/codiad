@@ -25,24 +25,25 @@
 				'aif',
 				'mp3',
 				'mp4',
-				'wav',
 				'ogg',
+				'wav',
 			],
 			files: [
 				'exe',
 				'pdf',
-				'zip',
+				'rar',
 				'tar',
 				'tar.gz',
+				'zip',
 			],
 			image: [
+				'bmp',
+				'gif',
 				'ico',
 				'icon',
-				'jpg',
 				'jpeg',
+				'jpg',
 				'png',
-				'gif',
-				'bmp',
 			],
 		},
 		file_reader: null,
@@ -225,51 +226,7 @@
 						files = file_list;
 					}
 					
-					for( let i = files.length;i--; ) {
-						
-						//Add files to gui and then wait for progress
-						
-						console.log( "Upload - GUI", files[i] );
-						
-						let div = $( `<div class="upload-container" data-path="${files[i].path}"></div>` );
-						let title = $( `<div class="upload-title">${files[i].name}</div>` );
-						let progress = $( `<div class="upload-progress"></div>` );
-						let bar = $( `<div class="bar"></div>` );
-						let progress_text = $( `<div class="upload-progress-text">0%</div>` );
-						let span = $( `<span style="text-align: left;"></span>` );
-						let bottom_span = $( `<span style="text-align: left;"></span>` );
-						
-						let cancel = $( `<div class="upload-cancel">Cancel</div>` );
-						let dismiss = $( `<div class="upload-dismiss">Dismiss</div>` );
-						
-						cancel.on( "click", function( e ) {
-							
-							files[i].cancel = true;
-						});
-						
-						dismiss.on( "click", function( e ) {
-							
-							if( files[i].finished === true ) {
-								
-								$( `div.upload-container[data-path="${files[i].path}"]` ).slideUp();
-							}
-						});
-						
-						span.append( title );
-						span.append( progress_text );
-						
-						progress.append( bar );
-						
-						bottom_span.append( cancel );
-						bottom_span.append( dismiss );
-						
-						div.append( span );
-						div.append( progress );
-						div.append( bottom_span );
-						c.append( div );
-					}
-					
-					$( '.uploads-container' ).slideDown();
+					_this.create_upload_nodes( files );
 					
 					for( let i = files.length;i--; ) {
 						
@@ -418,6 +375,59 @@
 					});
 				});
 			});
+		},
+		
+		create_upload_nodes: function( files ) {
+			
+			let c = $( ".uploads-content" );
+			
+			for( let i = files.length;i--; ) {
+				
+				//Add files to gui and then wait for progress
+				
+				console.log( "Upload - GUI", files[i] );
+				
+				let div = $( `<div class="upload-container" data-path="${files[i].path}"></div>` );
+				let title = $( `<div class="upload-title">${files[i].name}</div>` );
+				let progress = $( `<div class="upload-progress"></div>` );
+				let bar = $( `<div class="bar"></div>` );
+				let progress_text = $( `<div class="upload-progress-text">0%</div>` );
+				let span = $( `<span style="text-align: left;"></span>` );
+				let bottom_span = $( `<span style="text-align: left;"></span>` );
+				
+				let cancel = $( `<div class="upload-cancel">Cancel</div>` );
+				let dismiss = $( `<div class="upload-dismiss">Dismiss</div>` );
+				
+				cancel.on( "click", function( e ) {
+					
+					files[i].cancel = true;
+				});
+				
+				dismiss.on( "click", function( e ) {
+					
+					console.log( files[i], e );
+					
+					if( files[i].finished === true ) {
+						
+						$( `div.upload-container[data-path="${files[i].path}"]` ).slideUp();
+					}
+				});
+				
+				span.append( title );
+				span.append( progress_text );
+				
+				progress.append( bar );
+				
+				bottom_span.append( cancel );
+				bottom_span.append( dismiss );
+				
+				div.append( span );
+				div.append( progress );
+				div.append( bottom_span );
+				c.append( div );
+			}
+			
+			$( '.uploads-container' ).slideDown();
 		},
 		
 		delete_node: function( path ) {
@@ -1063,16 +1073,17 @@
 			let _this = codiad.filemanager;
 			let node = $( '#file-manager a[data-path="' + path + '"]' );
 			let ext = _this.get_extension( path );
-			let preview = [];
+			let do_not_open = [];
 			
 			$.each( _this.file_preview_list, function( id, value ) {
 				
-				preview.concat( value );
+				console.log( "testing", id, value );
+				do_not_open = do_not_open.concat( value );
 			});
 			
-			console.log( ext, preview );
+			console.log( "open file checks", ext, do_not_open, $.inArray( ext.toLowerCase(), do_not_open ) );
 			
-			if( $.inArray( ext.toLowerCase(), preview ) < 0 ) {
+			if( $.inArray( ext.toLowerCase(), do_not_open ) < 0 ) {
 				
 				node.addClass( 'loading' );
 				$.get( _this.controller + '?action=open&path=' + encodeURIComponent( path ), function( data ) {
@@ -1088,10 +1099,13 @@
 				
 				if( ! codiad.project.isAbsPath( path ) ) {
 					
-					let download = [];
-					download.concat( files );
+					let preview = [];
+					preview = preview.concat( _this.file_preview_list.audio );
+					preview = preview.concat( _this.file_preview_list.image );
 					
-					if( $.inArray( ext.toLowerCase(), download ) < 0 ) {
+					console.log( "preview file checks", ext, preview, $.inArray( ext.toLowerCase(), preview ) );
+					
+					if( $.inArray( ext.toLowerCase(), preview ) < 0 ) {
 						
 						_this.download( path );
 					} else {
@@ -1184,10 +1198,10 @@
 			let type = "";
 			let ext = this.getExtension( path ).toLowerCase();
 			
-			if( this.file_preview_list.images.includes( ext ) ) {
+			if( this.file_preview_list.audio.includes( ext ) ) {
 				
 				type = 'music_preview';
-			} else if( this.file_preview_list.images.includes( ext ) ) {
+			} else if( this.file_preview_list.image.includes( ext ) ) {
 				
 				type = 'preview';
 			}
@@ -1939,6 +1953,7 @@
 					} else if( ( index == total_blobs || current == total_size ) && _this.uploads.cache.length == 0 ) {
 						
 						_this.upload_stitch( file.path );
+						file.finished = true;
 						clearTimeout( timeout );
 						resolve( true );
 					} else if( ( index != total_blobs && current != total_size ) && _this.uploads.cache.length < _this.uploads.max && ! file.cancel ) {
@@ -2116,6 +2131,22 @@
 						}
 						resolve( files );
 					}, reject );
+				} else if( item.name ) {
+					
+					if( ( `${path}` ).charAt( path.length - 1 ) != "/" ) {
+						
+						path += "/";
+					}
+					
+					item.path = path + item.name;
+					item.cancel = false;
+					item.finished = false;
+					
+					files.push( item );
+					resolve( files );
+				} else {
+					
+					resolve( files );
 				}
 			});
 		},
@@ -2149,7 +2180,6 @@
 					parent = path.split( '/' );
 					
 					parent.pop();
-					parent.pop();
 					
 					console.log( path, parent.join( '/' ) );
 					
@@ -2178,12 +2208,36 @@
 					
 					text.html( `<h2>Drag and drop files or folders anywhere or click here to upload a file!</h2>` );
 					
-					input.on( 'change', function( e ) {
+					input.on( 'change', async function( e ) {
 						
 						console.log( e );
 						
+						let files = [];
 						let items = e.target.files;
-						_this.upload( items, path );
+						
+						console.log( items, path );
+						
+						codiad.modal.unload();
+						
+						if( items.length ) {
+							
+							for( let i = items.length;i--; ) {
+								
+								let j = await _this.upload_load_files( items[i], path );
+								files = files.concat( j );
+							}
+						}
+						
+						console.log( files );
+						
+						_this.create_upload_nodes( files );
+						
+						for( let i = files.length;i--; ) {
+							
+							let status = await _this.upload( files[i] );
+							//console.log( status );
+						}
+						console.log( 'drop', files, items );
 					});
 					text.on( 'click', function( e ) {
 						
