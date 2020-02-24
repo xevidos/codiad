@@ -58,6 +58,7 @@ Task List:
 * Add move files
 * Add permissions module ( more in depth permissions such as read/write, delete, etc )
 * Add print code
+* Add support for more archive types ( Add commands add more accepted PHP extension types )
 * Add support for more database systems ( MSSQL, Oracle, SQLite, Filesystem storage, etc )
 * Add terminal support ( optional per permission level )
 * Add in auto save timer that saves after the user stops typing instead of after every change

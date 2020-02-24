@@ -27,6 +27,11 @@ class Archive {
 		".DS_Store"
 	);
 	
+	const MIME_TYPE_EXTENSIONS = array(
+		
+		"application/zip" => "zip",
+	);
+	
 	const SUPPORTED_TYPES = array(
 		
 		//"gz",
@@ -113,7 +118,7 @@ class Archive {
 			
 			if( extension_loaded( self::EXTENSIONS["{$type}"] ) ) {
 				
-				$response = call_user_func( array( $archive, "{$type}_c" ), $path, $output  );
+				$response = call_user_func( array( $archive, "{$type}_c" ), $path, $output );
 			} else {
 				
 				//$response = $archive->execute( $type, "compress", $path, dirname( $path ) );
@@ -227,9 +232,17 @@ class Archive {
 			$path = rtrim( $path, '/' );
 			//$output = rtrim( $output, '/' ) . '/';
 			$archive = new ZipArchive();
-			if( $archive->open( $output, ZIPARCHIVE::CREATE ) !== true ) {
+			
+			if( file_exists( $output ) ) {
 				
-				echo var_dump( $path, $output );
+				$result = $archive->open( $output, ZIPARCHIVE::OVERWRITE );
+			} else {
+				
+				$result = $archive->open( $output, ZIPARCHIVE::CREATE );
+			}
+			
+			if( $result !== true ) {
+				
 				return false;
 			}
 			
