@@ -76,6 +76,14 @@
     cursor: pointer;
     color: #fff;
 }
+.file-manager-selected {
+	
+	background-color: #4a4a4a;
+}
+.file-manager-selected:hover {
+	
+	background-color: #4a4a4a !important;
+}
 /* CONTEXT MENU */
 
 #context-menu {

@@ -213,6 +213,7 @@
 					
 					let project = $( '#file-manager a[data-type="root"]' ).attr( 'data-path' );
 					let path = await _this.open_file_selector( project, {type: "directory"}, 1, {} );
+					$( ".file-manager-selected" ).removeClass( "file-manager-selected" );
 					
 					if( items.length ) {
 						
@@ -1845,20 +1846,23 @@
 			
 			if( limit > 0 && _this.selected.length >= limit ) {
 				
-				for( i = _this.selected.length;i--; ) {
-					
-					$( `[data-path='${_this.selected[i]}']` ).css( "background", "" );
-				}
+				$( ".file-manager-selected" ).removeClass( "file-manager-selected" );
 				_this.selected = [];
 				_this.selected.push( path );
+				$( `[data-path='${path}']` ).addClass( "file-manager-selected" );
+			} else if( limit === -1 ) {
+				
+				$( ".file-manager-selected" ).removeClass( "file-manager-selected" );
 			} else {
 				
 				if( selected ) {
 					
 					_this.selected.splice( i, 1 );
+					$( ".file-manager-selected" ).removeClass( "file-manager-selected" );
 				} else {
 					
 					_this.selected.push( path );
+					$( `[data-path='${path}']` ).addClass( "file-manager-selected" );
 				}
 			}
 			
