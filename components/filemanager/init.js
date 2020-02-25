@@ -1512,7 +1512,7 @@
 					
 					if( r.status === "success" ) {
 						
-						_this.preview = window.open( r.data, '_newtab' );
+						_this.preview_window = window.open( r.data, '_newtab' );
 						
 						let editor = codiad.editor.getActive();
 						
