@@ -7,8 +7,9 @@
 */
 
 
-require_once('../../common.php');
-require_once('./class.project.php');
+require_once( '../../common.php' );
+require_once( './class.project.php' );
+require_once( '../user/class.user.php' );
 
 //////////////////////////////////////////////////////////////////
 // Verify Session or Key
@@ -208,16 +209,36 @@ switch( $_GET['action'] ) {
 		 */
 		if( ! isset( $_GET["path"] ) || ! $Project->check_owner( $_GET["path"], true ) ) {
 			?>
-			<pre>Error, you either do not own this project or it is a public project.</pre>
+			<p>Error, you either do not own this project or it is a public project.</p>
+			<button class="btn-right" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
 			<?php
 			return;
 		}
 		
 		// Get projects data
+		$User = new User();
 		$path = $_GET['path'];
 		$project = $Project->get_project( $path );
 		$access = $Project->get_access( $project["id"] );
 		$users = get_users( "return", true );
+		$user = $User->get_user( $_SESSION["user"] );
+		
+		if( isset( $users["status"] ) && $users["status"] == "error" ) {
+			
+			?>
+			<p>Error, could not fetch users information.</p>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
+			<?php
+			exit();
+		} else if( empty( $users ) ) {
+			
+			?>
+			<p>Error, You must have more than one user registered in your Codiad instance to manage permissions.</p>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
+			<?php
+			exit();
+		}
+		
 		?>
 		<form onSubmit="event.preventDefault();">
 			<input type="hidden" name="project_path" value="<?php echo $path;?>">
@@ -226,10 +247,10 @@ switch( $_GET['action'] ) {
 			<input id="search_users" type="text" onkeyup="codiad.project.search_users();" />
 			<select id="user_list" name="user_list">
 				<?php
-				foreach( $users as $user ) {
+				foreach( $users as $i ) {
 					
 					?>
-					<option value="<?php echo htmlentities( $user["id"] );?>"><?php echo htmlentities( $user["username"] );?></option>
+					<option value="<?php echo htmlentities( $i["id"] );?>"><?php echo htmlentities( $i["username"] );?></option>
 					<?php
 				}
 				?>
@@ -247,23 +268,28 @@ switch( $_GET['action'] ) {
 				<table id="access_list">
 				<?php
 				
-				$user = null;
-				
 				foreach( $access as $row => $user_permissions ) {
 					
-					foreach( $users as $row => $current_user ) {
+					$i = null;
+					
+					foreach( $users as $r => $current_user ) {
 						
 						if( $current_user["id"] == $user_permissions["user"] ) {
 							
-							$user = $current_user;
+							$i = $current_user;
 							break;
 						}
+					}
+					
+					if( ! $i ) {
+						
+						continue;
 					}
 					
 					?>
 					<tr>
 						<td>
-							<p><?php echo htmlentities( $user["username"] );?></p>
+							<p><?php echo htmlentities( $i["username"] );?></p>
 						</td>
 						<td>
 							<select onchange="codiad.project.change_access( event );">
@@ -281,7 +307,7 @@ switch( $_GET['action'] ) {
 								}
 								?>
 							</select>
-							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user["id"] );?>' );">Remove Access</button>
+							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $i["id"] );?>' );">Remove Access</button>
 						</td>
 					</tr>
 					<?php
@@ -291,6 +317,7 @@ switch( $_GET['action'] ) {
 				<?php
 			}
 			?>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
 			<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n( "Done" );?></button>
 		<form>
 		<?php

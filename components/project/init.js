@@ -379,7 +379,7 @@
 			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
 			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			
-			$.get( _this.controller + '?action=remove_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&username=' + encodeURIComponent( user ), function( data ) {
+			$.get( _this.controller + '?action=remove_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( user ), function( data ) {
 					
 					response = codiad.jsend.parse( data );
 					console.log( response );

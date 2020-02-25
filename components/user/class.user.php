@@ -95,15 +95,8 @@ class User {
 		global $sql;
 		$query = "SELECT * FROM users WHERE username=?";
 		$bind_variables = array( $username );
-		$return = $sql->query( $query, $bind_variables, array() );
-		
-		if( ! empty( $return ) ) {
-			
-			echo formatJSEND( "success", $return );
-		} else {
-			
-			echo formatJSEND( "error", "Could not select user." );
-		}
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
+		return $return;
 	}
 	
 	public function list_users() {

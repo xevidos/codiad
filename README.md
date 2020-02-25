@@ -37,9 +37,8 @@ Current Tasks:
 
 Task List:
   
-* Add ability to create shortlinks with certain permissions for users to share.
+* Add ability to create shortlinks with permissions for users to share files or projects.
 * Add ability to login with LDAP
-* Add archive management abilities
 * Add bookmark files
 * Add custom market
 * \- Add in new admin interface ( Check admin-portal branch for progress )
@@ -50,24 +49,22 @@ Task List:
 	- System Settings
 	- User Management
 * Add different code linters
-* Add Drag and Drop natively to filemanager
-* Add folder / filestructure upload ability
 * Add if file could not be saved 5 times close the open file
 * Add multi level users. ( Projects for only certain groups, Permission levels )
 * Add mobile compatibility
-* Add move files
-* Add permissions module ( more in depth permissions such as read/write, delete, etc )
 * Add print code
 * Add support for more archive types ( Add commands add more accepted PHP extension types )
 * Add support for more database systems ( MSSQL, Oracle, SQLite, Filesystem storage, etc )
 * Add terminal support ( optional per permission level )
-* Add in auto save timer that saves after the user stops typing instead of after every change
 * Clean up update script
+* Create standards for php ( For example a lot of projects are using API like standards for their backends maybe create something like those? )
 * Fix broken themes
 * Re Add the custom language recognition system after recode
 * Remove all old and unneeded dependencies
 * Seperate Upload filemanager instance from main filemanager instance
-* Update all current components to use more current standards ( async await and .then in favor over callbacks )
+* Update all current components to use more current standards 
+	- async await and .then in favor over callbacks in JS
+	- standards for php functions when created
 
 
 Completed:

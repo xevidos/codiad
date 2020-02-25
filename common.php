@@ -137,35 +137,27 @@ class Common {
 		
 		global $sql;
 		$query = "SELECT * FROM users";
-		$bind = "";
 		$bind_variables = array();
 		
 		if( $exclude_current ) {
 			
-			$query .= " WHERE username!=?";
-			$bind .= "s";
+			$query .= " WHERE username <> ?";
 			array_push( $bind_variables, $_SESSION["user"] );
 		}
 		
-		$result = $sql->query( $query, $bind_variables, formatJSEND( "error", "Error checking users." ) );
-
-		if( ! empty( $result ) ) {
+		$result = $sql->query( $query, $bind_variables, array() );
+		
+		switch( $return ) {
 			
-			switch( $return ) {
+			case( "json" ):
 				
-				case( "json" ):
-					
-					$return = json_encode( $result );
-				break;
-				
-				case( "return" ):
-					
-					$return = $result;
-				break;
-			}
-		} else {
+				$return = json_encode( $result );
+			break;
 			
-			$return = formatJSEND( "error", "Error selecting user information." );
+			case( "return" ):
+				
+				$return = $result;
+			break;
 		}
 		return( $return );
 	}

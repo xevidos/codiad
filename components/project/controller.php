@@ -197,15 +197,7 @@ if( $_GET['action'] == 'remove_user' ) {
 		"undefined"
 	);
 	
-	if( ! in_array( $_GET['username'], $invalid ) ) {
-		
-		$Project->user = $_GET['username'];
-	} else {
-		
-		exit( formatJSEND( "error", "No username set." ) );
-	}
-	
-	if(	! in_array( $_GET['project_path'], $invalid ) ) {
+	if(	isset( $_GET["project_path"] ) && ! in_array( $_GET['project_path'], $invalid ) ) {
 		
 		$Project->path = $_GET['project_path'];
 	} else {
@@ -213,7 +205,7 @@ if( $_GET['action'] == 'remove_user' ) {
 		exit( formatJSEND( "error", "No project path set." ) );
 	}
 	
-	if(	! in_array( $_GET['project_id'], $invalid ) ) {
+	if(	isset( $_GET["project_id"] ) && ! in_array( $_GET['project_id'], $invalid ) ) {
 		
 		$Project->project_id = $_GET['project_id'];
 	} else {
@@ -221,9 +213,17 @@ if( $_GET['action'] == 'remove_user' ) {
 		exit( formatJSEND( "error", "No project id set." ) );
 	}
 	
+	if(	isset( $_GET["user_id"] ) && ! in_array( $_GET['user_id'], $invalid ) ) {
+		
+		$user_id = $_GET["user_id"];
+	} else {
+		
+		exit( formatJSEND( "error", "No user id set." ) );
+	}
+	
 	if( $Project->check_owner( $_GET["project_path"], true ) ) {
 		
-		$Project->remove_user();
+		$Project->remove_user( $user_id );
 	} else {
 		
 		exit( formatJSEND( "error", "You can not manage this project." ) );

@@ -257,11 +257,9 @@ class Project extends Common {
 		return( $return );
 	}
 	
-	public function remove_user() {
+	public function remove_user( $user_id ) {
 		
 		global $sql;
-		
-		$user_id = get_user_id( $this->user );
 		
 		if( $user_id === false ) {
 			
