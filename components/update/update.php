@@ -533,7 +533,9 @@ class updater {
 				$this->path . "/{$update_folder}/.gitignore",
 				
 				$this->path . "/.gitlab-ci.yml",
-				$this->path . "/{$update_folder}/.gitlab-ci.yml"
+				$this->path . "/{$update_folder}/.gitlab-ci.yml",
+				
+				$this->path . "/components/sql/class.sql.conversions.php",
 			);
 			
 			foreach( $file_conflictions as $file ) {

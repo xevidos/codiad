@@ -444,7 +444,7 @@ $.post('components/install/install.php',$('#install').serialize(),function( data
 
 console.log( data );
 
-if( data === "success" ){
+if( data === "success" || data == "" ){
 window.location.reload();
 } else {
 alert( "An Error Occurred.  Please check the console for more information.\n" );

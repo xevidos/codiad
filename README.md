@@ -60,6 +60,7 @@ Task List:
 * Create standards for php ( For example a lot of projects are using API like standards for their backends maybe create something like those? )
 * Fix broken themes
 * Re Add the custom language recognition system after recode
+* Reformat install processes
 * Remove all old and unneeded dependencies
 * Seperate Upload filemanager instance from main filemanager instance
 * Update all current components to use more current standards 

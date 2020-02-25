@@ -156,7 +156,7 @@ class sql {
 				
 				$update_query = "";
 				$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
-				$result = $this->query( "SELECT project FROM users", array(), array(), "fetchAll", "exception" );
+				$result = $this->query( "SELECT username,project FROM users", array(), array(), "fetchAll", "exception" );
 				$convert = false;
 				$delete = Permissions::LEVELS["delete"];
 				
