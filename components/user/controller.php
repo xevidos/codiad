@@ -246,5 +246,5 @@ if( $_GET['action'] == 'update_access' ) {
 		exit( formatJSEND( "error", "Invalid access level specified." ) );
 	}
 	
-	$User->update_access( $_POST["user"], $_POST["access"] );
+	$User->update_access( $_POST["user"], Permissions::SYSTEM_LEVELS["{$_POST["access"]}"] );
 }

@@ -70,11 +70,17 @@ class Project extends Common {
 			$return["message"] = "Error fetching projects.";
 		} else {
 			
-			$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1", array( $project["id"], $user_id ), array(), "fetch" );
+			$user = $sql->query( array(
+				"*" => "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1",
+				"pgsql" => "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1",
+			), array( $project["id"], $user_id ), array(), "fetch" );
 			
 			if( ! empty( $user ) ) {
 				
-				$query = "UPDATE access SET level=? WHERE project=? AND user=?;";
+				$query = array(
+					"*" => "UPDATE access SET level=? WHERE project=? AND user=?;",
+					"pgsql" => 'UPDATE access SET level=? WHERE project=? AND "user"=?;',
+				);
 				$bind_variables = array( $access, $project["id"], $user_id );
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
@@ -89,7 +95,10 @@ class Project extends Common {
 				}
 			} else {
 				
-				$query = "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );";
+				$query = array(
+					"*" => "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );",
+					"pgsql" => "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );",
+				);
 				$bind_variables = array( $project["id"], $user_id, $access );
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount", "exception" );
 				
@@ -201,14 +210,26 @@ class Project extends Common {
 		}
 		
 		global $sql;
-		$query = "
-			SELECT * FROM projects
-			WHERE path = ?
-			AND (
-				owner=?
-				OR owner=-1
-				OR id IN ( SELECT project FROM access WHERE user = ? )
-			) ORDER BY name;";
+		$query = array(
+			"*" => "
+				SELECT * FROM projects
+				WHERE path = ?
+				AND (
+					owner=?
+					OR owner=-1
+					OR id IN ( SELECT project FROM access WHERE user = ? )
+				) ORDER BY name;
+			",
+			"pgsql" => '
+				SELECT * FROM projects
+				WHERE path = ?
+				AND (
+					owner=?
+					OR owner=-1
+					OR id IN ( SELECT project FROM access WHERE "user" = ? )
+				) ORDER BY name;
+			',
+		);
 		$bind_variables = array( $project, $_SESSION["user_id"], $_SESSION["user_id"] );
 		//$query = "SELECT * FROM projects WHERE path=? AND ( owner=? OR owner='nobody' ) ORDER BY name;";
 		//$bind_variables = array( $project, $_SESSION["user"] );
@@ -247,11 +268,18 @@ class Project extends Common {
 	public function get_projects() {
 		
 		global $sql;
-		$query = "
-			SELECT * FROM projects
-			WHERE owner=?
-			OR owner=-1
-			OR id IN ( SELECT project FROM access WHERE user = ? );";
+		$query = array(
+			"*" => "SELECT * FROM projects
+				WHERE owner=?
+				OR owner=-1
+				OR id IN ( SELECT project FROM access WHERE user = ? );
+			",
+			"pgsql" => 'SELECT * FROM projects
+				WHERE owner=?
+				OR owner=-1
+				OR id IN ( SELECT project FROM access WHERE "user" = ? );
+			',
+		);
 		$bind_variables = array( $_SESSION["user_id"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		return( $return );
@@ -266,7 +294,10 @@ class Project extends Common {
 			return formatJSEND( "error", "Error fetching user information." );
 		}
 		
-		$query = "DELETE FROM access WHERE project=? AND user=?;";
+		$query = array(
+			"*" => "DELETE FROM access WHERE project=? AND user=?;",
+			"pgsql" => 'DELETE FROM access WHERE project=? AND "user"=?;',
+		);
 		$bind_variables = array( $this->project_id, $user_id );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
@@ -357,14 +388,24 @@ class Project extends Common {
 	public function Open() {
 		
 		global $sql;
-		$query = "
-			SELECT * FROM projects
-			WHERE path = ? 
-			AND (
-				owner=?
-				OR owner=-1
-				OR id IN ( SELECT project FROM access WHERE user = ? )
-			) ORDER BY name LIMIT 1;";
+		$query = array(
+			"*" => "SELECT * FROM projects
+				WHERE path = ? 
+				AND (
+					owner=?
+					OR owner=-1
+					OR id IN ( SELECT project FROM access WHERE user = ? )
+				) ORDER BY name LIMIT 1;
+			",
+			"pgsql" => 'SELECT * FROM projects
+				WHERE path = ? 
+				AND (
+					owner=?
+					OR owner=-1
+					OR id IN ( SELECT project FROM access WHERE "user" = ? )
+				) ORDER BY name LIMIT 1;
+			',
+		);
 		$bind_variables = array( $this->path, $_SESSION["user_id"], $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
 		

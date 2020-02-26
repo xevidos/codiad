@@ -364,7 +364,7 @@ class User {
 		
 		if( $return > 0 ) {
 			
-			echo formatJSEND( "success", "Updated access for {$this->username}" );
+			echo formatJSEND( "success", "Updated access for {$username}" );
 		} else {
 			
 			echo formatJSEND( "error", "Error updating access" );

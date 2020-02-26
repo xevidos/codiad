@@ -284,11 +284,11 @@
 				access = e;
 			} else {
 				
-				access = e.target.value;
+				access = $( e.target ).val();
 			}
 			
 			$.post( this.controller + `?action=update_access`, {
-				username: username,
+				user: username,
 				access: access,
 			}, function( data ) {
 				

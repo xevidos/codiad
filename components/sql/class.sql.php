@@ -111,7 +111,10 @@ class sql {
 			
 			try {
 				
-				$access_query = "INSERT INTO access( project, user, level ) VALUES ";
+				$access_query = array(
+					"mysql" => "INSERT INTO access( project, user, level ) VALUES ",
+					"pgsql" => 'INSERT INTO access( project, "user", level ) VALUES ',
+				);
 				$projects = $this->query( "SELECT id, access FROM projects", array(), array(), "fetchAll", "exception" );
 				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
 				$delete = Permissions::LEVELS["delete"];
@@ -130,7 +133,7 @@ class sql {
 							
 							if( $granted_user == $user["username"] ) {
 								
-								$access_query .= "( {$project["id"]}, {$user["id"]}, $delete ),";
+								$access_query[DBTYPE] .= "( {$project["id"]}, {$user["id"]}, $delete ),";
 							}
 						}
 					}
@@ -213,7 +216,10 @@ class sql {
 			
 			try {
 				
-				$update_query = "";
+				$update_query = array(
+					"mysql" => "",
+					"pgsql" => "",
+				);
 				$options = $this->query( "SELECT id, name, username, value FROM user_options", array(), array(), "fetchAll", "exception" );
 				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
 				$delete = Permissions::LEVELS["delete"];
@@ -224,7 +230,13 @@ class sql {
 						
 						if( $option["username"] == $user["username"] ) {
 							
-							$update_query .= "UPDATE user_options SET user={$user["id"]} WHERE id={$option["id"]};";
+							if( DBTYPE == "mysql" ) {
+								
+								$update_query[DBTYPE] .= "UPDATE user_options SET user={$user["id"]} WHERE id={$option["id"]};";
+							} else {
+								
+								$update_query[DBTYPE] .= "UPDATE user_options SET \"user\"={$user["id"]} WHERE id={$option["id"]};";
+							}
 						}
 					}
 				}
@@ -233,7 +245,10 @@ class sql {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE user_options DROP COLUMN username", array(), array(), "rowCount", "exception" );
-					$result = $this->query( "ALTER TABLE user_options ADD COLUMN user INT", array(), array(), "rowCount", "exception" );
+					$result = $this->query( array(
+						"mysql" => "ALTER TABLE user_options ADD COLUMN user INT",
+						"pgsql" => 'ALTER TABLE user_options ADD COLUMN "user" INT',
+					), array(), array(), "rowCount", "exception" );
 					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
 				} else {
 					
@@ -349,7 +364,10 @@ class sql {
 				
 				$result = $this->query( "DELETE FROM active;", array(), 0, "rowCount", "exception" );
 				$result = $this->query( "ALTER TABLE active DROP COLUMN username;", array(), 0, "rowCount", "exception" );
-				$result = $this->query( "ALTER TABLE active ADD COLUMN user INT", array(), array(), "rowCount", "exception" );
+				$result = $this->query( array(
+					"mysql" => "ALTER TABLE active ADD COLUMN user INT",
+					"pgsql" => 'ALTER TABLE active ADD COLUMN "user" INT',
+				), array(), array(), "rowCount", "exception" );
 			} catch( Exception $error ) {
 				
 				//echo var_dump( $error->getMessage() );

@@ -75,7 +75,7 @@ switch($_GET['action']){
 								foreach( Permissions::SYSTEM_LEVELS as $role => $id ) {
 									
 									?>
-									<option value="<?php echo $id;?>" <?php if( $data["access"] == $id ) { echo 'selected="selected"'; }?>><?php echo i18n( $role );?></option>
+									<option value="<?php echo $role;?>" <?php if( $data["access"] == $id ) { echo 'selected="selected"'; }?>><?php echo i18n( $role );?></option>
 									<?php
 								}
 								?>

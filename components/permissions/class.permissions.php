@@ -93,7 +93,10 @@ class Permissions {
 					$access = self::LEVELS["owner"];
 				} else {
 					
-					$user = $sql->query( "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1", array( $data["id"], $_SESSION["user_id"] ), array(), "fetch" );
+					$user = $sql->query( array(
+						"*" => "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1",
+						"pgsql" => 'SELECT * FROM access WHERE project = ? AND "user" = ? LIMIT 1',
+					), array( $data["id"], $_SESSION["user_id"] ), array(), "fetch" );
 					
 					if( ! empty( $user ) ) {
 						

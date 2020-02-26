@@ -174,7 +174,7 @@ class Common {
 		
 		if( isset( $_SESSION["user_id"] ) ) {
 			
-			$query = "SELECT COUNT( * ) FROM users WHERE id=? AND ( access=? OR access='admin' );";
+			$query = "SELECT COUNT( * ) FROM users WHERE id=? AND access=?;";
 			$bind_variables = array( $_SESSION["user_id"], Permissions::SYSTEM_LEVELS["admin"] );
 			$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
 			$admin = ( $return > 0 );

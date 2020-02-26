@@ -156,6 +156,7 @@ define("WSURL", BASE_URL . "/workspace");
 	function create_project() {
 		
 		$project_path = $this->project_path;
+		$connection = $this->sql->connect();
 		
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
@@ -187,22 +188,21 @@ define("WSURL", BASE_URL . "/workspace");
 			}
 		}
 		
+		$query = "DELETE FROM projects WHERE path = ?;";
 		$bind_variables = array(
-			$project_path,
+			$project_path
+		);
+		$statement = $connection->prepare( $query );
+		$statement->execute( $bind_variables );
+		
+		$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,( SELECT id FROM users WHERE username = ? LIMIT 1 ));";
+		$bind_variables = array(
 			$this->project_name,
 			$project_path,
 			$this->username
 		);
-		$query = "DELETE FROM projects WHERE path = ?;INSERT INTO projects(name, path, owner) VALUES (?,?,( SELECT id FROM users WHERE username = ? LIMIT 1 ));";
-		$connection = $this->sql->connect();
 		$statement = $connection->prepare( $query );
 		$statement->execute( $bind_variables );
-		$error = $statement->errorInfo();
-		
-		if( ! $error[0] == "00000" ) {
-			
-			die( '{"message":"Could not create project in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
-		}
 	}
 	
 	function create_tables() {

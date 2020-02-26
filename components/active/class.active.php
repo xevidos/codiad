@@ -33,7 +33,10 @@ class Active extends Common {
 	public static function remove( $path ) {
 		
 		global $sql;
-		$query = "DELETE FROM active WHERE path=? AND user=?;";
+		$query = array(
+			"*" => "DELETE FROM active WHERE path=? AND user=?;",
+			"pgsql" => 'DELETE FROM active WHERE path=? AND "user"=?;',
+		);
 		$bind_variables = array( $path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 	}
@@ -45,7 +48,10 @@ class Active extends Common {
 	public function ListActive() {
 		
 		global $sql;
-		$query = "SELECT path, position, focused FROM active WHERE user=?";
+		$query = array(
+			"*" => "SELECT path, position, focused FROM active WHERE user=?",
+			"pgsql" => 'SELECT path, position, focused FROM active WHERE "user"=?',
+		);
 		$bind_variables = array( $_SESSION["user_id"] );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
@@ -81,7 +87,10 @@ class Active extends Common {
 	public function Check() {
 		
 		global $sql;
-		$query = "SELECT user FROM active WHERE path=?";
+		$query = array(
+			"*" => "SELECT user FROM active WHERE path=?",
+			"pgsql" => 'SELECT "user" FROM active WHERE path=?',
+		);
 		$bind_variables = array( $this->path );
 		$result = $sql->query( $query, $bind_variables, array() );
 		$tainted = false;
@@ -115,20 +124,29 @@ class Active extends Common {
 	public function Add() {
 		
 		global $sql;
-		$query = "SELECT focused FROM active WHERE path=? AND user=? LIMIT 1;";
+		$query = array(
+			"*" => "SELECT focused FROM active WHERE path=? AND user=? LIMIT 1;",
+			"pgsql" => 'SELECT focused FROM active WHERE path=? AND "user"=? LIMIT 1;',
+		);
 		$bind_variables = array( $this->path, $_SESSION["user_id"] );
 		$result = $sql->query( $query, $bind_variables, array() );
 		
 		if( count( $result ) == 0 ) {
 			
-			$query = "UPDATE active SET focused=false WHERE user=? AND path=?;";
+			$query = array(
+				"*" => "UPDATE active SET focused=false WHERE user=? AND path=?;",
+				"pgsql" => 'UPDATE active SET focused=false WHERE "user"=? AND path=?;',
+			);
 			$bind_variables = array( $_SESSION["user_id"], $this->path );
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result == 0 ) {
 				
 				global $sql;
-				$query = "INSERT INTO active( user, path, focused ) VALUES ( ?, ?, ? );";
+				$query = array(
+					"*" => "INSERT INTO active( user, path, focused ) VALUES ( ?, ?, ? );",
+					"pgsql" => 'INSERT INTO active( "user", path, focused ) VALUES ( ?, ?, ? );',
+				);
 				$bind_variables = array( $_SESSION["user_id"], $this->path, false );
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
@@ -164,7 +182,10 @@ class Active extends Common {
 	public function RemoveAll() {
 		
 		global $sql;
-		$query = "DELETE FROM active WHERE user=?;";
+		$query = array(
+			"*" => "DELETE FROM active WHERE user=?;",
+			"pgsql" => 'DELETE FROM active WHERE "user"=?;',
+		);
 		$bind_variables = array( $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
@@ -182,7 +203,10 @@ class Active extends Common {
 	public function MarkFileAsFocused() {
 		
 		global $sql;
-		$query = "UPDATE active SET focused=? WHERE path=? AND user=?;";
+		$query = array(
+			"*" => "UPDATE active SET focused=? WHERE path=? AND user=?;",
+			"pgsql" => 'UPDATE active SET focused=? WHERE path=? AND "user"=?;',
+		);
 		$bind_variables = array( true, $this->path, $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
@@ -196,14 +220,23 @@ class Active extends Common {
 		
 		global $sql;
 		$positions = json_decode( $positions, true );
-		$query = "";
+		$query = array(
+			"mysql" => "",
+			"pgsql" => "",
+		);
 		$bind_variables = array();
 		
 		if( json_last_error() == JSON_ERROR_NONE ) {
 			
 			foreach( $positions as $path => $cursor ) {
 				
-				$query .= "UPDATE active SET position=? WHERE path=? AND user=?;";
+				if( DBTYPE == "pgsql" ) {
+					
+					$query[DBTYPE] .= 'UPDATE active SET position=? WHERE path=? AND "user"=?;';
+				} else {
+					
+					$query[DBTYPE] .= "UPDATE active SET position=? WHERE path=? AND user=?;";
+				}
 				array_push( $bind_variables, json_encode( $cursor ), $path, $_SESSION["user_id"] );
 			}
 			
