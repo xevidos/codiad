@@ -160,11 +160,11 @@ class sql {
 				
 				$update_query = "";
 				$projects = $this->query( "SELECT id, path FROM projects", array(), array(), "fetchAll", "exception" );
-				$result = $this->query( "SELECT username,project FROM users", array(), array(), "fetchAll", "exception" );
+				$users = $this->query( "SELECT username,project FROM users", array(), array(), "fetchAll", "exception" );
 				$convert = false;
 				$delete = Permissions::LEVELS["delete"];
 				
-				foreach( $result as $row => $user ) {
+				foreach( $users as $row => $user ) {
 					
 					if( ! is_numeric( $user["project"] ) ) {
 						
@@ -177,7 +177,8 @@ class sql {
 					//change project to users table
 					$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE users ADD COLUMN project INT", array(), array(), "rowCount", "exception" );
-					foreach( $result as $row => $user ) {
+					
+					foreach( $users as $row => $user ) {
 						
 						foreach( $projects as $row => $project ) {
 							
@@ -305,7 +306,7 @@ class sql {
 					
 					if( ! is_numeric( $user["access"] ) ) {
 						
-						$update = true;
+						$convert = true;
 						break;
 					}
 				}
