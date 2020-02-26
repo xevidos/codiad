@@ -221,8 +221,8 @@ class Active extends Common {
 		global $sql;
 		$positions = json_decode( $positions, true );
 		$query = array(
-			"mysql" => "",
-			"pgsql" => "",
+			"mysql" => "UPDATE active SET position=? WHERE path=? AND user=?;",
+			"pgsql" => 'UPDATE active SET position=? WHERE path=? AND "user"=?;',
 		);
 		$bind_variables = array();
 		
@@ -230,17 +230,8 @@ class Active extends Common {
 			
 			foreach( $positions as $path => $cursor ) {
 				
-				if( DBTYPE == "pgsql" ) {
-					
-					$query[DBTYPE] .= 'UPDATE active SET position=? WHERE path=? AND "user"=?;';
-				} else {
-					
-					$query[DBTYPE] .= "UPDATE active SET position=? WHERE path=? AND user=?;";
-				}
-				array_push( $bind_variables, json_encode( $cursor ), $path, $_SESSION["user_id"] );
+				$return = $sql->query( $query, array( json_encode( $cursor ), $path, $_SESSION["user_id"] ), 0, "rowCount" );
 			}
-			
-			$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $return > 0 ) {
 				
