@@ -69,10 +69,9 @@
 			});
 		},
 		
-		change_access: function( e ) {
+		change_access: function( id ) {
 			
 			let _this = codiad.project;
-			let id = $( '#modal-content form select[name="user_list"]' ).val();
 			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
 			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			let access = $( e.target ).children( "option:selected" ).val();

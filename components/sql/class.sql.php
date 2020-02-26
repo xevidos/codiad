@@ -281,6 +281,21 @@ class sql {
 				
 				$update_query = "";
 				$users = $this->query( "SELECT id, access FROM users", array(), array(), "fetchAll", "exception" );
+				$update = false;
+				
+				foreach( $users as $row => $user ) {
+					
+					if( ! is_numeric( $user["access"] ) ) {
+						
+						$update = true;
+						break;
+					}
+				}
+				
+				if( ! $update ) {
+					
+					$users = array();
+				}
 				
 				foreach( $users as $row => $user ) {
 					
@@ -289,7 +304,7 @@ class sql {
 						$access = Permissions::SYSTEM_LEVELS[$user["access"]];
 					} elseif( is_numeric( $user["access"] ) ) {
 						
-						continue;
+						$access = $user["access"];
 					} else {
 						
 						$access = Permissions::SYSTEM_LEVELS["user"];

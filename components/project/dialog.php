@@ -292,7 +292,7 @@ switch( $_GET['action'] ) {
 							<p><?php echo htmlentities( $i["username"] );?></p>
 						</td>
 						<td>
-							<select onchange="codiad.project.change_access( event );">
+							<select onchange="codiad.project.change_access( <?php echo $i["id"];?> );">
 								<?php
 								foreach( Permissions::LEVELS as $level => $id ) {
 									
