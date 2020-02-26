@@ -106,6 +106,7 @@ class sql {
 	public function update_table_structure() {
 		
 		$status_updates = array();
+		$connection = $this->connect();
 		
 		if( DBTYPE === "mysql" || DBTYPE === "pgsql" ) {
 			
@@ -184,7 +185,7 @@ class sql {
 					//change project to users table
 					$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE users ADD COLUMN project INT", array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+					$result = $connection->query( $update_query );
 				} else {
 					
 					$status_updates["users_current_project"] = array( "dev_message" => "Users current project column to project_id conversion not needed." );
@@ -249,7 +250,7 @@ class sql {
 						"mysql" => "ALTER TABLE user_options ADD COLUMN user INT",
 						"pgsql" => 'ALTER TABLE user_options ADD COLUMN "user" INT',
 					), array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query[DBTYPE], array(), array(), "rowCount", "exception" );
+					$result = $connection->query( $update_query[DBTYPE] );
 				} else {
 					
 					$status_updates["username_user_option_column"] = array( "dev_message" => "User options username column needed no conversion." );
@@ -317,7 +318,7 @@ class sql {
 					//change project to users table
 					$result = $this->query( "ALTER TABLE users DROP COLUMN access", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE users ADD COLUMN access INT", array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+					$result = $connection->query( $update_query );
 				} else {
 					
 					$status_updates["users_access_column"] = array( "dev_message" => "No update needed." );
@@ -383,7 +384,7 @@ class sql {
 					//change project to users table
 					$result = $this->query( "ALTER TABLE projects DROP COLUMN owner", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE projects ADD COLUMN owner INT", array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+					$result = $connection->query( $update_query );
 				} else {
 					
 					$status_updates["owner_projects_column"] = array( "dev_message" => "User projects owner column needed no conversion." );
