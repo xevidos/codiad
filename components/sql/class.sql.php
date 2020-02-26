@@ -141,7 +141,7 @@ class sql {
 				
 				if( $access_query !== "INSERT INTO access( project, user, level ) VALUES " ) {
 					
-					$result = $this->query( substr( $access_query, 0, -1 ), array(), 0, "rowCount", "exception" );
+					$result = $this->query( substr( $access_query[DBTYPE], 0, -1 ), array(), 0, "rowCount", "exception" );
 				}
 				$result = $this->query( "ALTER TABLE projects DROP COLUMN access", array(), 0, "rowCount" );
 				$status_updates["access_column"] = "Cached data and removed access column.";
@@ -241,7 +241,7 @@ class sql {
 					}
 				}
 				
-				if( strlen( $update_query ) > 0 ) {
+				if( strlen( $update_query[DBTYPE] ) > 0 ) {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE user_options DROP COLUMN username", array(), array(), "rowCount", "exception" );
@@ -249,7 +249,7 @@ class sql {
 						"mysql" => "ALTER TABLE user_options ADD COLUMN user INT",
 						"pgsql" => 'ALTER TABLE user_options ADD COLUMN "user" INT',
 					), array(), array(), "rowCount", "exception" );
-					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+					$result = $this->query( $update_query[DBTYPE], array(), array(), "rowCount", "exception" );
 				} else {
 					
 					$status_updates["username_user_option_column"] = array( "dev_message" => "User options username column needed no conversion." );
@@ -274,6 +274,44 @@ class sql {
 				$status_updates["users_groups_column"] = array(
 					"error_message" => $error->getMessage(),
 					"dev_message" => "Removal of the groups column from the users table failed.  This usually means there was never one to begin with"
+				);
+			}
+			
+			try {
+				
+				$update_query = "";
+				$users = $this->query( "SELECT id, access FROM users", array(), array(), "fetchAll", "exception" );
+				
+				foreach( $users as $row => $user ) {
+					
+					if( in_array( $user["access"], array_keys( Permissions::SYSTEM_LEVELS ) ) ) {
+						
+						$access = Permissions::SYSTEM_LEVELS[$user["access"]];
+					} elseif( is_numeric( $user["access"] ) ) {
+						
+						continue;
+					} else {
+						
+						$access = Permissions::SYSTEM_LEVELS["user"];
+					}
+					$update_query .= "UPDATE users SET access={$access} WHERE id={$user["id"]};";
+				}
+				
+				if( strlen( $update_query ) > 0 ) {
+					
+					//change project to users table
+					$result = $this->query( "ALTER TABLE users DROP COLUMN access", array(), array(), "rowCount", "exception" );
+					$result = $this->query( "ALTER TABLE users ADD COLUMN access INT", array(), array(), "rowCount", "exception" );
+					$result = $this->query( $update_query, array(), array(), "rowCount", "exception" );
+				} else {
+					
+					$status_updates["users_access_column"] = array( "dev_message" => "No update needed." );
+				}
+			} catch( Exception $error ) {
+				
+				$status_updates["path_owner_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Error changing access column from varchar to int"
 				);
 			}
 			
