@@ -113,7 +113,10 @@ class Settings {
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		} else {
 			
-			$query = "DELETE FROM options WHERE name=? AND user=?";
+			$query = array(
+				"*" => "DELETE FROM options WHERE name=? AND user=?",
+				"pgsql" => 'DELETE FROM options WHERE name=? AND "user"=?',
+			);
 			$bind_variables = array(
 				$option,
 				$this->username,
@@ -141,7 +144,10 @@ class Settings {
 			$return = $sql->query( $query, $bind_variables, array() );
 		} else {
 			
-			$query = "SELECT value FROM user_options WHERE name=? AND user=?;";
+			$query = array(
+				"*" => "SELECT value FROM user_options WHERE name=? AND user=?;",
+				"pgsql" => 'SELECT value FROM user_options WHERE name=? AND "user"=?;',
+			);
 			$bind_variables = array( $option, $_SESSION["user_id"] );
 			$return = $sql->query( $query, $bind_variables, array() );
 		}
@@ -172,7 +178,10 @@ class Settings {
 		
 		global $sql;
 		
-		$query = "SELECT name, value FROM user_options WHERE user=?;";
+		$query = array(
+			"*" => "SELECT name, value FROM user_options WHERE user=?;",
+			"pgsql" => 'SELECT name, value FROM user_options WHERE "user"=?;',
+		);
 		$bind_variables = array( $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$options = array();
@@ -220,7 +229,10 @@ class Settings {
 	public function Load() {
 		
 		global $sql;
-		$query = "SELECT DISTINCT * FROM user_options WHERE username=?;";
+		$query = array(
+			"*" => "SELECT DISTINCT * FROM user_options WHERE user=?;",
+			"pgsql" => 'SELECT DISTINCT * FROM user_options WHERE "user"=?;',
+		);
 		$bind_variables = array(
 			$this->username
 		);
@@ -241,7 +253,7 @@ class Settings {
 		global $sql;
 		if( $user_setting == null ) {
 			
-			$query = "INSERT INTO options ( name, username, value ) VALUES ( ?, ? );";
+			$query = "INSERT INTO options ( name, value ) VALUES ( ?, ? );";
 			$bind_variables = array(
 				$option,
 				$value,
@@ -259,7 +271,10 @@ class Settings {
 			}
 		} else {
 			
-			$query = "UPDATE user_options SET value=? WHERE name=? AND user=?;";
+			$query = array(
+				"*" => "UPDATE user_options SET value=? WHERE name=? AND user=?;",
+				"pgsql" => 'UPDATE user_options SET value=? WHERE name=? AND "user"=?;',
+			);
 			$bind_variables = array(
 				$value,
 				$option,
@@ -269,7 +284,10 @@ class Settings {
 			
 			if( $result == 0 ) {
 				
-				$query = "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ?, ? );";
+				$query = array(
+					"*" => "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ?, ? );",
+					"pgsql" => 'INSERT INTO user_options ( name, "user", value ) VALUES ( ?, ?, ? );',
+				);
 				$bind_variables = array(
 					$option,
 					$_SESSION["user_id"],

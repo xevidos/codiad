@@ -72,7 +72,7 @@ class Project extends Common {
 			
 			$user = $sql->query( array(
 				"*" => "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1",
-				"pgsql" => "SELECT * FROM access WHERE project = ? AND user = ? LIMIT 1",
+				"pgsql" => 'SELECT * FROM access WHERE project = ? AND "user" = ? LIMIT 1',
 			), array( $project["id"], $user_id ), array(), "fetch" );
 			
 			if( ! empty( $user ) ) {
@@ -97,7 +97,7 @@ class Project extends Common {
 				
 				$query = array(
 					"*" => "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );",
-					"pgsql" => "INSERT INTO access ( project, user, level ) VALUES ( ?,?,? );",
+					"pgsql" => 'INSERT INTO access ( project, "user", level ) VALUES ( ?,?,? );',
 				);
 				$bind_variables = array( $project["id"], $user_id, $access );
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount", "exception" );
