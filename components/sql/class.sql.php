@@ -170,22 +170,24 @@ class sql {
 						
 						$convert = true;
 					}
-					
-					foreach( $projects as $row => $project ) {
-						
-						if( $project["path"] == $user["project"] ) {
-							
-							$update_query .= "UPDATE users SET project={$project["id"]} WHERE username = '{$user["username"]}';";
-						}
-					}
 				}
 				
-				if( $convert && strlen( $update_query ) > 0 ) {
+				if( $convert ) {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE users DROP COLUMN project", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE users ADD COLUMN project INT", array(), array(), "rowCount", "exception" );
-					$result = $connection->query( $update_query );
+					foreach( $result as $row => $user ) {
+						
+						foreach( $projects as $row => $project ) {
+							
+							if( $project["path"] == $user["project"] ) {
+								
+								$result = $this->query( "UPDATE users SET project=? WHERE username = ?;", array( $project["id"], $user["username"] ), array(), "rowCount", "exception" );
+								break;
+							}
+						}
+					}
 				} else {
 					
 					$status_updates["users_current_project"] = array( "dev_message" => "Users current project column to project_id conversion not needed." );
@@ -224,25 +226,21 @@ class sql {
 				$options = $this->query( "SELECT id, name, username, value FROM user_options", array(), array(), "fetchAll", "exception" );
 				$users = $this->query( "SELECT id, username FROM users", array(), array(), "fetchAll", "exception" );
 				$delete = Permissions::LEVELS["delete"];
+				$convert = false;
 				
 				foreach( $users as $row => $user ) {
 					
 					foreach( $options as $row => $option ) {
 						
-						if( $option["username"] == $user["username"] ) {
+						if( isset( $option["username"] ) ) {
 							
-							if( DBTYPE == "mysql" ) {
-								
-								$update_query[DBTYPE] .= "UPDATE user_options SET user={$user["id"]} WHERE id={$option["id"]};";
-							} else {
-								
-								$update_query[DBTYPE] .= "UPDATE user_options SET \"user\"={$user["id"]} WHERE id={$option["id"]};";
-							}
+							$convert = true;
+							break;
 						}
 					}
 				}
 				
-				if( strlen( $update_query[DBTYPE] ) > 0 ) {
+				if( $convert ) {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE user_options DROP COLUMN username", array(), array(), "rowCount", "exception" );
@@ -250,7 +248,26 @@ class sql {
 						"mysql" => "ALTER TABLE user_options ADD COLUMN user INT",
 						"pgsql" => 'ALTER TABLE user_options ADD COLUMN "user" INT',
 					), array(), array(), "rowCount", "exception" );
-					$result = $connection->query( $update_query[DBTYPE] );
+					
+					
+					foreach( $users as $row => $user ) {
+						
+						foreach( $options as $row => $option ) {
+							
+							if( $option["username"] == $user["username"] ) {
+								
+								$update_query = "";
+								if( DBTYPE == "mysql" ) {
+									
+									$update_query = "UPDATE user_options SET user=? WHERE id=?;";
+								} else {
+									
+									$update_query = "UPDATE user_options SET \"user\"=? WHERE id=?;";
+								}
+								$result = $this->query( $update_query, array( $user["id"], $option["id"] ), array(), "rowCount", "exception" );
+							}
+						}
+					}
 				} else {
 					
 					$status_updates["username_user_option_column"] = array( "dev_message" => "User options username column needed no conversion." );
@@ -282,7 +299,7 @@ class sql {
 				
 				$update_query = "";
 				$users = $this->query( "SELECT id, access FROM users", array(), array(), "fetchAll", "exception" );
-				$update = false;
+				$convert = false;
 				
 				foreach( $users as $row => $user ) {
 					
@@ -293,32 +310,27 @@ class sql {
 					}
 				}
 				
-				if( ! $update ) {
-					
-					$users = array();
-				}
-				
-				foreach( $users as $row => $user ) {
-					
-					if( in_array( $user["access"], array_keys( Permissions::SYSTEM_LEVELS ) ) ) {
-						
-						$access = Permissions::SYSTEM_LEVELS[$user["access"]];
-					} elseif( is_numeric( $user["access"] ) ) {
-						
-						$access = $user["access"];
-					} else {
-						
-						$access = Permissions::SYSTEM_LEVELS["user"];
-					}
-					$update_query .= "UPDATE users SET access={$access} WHERE id={$user["id"]};";
-				}
-				
-				if( strlen( $update_query ) > 0 ) {
+				if( $convert ) {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE users DROP COLUMN access", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE users ADD COLUMN access INT", array(), array(), "rowCount", "exception" );
-					$result = $connection->query( $update_query );
+					
+					foreach( $users as $row => $user ) {
+						
+						if( in_array( $user["access"], array_keys( Permissions::SYSTEM_LEVELS ) ) ) {
+							
+							$access = Permissions::SYSTEM_LEVELS[$user["access"]];
+						} elseif( is_numeric( $user["access"] ) ) {
+							
+							$access = $user["access"];
+						} else {
+							
+							$access = Permissions::SYSTEM_LEVELS["user"];
+						}
+						$update_query = "UPDATE users SET access=? WHERE id=?;";
+						$this->query( $update_query, array( $access, $user["id"] ), array(), "rowCount", "exception" );
+					}
 				} else {
 					
 					$status_updates["users_access_column"] = array( "dev_message" => "No update needed." );
@@ -360,31 +372,42 @@ class sql {
 						
 						$convert = true;
 					}
-					
-					$current_user = null;
-					
-					foreach( $users as $row => $user ) {
-						
-						if( $project["owner"] == $user["username"] ) {
-							
-							$update_query .= "UPDATE projects SET owner={$user["id"]} WHERE id={$project["id"]};";
-							$current_user = $user;
-							break;
-						}
-					}
-					
-					if( $current_user != null && $project["owner"] != $current_user["username"] ) {
-						
-						$update_query .= "UPDATE projects SET owner=-1 WHERE id={$project["id"]};";
-					}
 				}
 				
-				if( strlen( $update_query ) > 0 && $convert ) {
+				if( $convert ) {
 					
 					//change project to users table
 					$result = $this->query( "ALTER TABLE projects DROP COLUMN owner", array(), array(), "rowCount", "exception" );
 					$result = $this->query( "ALTER TABLE projects ADD COLUMN owner INT", array(), array(), "rowCount", "exception" );
-					$result = $connection->query( $update_query );
+					
+					foreach( $projects as $row => $project ) {
+						
+						$current_user = null;
+						$bind_variables = array();
+						
+						foreach( $users as $row => $user ) {
+							
+							if( $project["owner"] == $user["username"] ) {
+								
+								$current_user = $user;
+								break;
+							}
+						}
+						
+						if( $current_user == null || $project["owner"] != $current_user["username"] ) {
+							
+							$update_query = "UPDATE projects SET owner=? WHERE id=?;";
+							$bind_variables[] = -1;
+							$bind_variables[] = $project["id"];
+						} else {
+							
+							$update_query = "UPDATE projects SET owner=? WHERE id=?;";
+							$bind_variables[] = $user["id"];
+							$bind_variables[] = $project["id"];
+						}
+						
+						$result = $this->query( $update_query, $bind_variables, array(), "rowCount", "exception" );
+					}
 				} else {
 					
 					$status_updates["owner_projects_column"] = array( "dev_message" => "User projects owner column needed no conversion." );
