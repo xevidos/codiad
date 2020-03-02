@@ -778,7 +778,9 @@
 			let parentNode = node.parent();
 			let span = node.prev();
 			
-			if( node.attr( 'data-type' ) == "root" ) {
+			root = ( node.attr( 'data-type' ) == "root" );
+			
+			if( root ) {
 				
 				node.addClass( "open" );
 				node.droppable({
@@ -830,7 +832,7 @@
 			
 			files = await _this.get_opened_indexes( files );
 			
-			if( total_saved == 0 ) {
+			if( total_saved == 0 || ( root && rescan ) ) {
 				
 				_this.files = files;
 			} else {
@@ -1769,9 +1771,15 @@
 			
 			if( Object.keys( i ).length == 0 ) {
 				
-				let result = await _this.index( path );
+				let result = await _this.index( _this.get_parent( path ), true );
+				i = await _this.get_index( path, _this.files );
+			}
+			
+			if( Object.keys( i ).length == 0 ) {
+				
 				i = {
-					open: false,
+					path: path,
+					open: true,
 				}
 			}
 			
