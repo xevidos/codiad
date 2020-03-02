@@ -496,10 +496,14 @@ class updater {
 				
 				$this->path . "/components/autocomplete",
 				$this->path . "/plugins/auto_save",
+				$this->path . "/plugins/Codiad-Archives",
+				$this->path . "/plugins/Codiad-Archives-master",
 				$this->path . "/plugins/Codiad-Auto-Save",
 				$this->path . "/plugins/Codiad-Auto-Save-master",
 				$this->path . "/plugins/Codiad-CodeSettings",
 				$this->path . "/plugins/Codiad-CodeSettings-master",
+				$this->path . "/plugins/Codiad-DragDrop",
+				$this->path . "/plugins/Codiad-DragDrop-master",
 			);
 			
 			foreach( $folder_conflictions as $dir ) {
