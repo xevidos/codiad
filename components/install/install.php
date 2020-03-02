@@ -292,7 +292,10 @@ define("WSURL", BASE_URL . "/workspace");
 		
 		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
-			$query = "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ( SELECT id FROM users WHERE username = ? ), ? );";
+			$query = array(
+				"*" => "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ( SELECT id FROM users WHERE username = ? ), ? );",
+				"pgsql" => 'INSERT INTO user_options ( name, "user", value ) VALUES ( ?, ( SELECT id FROM users WHERE username = ? ), ? );',
+			);
 			$bind_variables = array(
 				$option["name"],
 				$this->username,
@@ -302,7 +305,10 @@ define("WSURL", BASE_URL . "/workspace");
 			
 			if( $result == 0 ) {
 				
-				$query = "UPDATE user_options SET value=? WHERE name=? AND user=( SELECT id FROM users WHERE username = ? );";
+				$query = array(
+					"*" => "UPDATE user_options SET value=? WHERE name=? AND user=( SELECT id FROM users WHERE username = ? );",
+					"pgsql" => 'UPDATE user_options SET value=? WHERE name=? AND "user"=( SELECT id FROM users WHERE username = ? );',
+				);
 				$bind_variables = array(
 					$option["value"],
 					$option["name"],
