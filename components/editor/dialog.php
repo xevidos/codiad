@@ -19,6 +19,17 @@ checkSession();
 	<?php
 	switch( $_GET['action'] ) {
 		
+		case 'line':
+			
+			?>
+			<label><?php i18n("Goto Line:"); ?></label>
+			<input name="goto_line" type="number" autofocus="autofocus" autocomplete="off">
+			<button class="btn-left" onclick="codiad.editor.goto_line();return false;"><?php i18n("Goto"); ?></button>
+			<button class="btn-right" onclick="codiad.modal.unload(); return false;"><?php i18n("Cancel"); ?></button>
+			<?php
+		break;	
+		break;
+		
 		case 'search':
 			
 			//////////////////////////////////////////////////////////////////
@@ -75,28 +86,3 @@ checkSession();
 	}
 	?>
 </form>
-<script>
-	$( function() {
-		<?php
-		if( $_GET['action'] == 'search' ) {
-			?>
-			if( codiad.editor.multi_line ) {
-				
-				$('textarea[name="find"]').val( codiad.active.getSelectedText() );
-				$('textarea[name="find"]').focus();
-			} else {
-				
-				$('input[name="find"]').val( codiad.active.getSelectedText() );
-				$('input[name="find"]').focus();
-			}
-			<?php
-		} elseif( $_GET['action'] == 'sort' ) {
-			
-			?>
-			$('textarea[name="sort"]').val( codiad.active.getSelectedText() );
-			$('textarea[name="sort"]').focus();
-			<?php
-		}
-		?>
-	});
-</script>

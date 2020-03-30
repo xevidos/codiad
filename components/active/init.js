@@ -51,12 +51,8 @@
 			return !!this.sessions[path];
 		},
 		
-		open: function( path, content, mtime, inBackground, focus ) {
+		open: function( path, content, mtime, inBackground, focus, read_only=false ) {
 			
-			//if( this. ) {
-			
-			
-			//}
 			/* Notify listeners. */
 			amplify.publish( 'active.onFileWillOpen', {
 				path: path,
@@ -64,12 +60,14 @@
 			});
 			
 			if( focus === undefined ) {
+				
 				focus = true;
 			}
 			
 			var _this = this;
 			
 			if( this.isOpen( path ) ) {
+				
 				if( focus ) this.focus( path );
 				return;
 			}
@@ -98,6 +96,8 @@
 				session.serverMTime = mtime;
 				_this.sessions[path] = session;
 				session.untainted = content.slice( 0 );
+				session.read_only = read_only;
+				
 				if( !inBackground && focus ) {
 					codiad.editor.setSession( session );
 				}
@@ -113,8 +113,7 @@
 			};
 			
 			// Assuming the mode file has no dependencies
-			$.loadScript( 'components/editor/ace-editor/mode-' + mode.name + '.js',
-				fn );
+			$.loadScript( 'components/editor/ace-editor/mode-' + mode.name + '.js', fn );
 		},
 		
 		init: function() {
@@ -275,6 +274,7 @@
 			
 			// Open saved-state active files on load
 			$.get( _this.controller + '?action=list', function( data ) {
+				console.log( data );
 				var listResponse = codiad.jsend.parse( data );
 				if( listResponse !== null ) {
 					$.each( listResponse, function( index, data ) {
@@ -361,6 +361,9 @@
 			session.listThumb = listThumb;
 			$( '#list-active-files' ).append( listThumb );
 			
+			
+			
+			
 			/* If the tab list would overflow with the new tab. Move the
 			 * first tab to dropdown, then add a new tab. */
 			if( this.isTabListOverflowed( true ) ) {
@@ -374,7 +377,10 @@
 			
 			this.updateTabDropdownVisibility();
 			
-			$.get( this.controller + '?action=add&path=' + encodeURIComponent( path ) );
+			$.get( this.controller + '?action=add&path=' + encodeURIComponent( path ), function( data ) {
+				
+				//console.log( data );
+			});
 			
 			if( focus ) {
 				this.focus( path );
@@ -440,7 +446,7 @@
 			
 			var session = this.sessions[path];
 			
-			if( $( '#dropdown-list-active-files' ).has( session.tabThumb ).length > 0 ) {
+			if( session && session.tabThumb && $( '#dropdown-list-active-files' ).has( session.tabThumb ).length > 0 ) {
 				if( moveToTabList ) {
 					/* Get the menu item as a tab, and put the last tab in
 					 * dropdown. */
@@ -494,11 +500,11 @@
 			.getSession();
 			var content = session.getValue();
 			var path = session.path;
-			var handleSuccess = function( mtime ) {
+			var handleSuccess = function( result ) {
 				var session = codiad.active.sessions[path];
 				if( typeof session != 'undefined' ) {
 					session.untainted = newContent;
-					session.serverMTime = mtime;
+					session.serverMTime = result.data.mtime;
 					if( session.listThumb ) session.listThumb.removeClass( 'changed' );
 					if( session.tabThumb ) session.tabThumb.removeClass( 'changed' );
 				}
@@ -516,20 +522,30 @@
 					original: session.untainted,
 					changed: newContent
 				}, function( success, patch ) {
+					
+					console.log( "diff test", success, patch );
+					
 					if( success ) {
-						codiad.filemanager.savePatch( path, patch, session.serverMTime, {
-							success: handleSuccess
-						}, alerts );
+						if( patch.length > 0 ) {
+							
+							codiad.filemanager.save_file( path, {
+								patch: patch,
+								mtime: session.serverMTime
+							}, alerts )
+							.then( handleSuccess );
+						}
 					} else {
-						codiad.filemanager.saveFile( path, newContent, {
-							success: handleSuccess
-						}, alerts );
+						
+						console.log( "calling save while failed diff", path, newContent, alerts );
+						codiad.filemanager.save_file( path, {content: newContent}, alerts )
+						.then( handleSuccess );
 					}
 				}, this );
 			} else {
-				codiad.filemanager.saveFile( path, newContent, {
-					success: handleSuccess
-				}, alert );
+				
+				console.log( "calling save without mtime and untainted", path, newContent, alerts );
+				codiad.filemanager.save_file( path, {content: newContent}, alerts )
+				.then( handleSuccess );
 			}
 		},
 		
@@ -551,9 +567,11 @@
 		//////////////////////////////////////////////////////////////////
 		
 		remove: function( path ) {
+			
+			console.log( "remove file", this.isOpen( path ) );
 			if( !this.isOpen( path ) ) return;
-			var session = this.sessions[path];
-			var closeFile = true;
+			let session = this.sessions[path];
+			let closeFile = true;
 			if( session.listThumb.hasClass( 'changed' ) ) {
 				codiad.modal.load( 450, 'components/active/dialog.php?action=confirm&path=' + encodeURIComponent( path ) );
 				closeFile = false;
@@ -745,14 +763,18 @@
 		//////////////////////////////////////////////////////////////////
 		
 		getSelectedText: function() {
-			var path = this.getPath();
-			var session = this.sessions[path];
+			
+			let path = this.getPath();
+			let session = this.sessions[path];
 			
 			if( path && this.isOpen( path ) ) {
-				return session.getTextRange(
-					codiad.editor.getActive()
-				.getSelectionRange() );
+				
+				console.log( "Session:", session );
+				console.log( "selection: ", codiad.editor.getActive().getSelectionRange() )
+				console.log( "text: ", session.getTextRange( codiad.editor.getActive().getSelectionRange() ) )
+				return session.getTextRange( codiad.editor.getActive().getSelectionRange() );
 			} else {
+				
 				codiad.message.error( i18n( 'No Open Files or Selected Text' ) );
 			}
 		},
@@ -1013,14 +1035,17 @@
 		
 		uploadPositions: function() {
 			
-			$.ajax( {
-				type: 'POST',
-				url: codiad.active.controller + '?action=save_positions',
-				data: {
-					positions: ( JSON.stringify( codiad.active.positions ) )
-				},
-				success: function( data ) {},
-			});
+			if( Object.keys( codiad.active.positions ).length > 0 ) {
+				
+				$.ajax( {
+					type: 'POST',
+					url: codiad.active.controller + '?action=save_positions',
+					data: {
+						positions: ( JSON.stringify( codiad.active.positions ) )
+					},
+					success: function( data ) {},
+				});
+			}
 		},
 		
 		savePosition: function() {

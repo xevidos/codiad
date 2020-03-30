@@ -44,8 +44,8 @@ require_once('../../common.php');
 		<td><?php i18n("Live Autocomplete"); ?></td>
 		<td>
 			<select class="setting" data-setting="codiad.editor.autocomplete">
-				<option value="false" selected><?php i18n("Off");?></option>
 				<option value="true"><?php i18n("On"); ?></option>
+				<option value="false" selected><?php i18n("Off");?></option>
 			</select>
 		</td>
 	</tr>
@@ -53,8 +53,8 @@ require_once('../../common.php');
 		<td><?php i18n("Over Scroll"); ?></td>
 		<td>
 			<select class="setting" data-setting="codiad.editor.overScroll">
-				<option value="0" selected><?php i18n("None");?></option>
-				<option value="0.5"><?php i18n("Half");?></option>
+				<option value="0"><?php i18n("None");?></option>
+				<option value="0.5" selected><?php i18n("Half");?></option>
 				<option value="1"><?php i18n("Full");?></option>
 			</select>
 		</td>

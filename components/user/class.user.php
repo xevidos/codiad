@@ -10,24 +10,9 @@ require_once( "../settings/class.settings.php" );
 
 class User {
 	
-	const ACCESS = array(
-		"admin",
-		"user"
-	);
-	
 	//////////////////////////////////////////////////////////////////
 	// PROPERTIES
 	//////////////////////////////////////////////////////////////////
-	
-	public $access		= 'user';
-	public $username    = '';
-	public $password    = '';
-	public $project     = '';
-	public $projects    = '';
-	public $users       = '';
-	public $actives     = '';
-	public $lang        = '';
-	public $theme       = '';
 	
 	//////////////////////////////////////////////////////////////////
 	// METHODS
@@ -43,62 +28,65 @@ class User {
 		
 	}
 	
-	public function add_user() {
+	public function add_user( $username, $password, $access ) {
 		
 		global $sql;
 		$query = "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );";
-		$bind_variables = array( $this->username, $this->password, $this->access, null );
+		$bind_variables = array( $username, $password, $access, null );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		$pass = false;
 		
 		if( $return > 0 ) {
 			
-			$this->set_default_options();
-			echo formatJSEND( "success", array( "username" => $this->username ) );
-		} else {
-			
-			echo formatJSEND( "error", "The Username is Already Taken" );
+			$this->set_default_options( $username );
+			$pass = true;
 		}
+		return $pass;
 	}
 	
-	public function delete_user() {
+	public function delete_user( $username ) {
 		
 		global $sql;
-		$query = "DELETE FROM user_options WHERE username=?;";
-		$bind_variables = array( $this->username );
+		$query = "DELETE FROM user_options WHERE user=( SELECT id FROM users WHERE username=? );";
+		$bind_variables = array( $username );
 		$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
 		if( $return > -1 ) {
 			
-			$query = "DELETE FROM projects WHERE owner=? AND access IN ( ?,?,?,?,? );";
+			$query = "
+			DELETE FROM projects
+			WHERE owner=( SELECT id FROM users WHERE username=? )
+			AND (
+				SELECT COUNT(*)
+				FROM access
+				WHERE project = projects.id
+				AND user <> ( SELECT id FROM users WHERE username=? )
+			) = 0;";
 			$bind_variables = array(
-				$this->username,
-				"null",
-				null,
-				"[]",
-				"",
-				json_encode( array( $this->username ) )
+				$username,
+				$username
 			);
 			$return = $sql->query( $query, $bind_variables, -1, "rowCount" );
 			
 			if( $return > -1 ) {
 				
 				$query = "DELETE FROM users WHERE username=?;";
-				$bind_variables = array( $this->username );
+				$bind_variables = array( $username );
 				$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 				
 				if( $return > 0 ) {
 					
-					echo formatJSEND( "success", null );
+					exit( formatJSEND( "success", null ) );
 				} else {
 					
-					echo formatJSEND( "error", "Error deleting user information." );
+					exit( formatJSEND( "error", "Error deleting user information." ) );
 				}
 			} else {
 				
-				echo formatJSEND( "error", "Error deleting user project information." );
+				exit( formatJSEND( "error", "Error deleting user project information." ) );
 			}
 		} else {
 			
-			echo formatJSEND( "error", "Error deleting user option information." );
+			exit( formatJSEND( "error", "Error deleting user option information." ) );
 		}
 	}
 	
@@ -107,15 +95,8 @@ class User {
 		global $sql;
 		$query = "SELECT * FROM users WHERE username=?";
 		$bind_variables = array( $username );
-		$return = $sql->query( $query, $bind_variables, array() );
-		
-		if( ! empty( $return ) ) {
-			
-			echo formatJSEND( "success", $return );
-		} else {
-			
-			echo formatJSEND( "error", "Could not select user." );
-		}
+		$return = $sql->query( $query, $bind_variables, array(), "fetch" );
+		return $return;
 	}
 	
 	public function list_users() {
@@ -134,26 +115,26 @@ class User {
 		}
 	}
 	
-	public function set_default_options() {
+	public function set_default_options( $username ) {
 		
 		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
 			global $sql;
-			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$query = "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ( SELECT id FROM users WHERE username=? ), ? );";
 			$bind_variables = array(
 				$option["name"],
-				$this->username,
+				$username,
 				$option["value"],
 			);
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result == 0 ) {
 				
-				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$query = "UPDATE user_options SET value=? WHERE name=? AND user=( SELECT id FROM users WHERE username=? );";
 				$bind_variables = array(
 					$option["value"],
 					$option["name"],
-					$this->username,
+					$username,
 				);
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			}
@@ -164,59 +145,18 @@ class User {
 	// Authenticate
 	//////////////////////////////////////////////////////////////////
 	
-	public function Authenticate() {
+	public function Authenticate( $username, $password ) {
 		
-		if( $this->username == "" || $this->password == "" ) {
+		if( $username == "" || $password == "" ) {
 			
-			exit( formatJSEND( "error", "Username or password can not be blank." ) );
-		}
-		
-		if( ! is_dir( SESSIONS_PATH ) ) {
-			
-			mkdir( SESSIONS_PATH, 00755 );
-		}
-		
-		$permissions = array(
-			"755",
-			"0755"
-		);
-		
-		$server_user = posix_getpwuid( posix_geteuid() );
-		$sessions_permissions = substr( sprintf( '%o', fileperms( SESSIONS_PATH ) ), -4 );
-		$sessions_owner = posix_getpwuid( fileowner( SESSIONS_PATH ) );
-		
-		if( is_array( $server_user ) ) {
-			
-			$server_user = $server_user["uid"];
-		}
-		
-		if( ! ( $sessions_owner === $server_user ) ) {
-			
-			try {
-				
-				chown( SESSIONS_PATH, $server_user );
-			} catch( Exception $e ) {
-				
-				exit( formatJSEND("error", "Error, incorrect owner of sessions folder.  Expecting: $server_user, Recieved: " . $sessions_owner ) );
-			}
-		}
-		
-		if( ! in_array( $sessions_permissions, $permissions ) ) {
-			
-			try {
-				
-				chmod( SESSIONS_PATH, 00755 );
-			} catch( Exception $e ) {
-				
-				exit( formatJSEND("error", "Error, incorrect permissions on sessions folder.  Expecting: 0755, Recieved: " . $sessions_permissions ) );
-			}
+			return false;
 		}
 		
 		global $sql;
 		$pass = false;
-		$this->EncryptPassword();
+		$password = $this->encrypt_password( $password );
 		$query = "SELECT * FROM users WHERE username=? AND password=?;";
-		$bind_variables = array( $this->username, $this->password );
+		$bind_variables = array( $username, $password );
 		$return = $sql->query( $query, $bind_variables, array() );
 		
 		/**
@@ -226,52 +166,46 @@ class User {
 		if( ( strtolower( DBTYPE ) == "mysql" ) && empty( $return ) ) {
 			
 			$query = "SELECT * FROM users WHERE username=? AND password=PASSWORD( ? );";
-			$bind_variables = array( $this->username, $this->password );
+			$bind_variables = array( $username, $password );
 			$return = $sql->query( $query, $bind_variables, array() );
 			
 			if( ! empty( $return ) ) {
 				
 				$query = "UPDATE users SET password=? WHERE username=?;";
-				$bind_variables = array( $this->password, $this->username );
+				$bind_variables = array( $password, $username );
 				$return = $sql->query( $query, $bind_variables, array() );
 				
 				$query = "SELECT * FROM users WHERE username=? AND password=?;";
-				$bind_variables = array( $this->username, $this->password );
+				$bind_variables = array( $username, $password );
 				$return = $sql->query( $query, $bind_variables, array() );
 			}
 		}
 		
 		if( ! empty( $return ) ) {
 			
+			$user = $return[0];
 			$pass = true;
 			$token = mb_strtoupper( strval( bin2hex( openssl_random_pseudo_bytes( 16 ) ) ) );
 			$_SESSION['id'] = SESSION_ID;
-			$_SESSION['user'] = $this->username;
+			$_SESSION['user'] = $username;
+			$_SESSION['user_id'] = $user["id"];
 			$_SESSION['token'] = $token;
-			$_SESSION['lang'] = $this->lang;
-			$_SESSION['theme'] = $this->theme;
 			$_SESSION["login_session"] = true;
-			$user = $return[0];
 			
 			$query = "UPDATE users SET token=? WHERE username=?;";
-			$bind_variables = array( sha1( $token ), $this->username );
+			$bind_variables = array( sha1( $token ), $username );
 			$return = $sql->query( $query, $bind_variables, 0, 'rowCount' );
+			$projects = $sql->query( "SELECT path FROM projects WHERE id = ?", array( $user["project"] ), array() );
 			
-			if( isset( $user['project'] ) && $user['project'] != '' ) {
+			if( isset( $user['project'] ) && $user['project'] != '' && ! empty( $projects ) ) {
 				
-				$_SESSION['project'] = $user['project'];
+				$_SESSION['project'] = $projects[0]["path"];
+				$_SESSION['project_id'] = $user['project'];
 			}
 			
-			$this->checkDuplicateSessions( $this->username );
+			$this->checkDuplicateSessions( $username );
 		}
-		
-		if( $pass ) {
-			
-			echo formatJSEND( "success", array( "username" => $this->username ) );
-		} else {
-			
-			echo formatJSEND( "error", "Incorrect Username or Password" );
-		}
+		return $pass;
 	}
 	
 	/**
@@ -353,28 +287,31 @@ class User {
 	// Create Account
 	//////////////////////////////////////////////////////////////////
 	
-	public function Create() {
+	public function Create( $username, $password ) {
 		
-		$this->EncryptPassword();
-		$this->add_user();
+		$username = self::CleanUsername( $username );
+		$password = $this->encrypt_password( $password );
+		$result = $this->add_user( $username, $password, Permissions::SYSTEM_LEVELS["user"] );
+		return $result;
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// Delete Account
 	//////////////////////////////////////////////////////////////////
 	
-	public function Delete() {
+	public function Delete( $username ) {
 		
-		$this->delete_user();
+		$username = self::CleanUsername( $username );
+		return $this->delete_user( $username );
 	}
 	
 	//////////////////////////////////////////////////////////////////
 	// Encrypt Password
 	//////////////////////////////////////////////////////////////////
 	
-	private function EncryptPassword() {
+	private function encrypt_password( $password ) {
 		
-		$this->password = sha1( md5( $this->password ) );
+		return sha1( md5( $password ) );
 	}
 	
 	//////////////////////////////////////////////////////////////////
@@ -384,10 +321,10 @@ class User {
 	public function Password() {
 		
 		global $sql;
-		$this->EncryptPassword();
+		$password = $this->encrypt_password( $this->password );
 		$query = "UPDATE users SET password=? WHERE username=?;";
-		$bind_variables = array( $this->password, $this->username );
-		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
+		$bind_variables = array( $password, $this->username );
+		$return = $sql->query( $query, $bind_variables, 0, "rowCount", "exception" );
 		
 		if( $return > 0 ) {
 			
@@ -418,19 +355,19 @@ class User {
 		}
 	}
 	
-	public function update_access() {
+	public function update_access( $username, $access ) {
 		
 		global $sql;
 		$query = "UPDATE users SET access=? WHERE username=?;";
-		$bind_variables = array( $this->access, $this->username );
+		$bind_variables = array( $access, $username );
 		$return = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		
 		if( $return > 0 ) {
 			
-			echo formatJSEND( "success", "Updated access for {$this->username}" );
+			echo formatJSEND( "success", "Updated access for {$username}" );
 		} else {
 			
-			echo formatJSEND( "error", "Error updating project" );
+			echo formatJSEND( "error", "Error updating access" );
 		}
 	}
 	

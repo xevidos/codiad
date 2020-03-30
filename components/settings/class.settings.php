@@ -113,7 +113,10 @@ class Settings {
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 		} else {
 			
-			$query = "DELETE FROM options WHERE name=? AND username=?";
+			$query = array(
+				"*" => "DELETE FROM options WHERE name=? AND user=?",
+				"pgsql" => 'DELETE FROM options WHERE name=? AND "user"=?',
+			);
 			$bind_variables = array(
 				$option,
 				$this->username,
@@ -138,17 +141,20 @@ class Settings {
 			
 			$query = "SELECT value FROM options WHERE name=?;";
 			$bind_variables = array( $option );
-			$return = $sql->query( $query, $bind_variables, array() )[0];
+			$return = $sql->query( $query, $bind_variables, array() );
 		} else {
 			
-			$query = "SELECT value FROM user_options WHERE name=? AND username=?;";
-			$bind_variables = array( $option, $this->username );
-			$return = $sql->query( $query, $bind_variables, array() )[0];
+			$query = array(
+				"*" => "SELECT value FROM user_options WHERE name=? AND user=?;",
+				"pgsql" => 'SELECT value FROM user_options WHERE name=? AND "user"=?;',
+			);
+			$bind_variables = array( $option, $_SESSION["user_id"] );
+			$return = $sql->query( $query, $bind_variables, array() );
 		}
 		
 		if( ! empty( $return ) ) {
 			
-			$return = $return["value"];
+			$return = $return[0]["value"];
 		} else {
 			
 			$return = null;
@@ -172,8 +178,11 @@ class Settings {
 		
 		global $sql;
 		
-		$query = "SELECT name, value FROM user_options WHERE username=?;";
-		$bind_variables = array( $this->username );
+		$query = array(
+			"*" => "SELECT name, value FROM user_options WHERE user=?;",
+			"pgsql" => 'SELECT name, value FROM user_options WHERE "user"=?;',
+		);
+		$bind_variables = array( $_SESSION["user_id"] );
 		$return = $sql->query( $query, $bind_variables, array() );
 		$options = array();
 		
@@ -220,7 +229,10 @@ class Settings {
 	public function Load() {
 		
 		global $sql;
-		$query = "SELECT DISTINCT * FROM user_options WHERE username=?;";
+		$query = array(
+			"*" => "SELECT DISTINCT * FROM user_options WHERE user=?;",
+			"pgsql" => 'SELECT DISTINCT * FROM user_options WHERE "user"=?;',
+		);
 		$bind_variables = array(
 			$this->username
 		);
@@ -241,7 +253,7 @@ class Settings {
 		global $sql;
 		if( $user_setting == null ) {
 			
-			$query = "INSERT INTO options ( name, username, value ) VALUES ( ?, ? );";
+			$query = "INSERT INTO options ( name, value ) VALUES ( ?, ? );";
 			$bind_variables = array(
 				$option,
 				$value,
@@ -259,21 +271,27 @@ class Settings {
 			}
 		} else {
 			
-			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$query = array(
+				"*" => "UPDATE user_options SET value=? WHERE name=? AND user=?;",
+				"pgsql" => 'UPDATE user_options SET value=? WHERE name=? AND "user"=?;',
+			);
 			$bind_variables = array(
-				$option,
-				$this->username,
 				$value,
+				$option,
+				$_SESSION["user_id"],
 			);
 			$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			
 			if( $result == 0 ) {
 				
-				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$query = array(
+					"*" => "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ?, ? );",
+					"pgsql" => 'INSERT INTO user_options ( name, "user", value ) VALUES ( ?, ?, ? );',
+				);
 				$bind_variables = array(
-					$value,
 					$option,
-					$this->username,
+					$_SESSION["user_id"],
+					$value,
 				);
 				$result = $sql->query( $query, $bind_variables, 0, "rowCount" );
 			}
