@@ -220,6 +220,22 @@ class sql {
 			
 			try {
 				
+				$this->query( array(
+					"mysql" => "ALTER TABLE user_options DROP INDEX option_name;",
+					"pgsql" => "ALTER TABLE user_options DROP CONSTRAINT option_name;",
+				), array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//The access field is not there.
+				//echo var_export( $error->getMessage(), $access_query );
+				$status_updates["nameusername_user_option_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "No constriant to remove."
+				);
+			}
+			
+			try {
+				
 				$update_query = array(
 					"mysql" => "",
 					"pgsql" => "",
@@ -356,6 +372,21 @@ class sql {
 				$status_updates["path_owner_constraint"] = array(
 					"error_message" => $error->getMessage(),
 					"dev_message" => "Removal of path1500owner255 constraint in the projects table failed.  This usually means there was never one to begin with"
+				);
+			}
+			
+			try {
+				
+				$projects = $this->query( array(
+					"mysql" => "ALTER TABLE projects DROP INDEX project_path;",
+					"pgsql" => "ALTER TABLE projects DROP CONSTRAINT project_path;",
+				), array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+				$status_updates["path_owner_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Removal of project_path constraint in the projects table failed.  This usually means there was never one to begin with"
 				);
 			}
 			

@@ -101,7 +101,7 @@ class Active extends Common {
 		foreach( $result as $id => $data ) {
 			
 			array_push( $users, $data["user"] );
-			if( $data["user"] == $_SESSION ) {
+			if( $data["user"] == $_SESSION["user"] ) {
 				
 				$user = true;
 				break;
