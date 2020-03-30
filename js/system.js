@@ -126,7 +126,7 @@
 		create_default_tables: function() {
 			
 			jQuery.ajax({
-					
+				
 				url: this.controller,
 				type: "POST",
 				dataType: 'html',
@@ -135,15 +135,6 @@
 				},
 				success: function( data ) {
 					
-					let response = codiad.jsend.parse( data );
-					
-					if( response.status != 'error' ) {
-						
-						codiad.message.success( i18n( 'Created Default Tables' ) );
-					} else {
-						
-						codiad.message.error( i18n( 'Error Creating Default Tables' ) );
-					}
 					console.log( data );
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
@@ -158,6 +149,45 @@
 				},
 			});
 		},
+		
+		get_ini_setting: async function( option ) {
+			
+			let i = null;
+			let result = await jQuery.ajax({
+				
+				url: this.controller,
+				type: "POST",
+				dataType: 'html',
+				data: {
+					action: 'get_ini_setting',
+					option: option,
+				},
+				success: function( data ) {
+					
+					console.log( data );
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					
+					codiad.message.error( i18n( 'Error Creating Default Tables' ) );
+					console.log('jqXHR:');
+					console.log(jqXHR);
+					console.log('textStatus:');
+					console.log(textStatus);
+					console.log('errorThrown:');
+					console.log(errorThrown);
+				},
+			});
+			
+			try {
+				
+				let data = JSON.parse( result );
+				i = data.value; 
+			} catch( e ) {
+				
+				console.log( e, result );
+			}
+			return i;
+		}
 	};
 
 })(this, jQuery);

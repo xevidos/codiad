@@ -66,11 +66,11 @@ switch($_GET['action']){
 			?>
 			<br><br><b><label><?php echo htmlentities("Your current version of Codiad is up to date."); ?></label></b>
 			<?php
-			if( $vars[0]['data']['name'] != '' ) {
+			/*if( $vars[0]['data']['name'] != '' ) {
 				?>
 				<em><?php i18n("Last update was done by "); ?><?php echo $vars[0]['data']['name']; ?>.</em>
 				<?php
-			}
+			}*/
 		}
 		?>
 		<?php

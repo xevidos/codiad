@@ -297,7 +297,7 @@
 					
 					let path = codiad.active.getPath();
 					$( e.target ).attr( 'data-path', path );
-					codiad.filemanager.contextMenuShow( e, path, 'editor', 'editor' );
+					codiad.filemanager.display_context_menu( e, path, 'editor', 'editor' );
 					$( this ).addClass( 'context-menu-active' );
 				}
 			});
@@ -390,11 +390,16 @@
 			this.setTabSize( this.settings.tabSize, i );
 			this.setSoftTabs( this.settings.softTabs, i );
 			this.setOverScroll( this.settings.overScroll, i );
-			i.setOptions( {
+			i.setOptions({
 				enableBasicAutocompletion: true,
 				enableSnippets: true,
 				enableLiveAutocompletion: this.settings.autocomplete
 			});
+			
+			if( i.getSession().read_only ) {
+				
+				i.setReadOnly( true );
+			}
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -718,11 +723,15 @@
 		/////////////////////////////////////////////////////////////////
 		
 		setSession: function( session, i ) {
+			
 			i = i || this.getActive();
 			if( !this.isOpen( session ) ) {
+				
 				if( !i ) {
+					
 					i = this.addInstance( session );
 				} else {
+					
 					i.setSession( session );
 				}
 			} else {
@@ -1287,7 +1296,12 @@
 				' &middot; ' + i18n( 'Col' ) + ': ' +
 				i.getCursorPosition().column
 			);
-			
+			amplify.publish( 'editor.changeCursor', {
+				i: i,
+				row: i.getCursorPosition().row,
+				column: i.getCursorPosition().column,
+			});
+		
 			//Register the changecursor function so updates continue
 			i.selection.on( "changeCursor", function( e ) {
 				
@@ -1298,6 +1312,12 @@
 					' &middot; ' + i18n( 'Col' ) + ': ' +
 					i.getCursorPosition().column
 				);
+				
+				amplify.publish( 'editor.changeCursor', {
+					i: i,
+					row: i.getCursorPosition().row,
+					column: i.getCursorPosition().column,
+				});
 			});
 		},
 		
@@ -1312,54 +1332,32 @@
 		
 		bindKeys: function( i ) {
 			
+			//Add key bindings to editor so we overwrite any already Setup
+			//by the ace editor.
 			var _this = this;
 			
-			// Find
-			i.commands.addCommand( {
-				name: 'Find',
-				bindKey: {
-					win: 'Ctrl-F',
-					mac: 'Command-F'
-				},
-				exec: function( e ) {
-					_this.openSearch( 'find' );
-				}
+			codiad.keybindings.bindings.forEach( function( m, j, a ) {
+				
+				i.commands.addCommand( m );
 			});
+		},
+		
+		open_goto: function() {
 			
-			// Find + Replace
-			i.commands.addCommand( {
-				name: 'Replace',
-				bindKey: {
-					win: 'Ctrl-R',
-					mac: 'Command-R'
-				},
-				exec: function( e ) {
-					_this.openSearch( 'replace' );
-				}
-			});
+			if( this.getActive() ) {
+				
+				codiad.modal.load( 400, 'components/editor/dialog.php?action=line' );
+				codiad.modal.hideOverlay();
+			} else {
+				codiad.message.error( 'No Open Files' );
+			}
+		},
+		
+		goto_line: function() {
 			
-			i.commands.addCommand( {
-				name: 'Move Up',
-				bindKey: {
-					win: 'Ctrl-up',
-					mac: 'Command-up'
-				},
-				exec: function( e ) {
-					codiad.active.move( 'up' );
-				}
-			});
-			
-			i.commands.addCommand( {
-				name: 'Move Down',
-				bindKey: {
-					win: 'Ctrl-down',
-					mac: 'Command-up'
-				},
-				exec: function( e ) {
-					codiad.active.move( 'down' );
-				}
-			});
-			
+			let line = $( '#modal input[name="goto_line"]' ).val();
+			this.gotoLine( line );
+			codiad.modal.unload();
 		},
 		
 		//////////////////////////////////////////////////////////////////
@@ -1372,13 +1370,34 @@
 		//////////////////////////////////////////////////////////////////
 		
 		openSearch: function( type ) {
+			
 			if( this.getActive() ) {
-				codiad.modal.load( 400,
-					'components/editor/dialog.php?action=search&type=' +
-					type );
-				codiad.modal.hideOverlay();
-			} else {
-				codiad.message.error( 'No Open Files' );
+				
+				let selected = codiad.active.getSelectedText();
+				
+				codiad.modal.load(
+					400,
+					'components/editor/dialog.php?action=search&type=' + type,
+					{},
+				)
+				.then( function( c ) {
+						
+						let input = c.find( 'input:first' );
+						let textarea = c.find( 'textarea:first' );
+						
+						if( input.css( 'display' ) !== 'none' ) {
+							
+							input.val( selected )
+							input.focus();
+						} else if( textarea.css( 'display' ) !== 'none' ) {
+							
+							textarea.val( selected )
+							textarea.focus();
+						}
+						console.log( input, textarea );
+						codiad.modal.hideOverlay();
+					}
+				);
 			}
 		},
 		
@@ -1408,6 +1427,9 @@
 				var replace = $( '#modal input[name="replace"]' )
 				.val();
 			}
+			
+			console.log( action, i, find, replace );
+			
 			switch ( action ) {
 				case 'find':
 					
@@ -1556,9 +1578,23 @@
 		
 		openSort: function() {
 			
-			if( this.getActive() && codiad.active.getSelectedText() != "" ) {
+			let selected = codiad.active.getSelectedText();
+			
+			if( this.getActive() && selected != "" ) {
 				
-				codiad.modal.load( 400, 'components/editor/dialog.php?action=sort' );
+				codiad.modal.load(
+					400,
+					'components/editor/dialog.php?action=sort',
+					{}
+				)
+				.then( function( c ) {
+						
+						let textarea = c.find( 'textarea:first' );
+						
+						textarea.val( selected )
+						textarea.focus();
+						codiad.modal.hideOverlay();
+				});
 				codiad.modal.hideOverlay();
 			} else {
 				

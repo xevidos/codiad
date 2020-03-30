@@ -53,26 +53,41 @@
 		
 		add_user: function() {
 			
-			var _this = this;
+			let _this = this;
+			let id = $( '#modal-content form select[name="user_list"]' ).val();
+			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
+			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			
-			$( '#modal-content form' ).live( 'submit', function( e ) {
-			
-				e.preventDefault();
-				username = $( '#modal-content form select[name="user_list"]' ).val();
-				project_path = $( '#modal-content form input[name="project_path"]' ).val()
+			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( id ) + '&access=delete', function( data ) {
 				
-				$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( username ), function( data ) {
-						
-						response = codiad.jsend.parse( data );
-						console.log( response );
-						if ( response != 'error' ) {
-							
-							codiad.project.manage_access( project_path );
-						}
-				});
+				response = codiad.jsend.parse( data );
+				console.log( response );
+				if ( response != 'error' ) {
+					
+					codiad.project.manage_access( project_path );
+				}
 			});
 		},
 		
+		change_access: function( e, id ) {
+			
+			let _this = codiad.project;
+			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
+			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
+			let access = $( e.target ).children( "option:selected" ).val();
+			
+			console.log( access, id, project_path, project_id );
+			
+			$.get( _this.controller + '?action=add_user&project_path=' + encodeURIComponent( project_path ) + '&id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( id ) + '&access=' + encodeURIComponent( access ), function( data ) {
+				
+				let response = codiad.jsend.parse( data );
+				console.log( response );
+				if ( response != 'error' ) {
+					
+					codiad.project.manage_access( project_path );
+				}
+			});
+		},
 		
 		//////////////////////////////////////////////////////////////////
 		// Create Project
@@ -233,6 +248,12 @@
 			codiad.modal.load( 500, this.dialog + '?action=list' );
 		},
 		
+		list_all: function() {
+			
+			$( '#modal-content form' ).die( 'submit' ); // Prevent form bubbling
+			codiad.modal.load( 500, this.dialog + '?action=list&all=true' );
+		},
+		
 		/**
 		 * Turn the access array into a table.
 		 */
@@ -290,7 +311,7 @@
 		//////////////////////////////////////////////////////////////////
 		
 		manage_access: function( path ) {
-		
+			
 			var _this = this;
 			
 			$( '#modal-content form' )
@@ -307,7 +328,8 @@
 			var _this = this;
 			codiad.finder.contractFinder();
 			$.get( this.controller + '?action=open&path=' + encodeURIComponent( path ), function( data ) {
-					
+				
+				console.log( data );
 				var projectInfo = codiad.jsend.parse(data);
 				if ( projectInfo != 'error' ) {
 					
@@ -353,20 +375,17 @@
 			
 			var _this = this;
 			
-			$( '#modal-content form' ).live( 'submit', function( e ) {
+			let project_path = $( '#modal-content form input[name="project_path"]' ).val();
+			let project_id = $( '#modal-content form input[name="project_id"]' ).val();
 			
-				e.preventDefault();
-				project_path = $( '#modal-content form input[name="project_path"]' ).val()
-				
-				$.get( _this.controller + '?action=remove_user&project_path=' + encodeURIComponent( project_path ) + '&username=' + encodeURIComponent( user ), function( data ) {
+			$.get( _this.controller + '?action=remove_user&project_path=' + encodeURIComponent( project_path ) + '&project_id=' + encodeURIComponent( project_id ) + '&user_id=' + encodeURIComponent( user ), function( data ) {
+					
+					response = codiad.jsend.parse( data );
+					console.log( response );
+					if ( response != 'error' ) {
 						
-						response = codiad.jsend.parse( data );
-						console.log( response );
-						if ( response != 'error' ) {
-							
-							codiad.project.manage_access( project_path );
-						}
-				});
+						codiad.project.manage_access( project_path );
+					}
 			});
 		},
 		

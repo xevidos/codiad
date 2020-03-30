@@ -442,12 +442,12 @@ if(!password_match){ alert('The passwords entered do not match'); }
 if(!empty_fields && password_match && check_path){
 $.post('components/install/install.php',$('#install').serialize(),function( data ) {
 
-if( data == 'success' ){
+console.log( data );
+
+if( data === "success" || data == "" ){
 window.location.reload();
 } else {
-data = JSON.parse( data );
-console.log( data.error );
-alert( "An Error Occurred\n" + data.message );
+alert( "An Error Occurred.  Please check the console for more information.\n" );
 }
 });
 }

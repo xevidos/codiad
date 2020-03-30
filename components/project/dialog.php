@@ -7,8 +7,9 @@
 */
 
 
-require_once('../../common.php');
-require_once('./class.project.php');
+require_once( '../../common.php' );
+require_once( './class.project.php' );
+require_once( '../user/class.user.php' );
 
 //////////////////////////////////////////////////////////////////
 // Verify Session or Key
@@ -56,7 +57,12 @@ switch( $_GET['action'] ) {
 	case 'list':
 		
 		//Get projects data
-		$projects = $Project->get_projects();
+		if( isset( $_GET["all"] ) ) {
+			
+			$projects = $Project->get_all_projects();
+		} else {
+			$projects = $Project->get_projects();
+		}
 		?>
 		<label><?php i18n("Project List"); ?></label>
 		<div id="project-list">
@@ -72,56 +78,63 @@ switch( $_GET['action'] ) {
 			<div class="project-wrapper">
 				<table width="100%" style="word-wrap: break-word;word-break: break-all;">
 					<?php
-					foreach( $projects as $project => $data ) {
+					if( is_array( $projects ) ) {
 						
-						$show = true;
-						if( $show ) {
+						foreach( $projects as $project => $data ) {
 							
-							?>
-							<tr>
-								<td width="70"><a onclick="codiad.project.open('<?php echo( $data['path'] );?>');" class="icon-folder bigger-icon"></a></td>
-								<td width="150"><?php echo($data['name']);?></td>
-								<td width="250"><?php echo($data['path']);?></td>
-								<?php
-								$owner = $Project->get_owner( $data['path'] );
-								if( $owner == 'nobody' ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} elseif( $owner !== $_SESSION["user"] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be managed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} else {
-									
-									?>
-									<td width="70"><a onclick="codiad.project.manage_access( '<?php echo( $data['path'] );?>' );" class="icon-lock bigger-icon"></a></td>
-									<?php
-								}
+							$show = true;
+							if( $show ) {
+								
 								?>
+								<tr>
+									<td width="70"><a onclick="codiad.project.open('<?php echo( $data['path'] );?>');" class="icon-folder bigger-icon"></a></td>
+									<td width="150"><?php echo($data['name']);?></td>
+									<td width="250"><?php echo($data['path']);?></td>
+									<?php
+									$owner = $Project->get_owner( $data['path'] );
+									if( $owner == -1 ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Public projects can not be managed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} elseif( $owner !== $_SESSION["user_id"] ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be managed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} else {
+										
+										?>
+										<td width="70"><a onclick="codiad.project.manage_access( '<?php echo( $data['path'] );?>' );" class="icon-lock bigger-icon"></a></td>
+										<?php
+									}
+									?>
+									<?php
+									if( $_SESSION['project'] == $data['path'] ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} elseif( $owner !== $_SESSION["user_id"] && $owner != -1 ) {
+										
+										?>
+										<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
+										<?php
+									} else {
+										
+										?>
+										<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']);?>','<?php echo($data['path']);?>');" class="icon-cancel-circled bigger-icon"></a></td>
+										<?php
+									}
+									?>
+								</tr>
 								<?php
-								if( $_SESSION['project'] == $data['path'] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Active Project Cannot Be Removed'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} elseif( $owner !== $_SESSION["user"] ) {
-									
-									?>
-									<td width="70"><a onclick="codiad.message.error(i18n('Projects owned by others can not be deleted'));" class="icon-block bigger-icon"></a></td>
-									<?php
-								} else {
-									
-									?>
-									<td width="70"><a onclick="codiad.project.delete('<?php echo($data['name']);?>','<?php echo($data['path']);?>');" class="icon-cancel-circled bigger-icon"></a></td>
-									<?php
-								}
-								?>
-							</tr>
-							<?php
+							}
 						}
+					} else {
+						
+						$error = json_decode( $projects, true );
+						echo $error["message"];
 					}
 					?>
 				</table>
@@ -196,34 +209,55 @@ switch( $_GET['action'] ) {
 		 */
 		if( ! isset( $_GET["path"] ) || ! $Project->check_owner( $_GET["path"], true ) ) {
 			?>
-			<pre>Error, you either do not own this project or it is a public project.</pre>
+			<p>Error, you either do not own this project or it is a public project.</p>
+			<button class="btn-right" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
 			<?php
 			return;
 		}
 		
 		// Get projects data
+		$User = new User();
 		$path = $_GET['path'];
 		$project = $Project->get_project( $path );
-		$access = json_decode( $project["access"], true );
+		$access = $Project->get_access( $project["id"] );
 		$users = get_users( "return", true );
+		$user = $User->get_user( $_SESSION["user"] );
+		
+		if( isset( $users["status"] ) && $users["status"] == "error" ) {
+			
+			?>
+			<p>Error, could not fetch users information.</p>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
+			<?php
+			exit();
+		} else if( empty( $users ) ) {
+			
+			?>
+			<p>Error, You must have more than one user registered in your Codiad instance to manage permissions.</p>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
+			<?php
+			exit();
+		}
+		
 		?>
-		<form>
-			<input type="hidden" name="project_path" value="<?php echo( $path );?>">
+		<form onSubmit="event.preventDefault();">
+			<input type="hidden" name="project_path" value="<?php echo $path;?>">
+			<input type="hidden" name="project_id" value="<?php echo $project["id"];?>">
 			<label><span class="icon-pencil"></span><?php i18n( "Add Users" );?></label>
 			<input id="search_users" type="text" onkeyup="codiad.project.search_users();" />
 			<select id="user_list" name="user_list">
 				<?php
-				foreach( $users as $user ) {
+				foreach( $users as $i ) {
 					
 					?>
-					<option value="<?php echo htmlentities( $user );?>"><?php echo htmlentities( $user );?></option>
+					<option value="<?php echo htmlentities( $i["id"] );?>"><?php echo htmlentities( $i["username"] );?></option>
 					<?php
 				}
 				?>
 			</select>
 			<button class="btn-left" onclick="codiad.project.add_user();">Add User</button>
 			<?php
-			if( $access == null ) {
+			if( $access == null || empty( $access ) ) {
 				
 				?>
 				<p>No users have been given access.</p>
@@ -233,15 +267,47 @@ switch( $_GET['action'] ) {
 				?>
 				<table id="access_list">
 				<?php
-				foreach( $access as $user ) {
+				
+				foreach( $access as $row => $user_permissions ) {
+					
+					$i = null;
+					
+					foreach( $users as $r => $current_user ) {
+						
+						if( $current_user["id"] == $user_permissions["user"] ) {
+							
+							$i = $current_user;
+							break;
+						}
+					}
+					
+					if( ! $i ) {
+						
+						continue;
+					}
 					
 					?>
 					<tr>
 						<td>
-							<p><?php echo htmlentities( $user );?></p>
+							<p><?php echo htmlentities( $i["username"] );?></p>
 						</td>
 						<td>
-							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $user );?>' );">Remove Access</button>
+							<select onchange="codiad.project.change_access( event, <?php echo $i["id"];?> );">
+								<?php
+								foreach( Permissions::LEVELS as $level => $id ) {
+									
+									if( $id == $user_permissions["level"] ) {
+										
+										$selected = "selected='selected'";
+									} else {
+										
+										$selected = "";
+									}
+									?><option value="<?php echo $level;?>" <?php echo $selected;?>><?php echo ucfirst( $level );?></option><?php
+								}
+								?>
+							</select>
+							<button class="btn-left" onclick="codiad.project.remove_user( '<?php echo htmlentities( $i["id"] );?>' );">Remove Access</button>
 						</td>
 					</tr>
 					<?php
@@ -251,6 +317,7 @@ switch( $_GET['action'] ) {
 				<?php
 			}
 			?>
+			<button class="btn-left" onclick="codiad.project.list();return false;"><?php i18n( "Back" );?></button>
 			<button class="btn-right" onclick="codiad.modal.unload();return false;"><?php i18n( "Done" );?></button>
 		<form>
 		<?php

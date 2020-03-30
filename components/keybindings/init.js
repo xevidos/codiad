@@ -39,6 +39,63 @@
 	
 	codiad.keybindings = {
 		
+		bindings: [
+			{
+				name: 'Find',
+				bindKey: {
+					win: 'Ctrl-F',
+					mac: 'Command-F'
+				},
+				exec: function( e ) {
+					
+					codiad.editor.openSearch( 'find' );
+				}
+			},
+			{
+				name: 'Goto Line',
+				bindKey: {
+					win: 'Ctrl-L',
+					mac: 'Command-L'
+				},
+				exec: function( e ) {
+					
+					codiad.editor.open_goto();
+				}
+			},
+			{
+				name: 'Move Down',
+				bindKey: {
+					win: 'Ctrl-down',
+					mac: 'Command-up'
+				},
+				exec: function( e ) {
+					codiad.active.move( 'down' );
+				}
+			},
+			{
+				name: 'Move Up',
+				bindKey: {
+					win: 'Ctrl-up',
+					mac: 'Command-up'
+				},
+				exec: function( e ) {
+					
+					codiad.active.move( 'up' );
+				}
+			},
+			{
+				name: 'Replace',
+				bindKey: {
+					win: 'Ctrl-R',
+					mac: 'Command-R'
+				},
+				exec: function( e ) {
+					
+					codiad.editor.openSearch( 'replace' );
+				}
+			}
+		],
+		
 		init: function() {
 			
 			// Active List Next [CTRL+DOWN] //////////////////////////////
@@ -72,6 +129,12 @@
 			$.ctrl( '70', function() {
 				
 				codiad.editor.openSearch( 'find' );
+			});
+			
+			// Find [CTRL+L] /////////////////////////////////////////////
+			$.ctrl( '76', function() {
+				
+				codiad.editor.open_goto();
 			});
 			
 			// Open in browser [CTRL+O] //////////////////////////////////

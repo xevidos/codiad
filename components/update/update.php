@@ -8,13 +8,28 @@ require_once('../../common.php');
 require_once('../settings/class.settings.php');
 require_once('./class.update.php');
 
-
+function check_access_legacy() {
+	
+	$pass = false;
+	
+	if( isset( $_SESSION["token"] ) && isset( $_SESSION["user"] ) ) {
+		
+		global $sql;
+		$query = "SELECT COUNT( * ) FROM users WHERE username=? AND access=?;";
+		$bind_variables = array( $_SESSION["user"], "admin" );
+		$return = $sql->query( $query, $bind_variables, -1, 'fetchColumn' );
+		$admin = ( $return > 0 );
+		return $admin;
+	}
+	return $pass;
+}
 
 $user_settings_file = BASE_PATH . "/data/settings.php";
 $projects_file = BASE_PATH . "/data/projects.php";
 $users_file = BASE_PATH . "/data/users.php";
 //checkSession();
-if ( ! checkAccess() ) {
+if ( ! checkAccess() && ! check_access_legacy() ) {
+	
 	echo "Error, you do not have access to update Codiad.";
 	exit();
 }
@@ -177,6 +192,12 @@ class updater {
 		$sql = new sql();
 		$connection = $sql->connect();
 		$result = $sql->create_default_tables();
+		$upgrade_function = str_replace( ".", "_", $this->update::VERSION );
+		
+		if( is_callable( array( $this, $upgrade_function ) ) ) {
+			
+			$this->$upgrade_function();
+		}
 	}
 	
 	function check_update() {
@@ -453,7 +474,6 @@ class updater {
 		
 		$this->backup();
 		
-		
 		try {
 			
 			$sessions = "../../data/sessions";
@@ -476,10 +496,14 @@ class updater {
 				
 				$this->path . "/components/autocomplete",
 				$this->path . "/plugins/auto_save",
+				$this->path . "/plugins/Codiad-Archives",
+				$this->path . "/plugins/Codiad-Archives-master",
 				$this->path . "/plugins/Codiad-Auto-Save",
 				$this->path . "/plugins/Codiad-Auto-Save-master",
 				$this->path . "/plugins/Codiad-CodeSettings",
 				$this->path . "/plugins/Codiad-CodeSettings-master",
+				$this->path . "/plugins/Codiad-DragDrop",
+				$this->path . "/plugins/Codiad-DragDrop-master",
 			);
 			
 			foreach( $folder_conflictions as $dir ) {
@@ -513,7 +537,9 @@ class updater {
 				$this->path . "/{$update_folder}/.gitignore",
 				
 				$this->path . "/.gitlab-ci.yml",
-				$this->path . "/{$update_folder}/.gitlab-ci.yml"
+				$this->path . "/{$update_folder}/.gitlab-ci.yml",
+				
+				$this->path . "/components/sql/class.sql.conversions.php",
 			);
 			
 			foreach( $file_conflictions as $file ) {
@@ -923,7 +949,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 							return;
 						}
 						
-						progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+						progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the database update.";
 						
 						setTimeout( function() {
 							
@@ -992,7 +1018,7 @@ if( isset( $_GET["action"] ) && $_GET["action"] !== '' ) {
 						return;
 					}
 					
-					progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the datbase update.";
+					progress.innerText = "Filesystem update finished.  Please wait, your browser will now reload and start the database update.";
 					
 					setTimeout( function() {
 						

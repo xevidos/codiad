@@ -166,7 +166,7 @@
 			let _self = codiad.settings;
 			
 			jQuery.ajax({
-					
+				
 				url: this.controller + '?action=update_option',
 				type: "POST",
 				dataType: 'html',

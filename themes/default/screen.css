@@ -20,7 +20,7 @@
     background-color: #999;
 }
 
-::-webkit-scrollbar-thumb:horizontal {i
+::-webkit-scrollbar-thumb:horizontal {
     width: 5px;
     background-color: #666;
     -webkit-border-radius: 3px;
@@ -467,6 +467,100 @@ table [class^="icon-"], [class*=" icon-"] {
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0.29, rgb(120,120,120)),color-stop(0.77, rgb(77,77,77)));
     cursor: row-resize;
 }
+
+#uploads-button {
+	
+	bottom: 4px;
+	color: #999;
+	font-size: 12px;
+	position: absolute;
+	right: 100px;
+	z-index: 2;
+}
+
+.uploads-container {
+	
+	background: #1a1a1a;
+	bottom: 25px;
+	display: none;
+	height: 50%;
+	overflow-y: auto;
+	position: absolute;
+	right: 100px;
+	width: 250px;
+	z-index: 2;
+}
+
+.uploads-container .project-list-title {
+	
+	position: unset;
+	margin-bottom: 5px;
+}
+
+.uploads-content {
+	
+	height: 100%;
+	text-align: center;
+	width: 100%;
+}
+
+.upload-container {
+	
+	display: inline-block;
+	height: auto;
+	width: 95%;
+}
+
+.upload-title {
+	
+	display: inline-block;
+	max-width: 75%;
+	width: 80%;
+}
+
+.upload-progress-text {
+	
+	display: inline-block;
+	width: 20%;
+}
+
+.upload-progress {
+	
+	width: 75%;
+	margin: 10px auto;
+	height: 20px;
+	border: 1px solid #666;
+	background: #262626;
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.upload-progress .bar {
+	
+	width: 0;
+	height: 20px;
+	background-image: url( filemanager/images/progress_bar.png );
+}
+
+.upload-dismiss {
+	
+	display: inline-block;
+	left: -45px;
+	max-width: 75%;
+	position: relative;
+	text-decoration: underline;
+	width: auto;
+}
+
+.upload-cancel {
+	
+	color: red;
+	display: inline-block;
+	position: relative;
+	right: -45px;
+	width: auto;
+}
+
 #cursor-position {
     position: absolute;
     right: 30px;
@@ -609,6 +703,7 @@ table [class^="icon-"], [class*=" icon-"] {
     left: 0;
     right: 10px;
     bottom: 276px;
+    background-color: #1a1a1a;
 }
 
 .sb-left-projects {
@@ -816,6 +911,7 @@ table [class^="icon-"], [class*=" icon-"] {
     background: url(loading.gif) no-repeat center;
 }
 
+
     /* Download iFrame */
 #download {
     display: none;
@@ -828,4 +924,30 @@ table [class^="icon-"], [class*=" icon-"] {
 	height: 25px;
 	vertical-align: middle;
 	width: 25px;
+}
+
+.drop-overlay {
+	
+	display: none;
+	
+	border: 2px dashed #fff;
+	border-radius: 10px;
+
+	background: rgba( 255, 255, 255, 0.15 );
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+	z-index: 97;
+}
+
+.drop-overlay-message {
+	
+	text-align: center;
+	position: relative;
+	float: left;
+	top: 50%;
+	left: 50%;
+	transform: translate( -50%, -50% );
 }

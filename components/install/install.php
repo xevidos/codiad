@@ -5,6 +5,8 @@ require_once( __DIR__ . "/../settings/class.settings.php" );
 
 class Install {
 	
+	const PATH_REGEX = '/[^\w\-\._@]/';
+	
 	public $active = "";
 	public $config = "";
 	public $db_types = array();
@@ -84,7 +86,7 @@ class Install {
 	
 	function clean_username( $username ) {
 		
-		return strtolower( preg_replace( '/[^\w\-\._@]/', '-', $username ) );
+		return strtolower( preg_replace( self::PATH_REGEX, '-', $username ) );
 	}
 	
 	function create_config() {
@@ -148,20 +150,22 @@ define("WSURL", BASE_URL . "/workspace");
 // Marketplace
 //define("MARKETURL", "http://market.codiad.com/json");
 ';
-		$this->save_file( $this->config, $config_data );
-		echo( "success" );
+		return file_put_contents( $this->config, $config_data );
 	}
 	
 	function create_project() {
 		
 		$project_path = $this->project_path;
+		$connection = $this->sql->connect();
 		
 		if ( ! $this->is_abs_path( $project_path ) ) {
 			
-			$project_path = preg_replace( '/[^\w-._@]/', '-', $project_path );
+			$project_path = preg_replace( self::PATH_REGEX, '-', $project_path );
+			$project_path = $this->username . "/" . $project_path;
+			
 			if( ! is_dir( $this->workspace . "/" . $project_path ) ) {
 				
-				mkdir( $this->workspace . "/" . $project_path );
+				mkdir( $this->workspace . "/" . $project_path, 0755, true );
 			}
 		} else {
 			
@@ -184,57 +188,52 @@ define("WSURL", BASE_URL . "/workspace");
 			}
 		}
 		
+		$query = "DELETE FROM projects WHERE path = ?;";
+		$bind_variables = array(
+			$project_path
+		);
+		$statement = $connection->prepare( $query );
+		$statement->execute( $bind_variables );
+		
+		$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,( SELECT id FROM users WHERE username = ? LIMIT 1 ));";
 		$bind_variables = array(
 			$this->project_name,
 			$project_path,
 			$this->username
 		);
-		$query = "INSERT INTO projects(name, path, owner) VALUES (?,?,?);";
-		$connection = $this->sql->connect();
 		$statement = $connection->prepare( $query );
 		$statement->execute( $bind_variables );
-		$error = $statement->errorInfo();
-		
-		if( ! $error[0] == "00000" ) {
-			
-			die( '{"message":"Could not create project in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
-		}
 	}
 	
 	function create_tables() {
 		
 		$result = $this->sql->create_default_tables();
 		
-		if ( ! $result === true ) {
+		if ( ! $result["create_tables"] === true ) {
 			
-			die( '{"message":"Could not tables in database.","error":"' . json_encode( $result ) .'"}' );
+			exit( json_encode( $result ) );
 		}
 	}
 	
 	function create_user() {
 		
 		$bind_variables = array(
-			"",
-			"",
 			$this->username,
 			$this->password,
-			"",
 			$this->project_path,
-			"admin",
-			"",
-			""
+			Permissions::LEVELS["admin"]
 		);
-		$query = "INSERT INTO users(first_name, last_name, username, password, email, project, access, groups, token) VALUES (?,?,?,?,?,?,?,?,?)";
-		$connection = $this->sql->connect();
-		$statement = $connection->prepare( $query );
-		$statement->execute( $bind_variables );
-		$error = $statement->errorInfo();
+		$query = "INSERT INTO users( username, password, project, access ) VALUES ( ?,?,( SELECT id FROM projects WHERE path = ? LIMIT 1 ),? )";
 		
-		if( ! $error[0] == "00000" ) {
+		try {
 			
-			die( '{"message":"Could not create user in database.","error":"' . addslashes(json_encode( $error )) .'"}' );
+			$connection = $this->sql->connect();
+			$statement = $connection->prepare( $query );
+			$statement->execute( $bind_variables );
+		} catch( exception $e ) {
+			
+			exit( "Error could not create user: " . $e->getMessage() );
 		}
-		
 		$this->set_default_options();
 	}
 	
@@ -269,10 +268,11 @@ define("WSURL", BASE_URL . "/workspace");
 		$connection = $this->sql->connect();
 		
 		$this->create_tables();
-		$this->create_project();
 		$this->create_user();
+		$this->create_project();
 		//exit( "stop" );
 		$this->create_config();
+		return "success";
 	}
 	
 	function JSEND( $message, $error=null ) {
@@ -288,18 +288,14 @@ define("WSURL", BASE_URL . "/workspace");
 		exit( json_encode( $message ) );
 	}
 	
-	function save_file( $file, $data ) {
-		
-		$write = fopen( $file, 'w' ) or die( '{"message": "can\'t open file"}' );
-		fwrite( $write, $data );
-		fclose( $write );
-	}
-	
 	public function set_default_options() {
 		
 		foreach( Settings::DEFAULT_OPTIONS as $id => $option ) {
 			
-			$query = "INSERT INTO user_options ( name, username, value ) VALUES ( ?, ?, ? );";
+			$query = array(
+				"*" => "INSERT INTO user_options ( name, user, value ) VALUES ( ?, ( SELECT id FROM users WHERE username = ? ), ? );",
+				"pgsql" => 'INSERT INTO user_options ( name, "user", value ) VALUES ( ?, ( SELECT id FROM users WHERE username = ? ), ? );',
+			);
 			$bind_variables = array(
 				$option["name"],
 				$this->username,
@@ -309,7 +305,10 @@ define("WSURL", BASE_URL . "/workspace");
 			
 			if( $result == 0 ) {
 				
-				$query = "UPDATE user_options SET value=? WHERE name=? AND username=?;";
+				$query = array(
+					"*" => "UPDATE user_options SET value=? WHERE name=? AND user=( SELECT id FROM users WHERE username = ? );",
+					"pgsql" => 'UPDATE user_options SET value=? WHERE name=? AND "user"=( SELECT id FROM users WHERE username = ? );',
+				);
 				$bind_variables = array(
 					$option["value"],
 					$option["name"],
