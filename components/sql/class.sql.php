@@ -361,6 +361,21 @@ class sql {
 			
 			try {
 				
+				$projects = $this->query( array(
+					"mysql" => "ALTER TABLE projects DROP INDEX project_path;",
+					"pgsql" => "ALTER TABLE projects DROP CONSTRAINT project_path;",
+				), array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//echo var_dump( $error->getMessage() );
+				$status_updates["path_owner_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "Removal of project_path constraint in the projects table failed.  This usually means there was never one to begin with"
+				);
+			}
+			
+			try {
+				
 				$convert = false;
 				$update_query = "";
 				$projects = $this->query( "SELECT id, name, path, owner FROM projects", array(), array(), "fetchAll", "exception" );
