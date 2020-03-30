@@ -220,6 +220,22 @@ class sql {
 			
 			try {
 				
+				$this->query( array(
+					"mysql" => "ALTER TABLE user_options DROP INDEX option_name;",
+					"pgsql" => "ALTER TABLE user_options DROP CONSTRAINT option_name;",
+				), array(), 0, "rowCount", "exception" );
+			} catch( Exception $error ) {
+				
+				//The access field is not there.
+				//echo var_export( $error->getMessage(), $access_query );
+				$status_updates["nameusername_user_option_constraint"] = array(
+					"error_message" => $error->getMessage(),
+					"dev_message" => "No constriant to remove."
+				);
+			}
+			
+			try {
+				
 				$update_query = array(
 					"mysql" => "",
 					"pgsql" => "",
