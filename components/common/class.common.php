@@ -58,6 +58,15 @@ class Common {
 		return ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? "https" : "http" ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	}
 	
+	public static function get_default_return() {
+		
+		return array(
+			"status" => "none",
+			"message" => "",
+			"value" => null,
+		);
+	}
+	
 	public static function i18n( $key, $args = array() ) {
 		
 		global $lang;

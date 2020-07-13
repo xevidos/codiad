@@ -21,6 +21,37 @@ class Data {
 		
 		return self::$instance;
 	}
+	
+	public function query( $query, $bind_vars, $default, $action='fetchAll', $errors="default" ) {
+		
+		$return = common::get_default_return();
+		
+		if( is_array( $query ) ) {
+			
+			if( in_array( DBTYPE, array_keys( $query ) ) ) {
+				
+				$query = $query[DBTYPE];
+			} else {
+				
+				if( isset( $query["*"] ) ) {
+					
+					$query = $query["*"];
+				} else {
+					
+					$return = $default;
+					
+					if( $errors == "message" ) {
+						
+						$return = json_encode( array( "error" => "No query specified for database type." ) );
+					} elseif( $errors == "exception" ) {
+						
+						throw new Error( "No query specified for database type." );
+					}
+					return $return;
+				}
+			}
+		}
+	}
 }
 
 ?>

@@ -32,26 +32,31 @@ class Initialize {
 	
 	function __construct() {
 		
-		$config = realpath( __DIR__ . "/../../config.php" );
+		$config = realpath( dirname( __FILE__ ) . "/../../config.php" );
 		
-		if( ! file_exists( $config ) || ! is_readable( $config ) ) {
+		if( ! self::is_installing() ) {
 			
-			$message = "Error loading config file.";
-			
-			if( ! file_exists( $config ) ) {
+			if( ( ! file_exists( $config ) || ! is_readable( $config ) ) ) {
 				
-				$message = "Error, could not find config file.  If you have not installed Codiad please go to /install/ to complete the installation.";
-			} elseif( ! is_readable( $config ) ) {
+				$message = "Error loading config file.";
 				
-				$message = "Error config file is not readable, please check permissions.";
+				if( ! file_exists( $config ) ) {
+					
+					$message = "Error, could not find config file.  If you have not installed Codiad please go to <a href='./install'>/install/</a> to complete the installation.";
+				} elseif( ! is_readable( $config ) ) {
+					
+					$message = "Error config file is not readable, please check permissions.";
+				}
+				echo $message;
+				exit();
+			} else {
+				
+				require_once( $config );
 			}
-			echo $message;
-			exit();
 		}
 		
-		require_once( $config );
-		
 		$this->register_constants();
+		$this->register_globals();
 		
 		$bases = self::BASES;
 		
@@ -67,7 +72,6 @@ class Initialize {
 			}
 		}
 		
-		$this->register_globals();
 		$this->check_paths();
 		
 	}
@@ -99,6 +103,11 @@ class Initialize {
 		}
 		
 		return self::$instance;
+	}
+	
+	public static function is_installing() {
+		
+		return ! ( strpos( $_SERVER["SCRIPT_NAME"], "install" ) === false );
 	}
 	
 	function register_constants() {
@@ -138,6 +147,11 @@ class Initialize {
 		if( ! defined( 'SITE_NAME' ) ) {
 			
 			define( 'SITE_NAME', "Codiad" );
+		}
+		
+		if( ! defined( 'THEME' ) ) {
+			
+			define( "THEME", "default" );
 		}
 		
 		if( ! defined( 'THEMES' ) ) {
