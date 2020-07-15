@@ -103,6 +103,10 @@
 							
 							pass = self.values[i];
 							break;
+						} else if( value === self.values[i].not_value || `${value}` === `${self.values[i].not_value}` ) {
+							
+							pass = self.values[i];
+							break;
 						} else {
 							
 							pass = false;
