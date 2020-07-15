@@ -54,6 +54,9 @@ div {
     scrollbar-highlight-color:#303030;
     scrollbar-shadow-color:#303030;
     scrollbar-track-color:#303030;
+    
+    scrollbar-color: #666 #333;
+    scrollbar-width: thin;
 }
 
 /* GLOBALS */
@@ -194,10 +197,11 @@ input:focus, textarea:focus, select:focus {
 
 input[type="checkbox"] {
     width: 20px;
-  position: relative;
+	position: relative;
     margin: 5px 0 0 0; padding: 0;
 }
 
+.button,
 button {
     display: inline-block;
     width: auto;
@@ -213,27 +217,29 @@ button {
     border-bottom: 2px solid #7d7d7d;
 }
 
-button:hover {
+button:hover,
+.button:hover {
     color: #333;
     background-color: #f3f3f3;
     cursor: pointer;
     border-bottom: 2px solid #919191;
 }
 
-button.btn-left {
+.btn-left {
     border-radius: 3px 0px 0px 3px;
     border-right: none;
 }
 
-button.btn-mid {
+.btn-mid {
     border-radius: 0;
     border-right: none;
 }
 
-button.btn-right {
+.btn-right {
     border-radius: 0px 3px 3px 0px;
 }
 
+.button .icon,
 button .icon {
     padding: 0;
     padding-right: 5px;

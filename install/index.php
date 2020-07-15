@@ -44,30 +44,6 @@ if( isset( $_SESSION['theme'] ) ) {
 			if( file_exists( THEMES . "/". $theme . "/" . $sheet ) ) {
 				
 				echo( '<link rel="stylesheet" href="../themes/' . $theme . '/' . $sheet . '?v=' . Update::get_version() . '">' );
-			} else {
-				
-				echo( '<link rel="stylesheet" href="../themes/default/' . $sheet . '?v=' . Update::get_version() . '">' );
-			}
-		}
-		
-		// Load Component CSS Files    
-		foreach( $components as $component ) {
-			
-			if( file_exists( THEMES . "/". $theme . "/" . $component . "/screen.css" ) ) {
-				
-				echo( '<link rel="stylesheet" href="../themes/' . $theme . '/' . $component . '/screen.css?v=' . Update::get_version() . '">' );
-			} else {
-				
-				if( file_exists( "../themes/default/" . $component . "/screen.css" ) ) {
-					
-					echo( '<link rel="stylesheet" href="../themes/default/' . $component . '/screen.css?v=' . Update::get_version() . '">' );
-				} else {
-					
-					if( file_exists( COMPONENTS . "/" . $component . "/screen.css" ) ) {
-						
-						echo( '<link rel="stylesheet" href="../components/' . $component . '/screen.css?v=' . Update::get_version() . '">' );
-					}
-				}
 			}
 		}
 		
@@ -81,14 +57,21 @@ if( isset( $_SESSION['theme'] ) ) {
 		?>
 		<style>
 			
-			form {
+			#installation {
 				
-				left: 50%;
-				margin-left: -175px;
-				padding: 35px;
+				right: 50%;
 				position: fixed;
 				top: 30%;
-				width: 350px;
+				transform: translate( 50%,-50% );
+				width: 50%;
+			}
+			
+			@media only screen and (max-width: 650px) {
+				
+				#installation {
+					
+					width: 80%;
+				}
 			}
 		</style>
 		<script src="../assets/js/jquery-3.5.1.js"></script>
@@ -99,32 +82,103 @@ if( isset( $_SESSION['theme'] ) ) {
 		<script src="../assets/js/forms.js"></script>
 	</head>
 	<body>
-		<div id="installation"></div>
+		<div id="installation">
+		</div>
 		<script>
 			( function( global, $ ) {
 				
 				$( document ).ready( function() {
 					
+					let dbconditions = {
+						
+						storage: {
+							
+							values: [
+								{
+									action: "hide",
+									value: "filesystem",
+								},
+								{
+									action: "show",
+									value: "mysql",
+								},
+								{
+									action: "show",
+									value: "pgsql",
+								}
+							],
+						},
+					};
+					
 					let d = {
 						
-						active: {
+						permissions: {
+							default: "false",
+							element: $( '<pre>Checking ...</pre>' ),
+							label: "Permission Checks: ",
+							name: "permissions",
+							type: "custom",
+						},
+						storage: {
 							
 							default: "true",
 							element: $( '<select></select>' ),
-							label: "Active On Website: ",
-							name: "active",
+							label: "Data Storage Method: ",
+							name: "storage",
 							options: {
-								"Yes": "true",
-								"No": "false",
+								"Filesystem": "filesystem",
+								"MySQL": "mysql",
+								"PostgreSQL": "pgsql",
 							},
 							type: "select",
+						},
+						dbhost: {
+							
+							conditions: $.extend( true, {}, dbconditions ),
+							default: "localhost",
+							label: "Database Host: ",
+							type: "text",
+						},
+						dbname: {
+							
+							conditions: $.extend( true, {}, dbconditions ),
+							default: "",
+							label: "Database Name: ",
+							type: "text",
+						},
+						dbuser: {
+							
+							conditions: $.extend( true, {}, dbconditions ),
+							default: "",
+							label: "Database User: ",
+							type: "text",
+						},
+						dbpass: {
+							
+							conditions: $.extend( true, {}, dbconditions ),
+							default: "",
+							label: "Database Password: ",
+							type: "text",
+						},
+						dbpass1: {
+							
+							conditions: $.extend( true, {}, dbconditions ),
+							default: "",
+							label: "Repeat Password: ",
+							type: "text",
 						},
 					};
 					
 					let form = new codiad.forms({
 						data: d,
 						container: $( "#installation" ),
+						submit_label: "Check Data Storage Method",
 					});
+					form.submit = function() {
+						
+						
+						console.log( "Submitted ..." );
+					}
 				});
 			})( this, jQuery );
 		</script>

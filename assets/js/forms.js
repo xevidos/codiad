@@ -10,8 +10,11 @@
 		
 		let _i = this;
 		
+		this.back_label = "Back";
+		this.next_label = "Next";
 		this.page = 0;
 		this.saving = false;
+		this.submit_label = "Submit";
 		this.topics = {};
 		
 		
@@ -78,12 +81,6 @@
 					let total = self.values.length;
 					let pass = false;
 					
-					if( ! self.parent.element ) {
-						
-						console.log( self.parent.element );
-						return;
-					}
-					
 					if( typeof self.subject === "object" ) {
 						
 						value = self.subject.value;
@@ -97,39 +94,21 @@
 						if( self.values[i].type ) {
 							
 							self.type = self.values[i].type;
-						} else {
+						} else if( self.values[i].action === "change_type" ) {
 							
 							self.type = self.parent.type;
 						}
 						
 						if( value === self.values[i].value || `${value}` === `${self.values[i].value}` ) {
 							
-							pass = true;
+							pass = self.values[i];
+							break;
 						} else {
 							
 							pass = false;
 						}
-						
-						if( pass ) {
-							
-							if( self.valid_actions.includes( self.values[i].true ) ) {
-								
-								self[self.values[i].true]();
-							} else if( typeof values[i].action === "function" ) {
-								
-								self.values[i].true();
-							}
-						} else {
-							
-							if( self.valid_actions.includes( self.values[i].false ) ) {
-								
-								self[self.values[i].false]();
-							} else if( typeof self.values[i].false === "function" ) {
-								
-								self.values[i].false();
-							}
-						}
 					}
+					return pass;
 				};
 				this.hide = function() {
 					
@@ -225,22 +204,66 @@
 				this.validation = null;
 				this.value = "";
 				
+				this.audit = function( o ) {
+					
+					let r = false;
+					
+					if( self.type === "repeatable" ) {
+						
+						let length = self.value.length;
+						for( let i = 0;i < length;i++ ) {
+							
+							self.audit( self.value[i].data );
+						}
+					} else {
+						
+						$.each( self.conditions, function( k, v ) {
+							
+							if( r !== false ) {
+								
+								return;
+							}
+							
+							r = v.check();
+							
+							if( r !== false ) {
+								
+								if( v.valid_actions.includes( r.action ) ) {
+									
+									v[r.action]();
+								} else if( typeof r.action === "function" ) {
+									
+									r.action();
+								}
+								return;
+							}
+						});
+					}
+				};
 				this.clone = function() {
 					
 					return _i.m.clone( self );
 				};
 				this.conditionals = function() {
 					
-					let total = self.subscriptions.length;
-					for( let i = 0;i < total;i++ ) {
+					let r = false;
+					
+					$.each( self.conditions, function( k, v ) {
 						
-						self.subscriptions[i]( self );
-					}
+						if( r !== false ) {
+							
+							return;
+						}
+						
+						r = v.check();
+					});
+					return r;
 				};
 				this.publish = function() {
 					
-					let total = self.subscriptions.length;
+					console.log( self );
 					
+					let total = self.subscriptions.length;
 					for( let i = 0;i < total;i++ ) {
 						
 						self.subscriptions[i]( self );
@@ -393,6 +416,12 @@
 					
 					o.update();
 				}];
+				
+				if( o.conditions ) {
+					
+					a.shown_by_default = false;
+				}
+				
 				$.each( o, function( key, value ) {
 					
 					a[key] = value;
@@ -411,7 +440,7 @@
 						a.update = function() {
 							
 							a.value = !!a.element.prop( "checked" );
-							a.conditionals();
+							a.publish();
 						};
 						a.render = function() {
 							
@@ -430,7 +459,7 @@
 							
 							let v = codiad.common.get_check_box_values( a.name );
 							a.value = v;
-							a.conditionals();
+							a.publish();
 						};
 						a.render = function() {
 							
@@ -477,60 +506,6 @@
 							
 							a.element = $( `<input type="datetime-local" />` );
 						}
-					break;
-					
-					case( a.type === "editor" ):
-						
-						if( ! a.element ) {
-							
-							a.element = $( `<textarea></textarea>` );
-						}
-						a.element.text( a.value );
-						a.label += "Please make sure to ( Edit->Select All ) then ( Format->Clear Formatting ) after pasting any content into this editor.";
-						a.update = function() {
-							
-							let e = a.element.tinymce();
-							a.value = e.getContent();
-						};
-						a.render = function() {
-							
-							let _this = a;
-							let e = a.element.tinymce();
-							
-							if( ! e ) {
-								
-								a.element.tinymce({
-									//theme: 'modern',
-									width: '100%',
-									height: 300,
-									plugins: [
-										'advlist autolink link image lists charmap print hr anchor pagebreak spellchecker',
-										'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
-										'save table directionality emoticons template paste'
-									],
-									content_style: 'body { font-size: 12pt; font-family: "Open Sans", sans-serif; }',
-									toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons',
-									relative_urls: false,
-									convert_urls: true,
-								});
-								e = a.element.tinymce();
-							}
-							
-							if( ! _this.value ) {
-								
-								_this.value = "";
-							}
-							
-							setTimeout( function() {
-								
-								e.render();
-								setTimeout( function() {
-									
-									e.setContent( _this.value );
-									e.on( "change", _this.update );
-								}, 500 );
-							}, 500 );
-						};
 					break;
 					
 					case( a.type === "email" ):
@@ -782,19 +757,6 @@
 						};
 					break;
 					
-					case( a.type === "ssn" ):
-						
-						if( ! a.element ) {
-							
-							a.element = $( `<input type="text" />` );
-						}
-						
-						if( ! a.validation ) {
-							
-							a.validation = _i.validation.validate;
-						}
-					break;
-					
 					case( a.type === "sortable" ):
 						
 						if( ! a.element ) {
@@ -861,7 +823,7 @@
 					a.update = function() {
 						
 						a.value = a.element.val();
-						a.conditionals();
+						a.publish();
 					}
 				}
 				
@@ -903,7 +865,7 @@
 						let c = new _this.conditional( v );
 						
 						c.parent = value;
-
+						
 						if( keys.includes( k ) ) {
 							
 							if( c.subject === null ) {
@@ -920,7 +882,7 @@
 								}
 							}
 						}
-						c.subject.subscribe( c.check );
+						c.subject.subscribe( value.audit );
 						value.conditions[k] = c;
 					});
 				});
@@ -1223,17 +1185,6 @@
 					
 					o.render();
 				}
-				
-				if( conditions ) {
-					
-					if( o.parent.type === "repeatable-data" ) {
-						
-						_this.conditionals( [o.key], o.parent.data );
-					} else {
-						
-						_this.conditionals( [o.key], o.parent );
-					}
-				}
 				return o;
 			},
 			add_listeners: function( o, element = null ) {
@@ -1294,20 +1245,7 @@
 						return;
 					}
 					
-					if( value.type === "repeatable" ) {
-						
-						let length = value.value.length;
-						for( let i = 0;i < length;i++ ) {
-							
-							_this.conditionals( [], value.value[i].data );
-						}
-					} else {
-						
-						$.each( value.conditions, function( k, v ) {
-							
-							v.check();
-						});
-					}
+					value.audit();
 				});
 				this.checking_conditions = false;
 			},
@@ -1367,8 +1305,8 @@
 				
 				let _this = _i.v;
 				let controls = _this.controls;
-				let next = $( `<a class="button">Next</a>` );
-				let back = $( `<a class="button">Back</a>` );
+				let next = $( `<button class="button">${_i.next_label}</button>` );
+				let back = $( `<button class="button">${_i.back_label}</button>` );
 				
 				controls.html( '' );
 				
@@ -1383,7 +1321,7 @@
 				
 				if( _i.page == _i.get_total_pages() ) {
 					
-					next.text( "Submit" );
+					next.text( _i.submit_label );
 					next.attr( "type", "submit" )
 				}
 				
@@ -1416,6 +1354,15 @@
 						return;
 					}
 					
+					let check = value.conditionals();
+					
+					console.log( check );
+					
+					if( check !== false && check.action === "hide" ) {
+						
+						return;
+					}
+					
 					_this.add( value );
 				});
 				
@@ -1423,8 +1370,6 @@
 				_this.container.append( _this.controls );
 				_this.render_controls();
 				_this.update();
-				_this.conditionals();
-				
 				_i.publish( "data.onRenderedPage", {
 					page: id,
 					view: this,
@@ -1467,7 +1412,6 @@
 				email: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
 				number: /^(?=.)([+-]?(\d*)(\.(\d+))?)$/,
 				phone: /^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/,
-				ssn: /^[0-9]{3}\-?[0-9]{2}\-?[0-9]{4}$/,
 				year: /^[0-9]{4}$/,
 			},
 			
@@ -1698,6 +1642,21 @@
 		if( ! o.data ) {
 			
 			o.data = {};
+		}
+		
+		if( o.back_label ) {
+			
+			this.back_label = o.back_label;
+		}
+		
+		if( o.next_label ) {
+			
+			this.next_label = o.next_label;
+		}
+		
+		if( o.submit_label ) {
+			
+			this.submit_label = o.submit_label;
 		}
 		
 		let previous = null;
