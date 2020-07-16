@@ -4,10 +4,13 @@ namespace FileSystemStorage;
 
 class Data {
 	
-	protected static $instance = null;
-	
-	public $headers = array();
 	public $data = array();
+	public $headers = array();
+	private $increment = 0;
+	private $incremental = false;
+	protected static $instance = null;
+	private $meta = array();
+	private $uniques = array();
 	
 	function __construct() {}
 	
@@ -27,9 +30,33 @@ class Data {
 		return self::$instance;
 	}
 	
-	public function query(  ) {
+	public function get_data( $fields = array() ) {
 		
+		return $this->data;
+	}
+	
+	public function set_data( $data ) {
 		
+		//Add checks to validate Data with headers
+		//$this->data = $data;
+		$return = \Common::get_default_return();
+		
+	}
+	
+	public function set_meta( $meta, $uniques = array() ) {
+		
+		$return = \Common::get_default_return();
+		
+		if( ! empty( $this->meta ) ) {
+			
+			$return["status"] = "error";
+			$return["message"] = "The meta for this table is already set.";
+			return $return;
+		}
+		
+		$this->headers = array_keys( $meta );
+		$this->meta = $meta;
+		$this->uniques = $uniques;
 	}
 }
 

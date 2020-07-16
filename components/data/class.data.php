@@ -24,7 +24,7 @@ class Data {
 	
 	public function query( $query, $bind_vars, $default, $action='fetchAll', $errors="default" ) {
 		
-		$return = common::get_default_return();
+		$return = Common::get_default_return();
 		
 		if( is_array( $query ) ) {
 			
@@ -33,23 +33,22 @@ class Data {
 				$query = $query[DBTYPE];
 			} else {
 				
-				if( isset( $query["*"] ) ) {
+				$return = $default;
+				
+				if( $errors == "message" ) {
 					
-					$query = $query["*"];
-				} else {
+					$return = json_encode( array( "error" => "No query specified for database type." ) );
+				} elseif( $errors == "exception" ) {
 					
-					$return = $default;
-					
-					if( $errors == "message" ) {
-						
-						$return = json_encode( array( "error" => "No query specified for database type." ) );
-					} elseif( $errors == "exception" ) {
-						
-						throw new Error( "No query specified for database type." );
-					}
-					return $return;
+					throw new Error( "No query specified for database type." );
 				}
+				return $return;
 			}
+		}
+		
+		if( is_callable( $query ) ) {
+			
+			
 		}
 	}
 }
