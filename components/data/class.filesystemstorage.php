@@ -1,6 +1,6 @@
 <?php
 
-require_once( "./filesystemstorage/class.data.php" );
+require_once( "filesystemstorage/class.data.php" );
 
 class FileSystemStorage {
 	
@@ -8,7 +8,95 @@ class FileSystemStorage {
 	
 	function __construct() {}
 	
-	function create_tables() {
+	function create_table( $table, $data ) {
+		
+		$return = Common::get_default_return();
+		$pass = true;
+		$path = DATA . "/$table.inc";
+		$return["table"] = $table;
+		
+		if( file_exists( $path ) ) {
+			
+			$return["status"] = "error";
+			$return["message"] = "Table already exists.";
+			$pass = false;
+		}
+		
+		if( $pass ) {
+			
+			$write = file_put_contents( $path, serialize( $data ) );
+			
+			if( $write === false ) {
+				
+				$return["status"] = "error";
+				$return["message"] = "Unable to write to table file.";
+			} else {
+				
+				$return["status"] = "success";
+				$return["message"] = "Created table.";
+				$return["value"] = $write;
+			}
+		}
+		return $return;
+	}
+	
+	/**
+	 * Return an instance of this class.
+	 *
+	 * @since	${current_version}
+	 * @return	object	A single instance of this class.
+	 */
+	public static function get_instance() {
+		
+		if( null == self::$instance ) {
+			
+			self::$instance = new self;
+		}
+		
+		return self::$instance;
+	}
+	
+	public function get_data( $table, $fields = array(), $filter = null ) {
+		
+		$path = DATA . "/$table.inc";
+		$return = Common::get_default_return();
+		
+		if( is_file( $path ) ) {
+			
+			$data = file_get_contents( $path );
+			$c = unserialize( $data );
+			$i = $c::get_instance();
+			
+			if( is_callable( $filter ) ) {
+				
+				try {
+					
+					$return["data"] = $filter( $i->get_data( $fields ) );
+				} catch( Throwable $e ) {
+					
+					$return["status"] = "error";
+					$return["message"] = "Unable to call filter function.";
+					$return["error"] = array(
+						"message" => $e->getMessage(),
+						"object" => $e,
+					);
+				}
+			} else {
+				
+				$return["data"] = $i->get_data( $fields );
+			}
+		} else {
+			
+			$return["status"] = "error";
+			$return["message"] = "The requested table does not exist.";
+		}
+		return $return;
+	}
+	
+	function install() {
+		
+		$return = Common::get_default_return();
+		$pass = true;
 		
 		$access = new FileSystemStorage\Data();
 		$access->set_meta(
@@ -33,6 +121,7 @@ class FileSystemStorage {
 				),
 			)
 		);
+		$return["tables"][] = $this->create_table( "access", $access );
 		
 		$active = new FileSystemStorage\Data();
 		$active->set_meta(
@@ -63,6 +152,7 @@ class FileSystemStorage {
 				),
 			)
 		);
+		$return["tables"][] = $this->create_table( "active", $active );
 		
 		$options = new FileSystemStorage\Data();
 		$options->set_meta(
@@ -88,6 +178,7 @@ class FileSystemStorage {
 			),
 			array( "name" )
 		);
+		$return["tables"][] = $this->create_table( "options", $options );
 		
 		$projects = new FileSystemStorage\Data();
 		$projects->set_meta(
@@ -118,10 +209,10 @@ class FileSystemStorage {
 				),
 			)
 		);
-		
+		$return["tables"][] = $this->create_table( "project", $projects );
 		
 		$users = new FileSystemStorage\Data();
-		$projects->set_meta(
+		$users->set_meta(
 			array(
 				"id" => array(
 					"default" => null,
@@ -179,6 +270,7 @@ class FileSystemStorage {
 				),
 			)
 		);
+		$return["tables"][] = $this->create_table( "users", $users );
 		
 		$user_options = new FileSystemStorage\Data();
 		$user_options->set_meta(
@@ -210,61 +302,23 @@ class FileSystemStorage {
 			),
 			array( "name", "user" )
 		);
-	}
-	
-	/**
-	 * Return an instance of this class.
-	 *
-	 * @since	${current_version}
-	 * @return	object	A single instance of this class.
-	 */
-	public static function get_instance() {
+		$return["tables"][] = $this->create_table( "user_options", $user_options );
 		
-		if( null == self::$instance ) {
+		$return["status"] = "success";
+		$return["message"] = "Successfully created tables.";
+		
+		foreach( $return["tables"] as $table ) {
 			
-			self::$instance = new self;
-		}
-		
-		return self::$instance;
-	}
-	
-	public function get_data( $table, $fields = array(), $filter = null ) {
-		
-		$path = "./filesystemstorage/$table.inc";
-		$return = Common::get_default_return();
-		
-		if( is_file( $path ) ) {
-			
-			$data = file_get_contents( $path );
-			$c = unserialize( $data );
-			$i = $c::get_instance();
-			
-			if( is_callable( $filter ) ) {
+			if( $table["status"] == "error" ) {
 				
-				try {
-					
-					$return["data"] = $filter( $i->get_data( $fields ) );
-				} catch( Throwable $e ) {
-					
-					$return["status"] = "error";
-					$return["message"] = "Unable to call filter function.";
-					$return["error"] = array(
-						"message" => $e->getMessage(),
-						"object" => $e,
-					);
-				}
-			} else {
-				
-				$return["data"] = $i->get_data( $fields );
+				$pass = false;
+				$return["status"] = "error";
+				$return["message"] = "Unable to create {$table["table"]} table.";
+				break;
 			}
-		} else {
-			
-			$return["status"] = "error";
-			$return["message"] = "The requested table does not exist.";
 		}
 		return $return;
 	}
-	
 	
 	/**
 	 * Update data stored in a file on the server.  In order to stop the file
@@ -279,7 +333,7 @@ class FileSystemStorage {
 	public function update_data( $table, $update ) {
 		
 		$return = Common::get_default_return();
-		$path = "./filesystemstorage/$table.inc";
+		$path = DATA . "/$table.inc";
 		
 		if( is_file( $path ) ) {
 			

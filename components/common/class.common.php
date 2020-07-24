@@ -67,6 +67,11 @@ class Common {
 		);
 	}
 	
+	public static function get_url() {
+		
+		return ( self::is_ssl() ? "https" : "http" ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	}
+	
 	public static function i18n( $key, $args = array() ) {
 		
 		global $lang;
@@ -77,6 +82,11 @@ class Common {
 			$return = str_replace( "%{" . $k . "}%", $v, $return );
 		}
 		return $return;
+	}
+	
+	public static function is_ssl() {
+		
+		return isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? true : false;
 	}
 	
 	static function status( $status, $action, $message ) {

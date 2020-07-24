@@ -1,8 +1,19 @@
 ( function( global, $ ) {
 	
+	// Define core
+	let codiad = global.codiad,
+	scripts = document.getElementsByTagName( 'script' ),
+	path = scripts[scripts.length-1].src.split( '?' )[0],
+	curpath = path.split( '/' ).slice( 0, -1 ).join( '/' ) + '/';
+	
 	$( document ).ready( function() {
 		
-		let dbconditions = {
+		codiad.install.init();
+	});
+	
+	codiad.install = {
+		
+		dbconditions: {
 			
 			storage: {
 				
@@ -21,76 +32,104 @@
 					}
 				],
 			},
-		};
+		},
+		d: {},
+		form: null,
 		
-		let d = {
+		init: function() {
 			
-			permissions: {
-				default: "false",
-				element: $( '<pre>Checking ...</pre>' ),
-				label: "Permission Checks: ",
-				name: "permissions",
-				type: "custom",
-			},
-			storage: {
+			let _this = this;
+			
+			this.d = {
 				
-				default: "true",
-				element: $( '<select></select>' ),
-				label: "Data Storage Method: ",
-				name: "storage",
-				options: {
-					"Filesystem": "filesystem",
-					"MySQL": "mysql",
-					"PostgreSQL": "pgsql",
+				storage: {
+					
+					default: "",
+					element: $( '<select></select>' ),
+					label: "Data Storage Method: ",
+					name: "storage",
+					options: {
+						"Filesystem": "filesystem",
+						"MySQL": "mysql",
+						"PostgreSQL": "pgsql",
+					},
+					required: true,
+					type: "select",
 				},
-				type: "select",
-			},
-			dbhost: {
+				dbhost: {
+					
+					conditions: $.extend( true, {}, _this.dbconditions ),
+					default: "localhost",
+					label: "Database Host: ",
+					type: "text",
+				},
+				dbname: {
+					
+					conditions: $.extend( true, {}, _this.dbconditions ),
+					default: "",
+					label: "Database Name: ",
+					type: "text",
+				},
+				dbuser: {
+					
+					conditions: $.extend( true, {}, _this.dbconditions ),
+					default: "",
+					label: "Database User: ",
+					type: "text",
+				},
+				dbpass: {
+					
+					conditions: $.extend( true, {}, _this.dbconditions ),
+					default: "",
+					label: "Database Password: ",
+					type: "text",
+				},
+				dbpass1: {
+					
+					conditions: $.extend( true, {}, _this.dbconditions ),
+					default: "",
+					label: "Repeat Password: ",
+					type: "text",
+				},
+			};
+			this.form = new codiad.forms({
+				data: _this.d,
+				container: $( "#installation" ),
+				submit_label: "Check Data Storage Method",
+			});
+			this.form.submit = async function() {
 				
-				conditions: $.extend( true, {}, dbconditions ),
-				default: "localhost",
-				label: "Database Host: ",
-				type: "text",
-			},
-			dbname: {
+				let _this = this;
+				let invalid_values;
 				
-				conditions: $.extend( true, {}, dbconditions ),
-				default: "",
-				label: "Database Name: ",
-				type: "text",
-			},
-			dbuser: {
+				if( _this.saving ) {
+					
+					return;
+				}
 				
-				conditions: $.extend( true, {}, dbconditions ),
-				default: "",
-				label: "Database User: ",
-				type: "text",
-			},
-			dbpass: {
+				_this.saving = true;
+				let data = await _this.m.get_values();
+				let submit = _this.v.controls.find( `[type="submit"]` );
 				
-				conditions: $.extend( true, {}, dbconditions ),
-				default: "",
-				label: "Database Password: ",
-				type: "text",
-			},
-			dbpass1: {
+				submit.attr( "disabled", true );
+				submit.text( "Submitting ..." );
 				
-				conditions: $.extend( true, {}, dbconditions ),
-				default: "",
-				label: "Repeat Password: ",
-				type: "text",
-			},
-		};
-		
-		let form = new codiad.forms({
-			data: d,
-			container: $( "#installation" ),
-			submit_label: "Check Data Storage Method",
-		});
-		form.submit = function() {
-			
-			
-			console.log( "Submitted ..." );
+				let response = await codiad.common.ajax( "./index.php", "POST", data );
+				
+				console.log( response );
+				
+				let r = JSON.parse( response );
+				
+				if( r.status == "error" ) {
+					
+					codiad.message.error( r.message );
+					$( "#data_status" ).html( "<br><br>Data Status:<br>" + r.value );
+				}
+				
+				submit.text( _this.submit_label );
+				submit.attr( "disabled", false );
+				_this.saving = false;
+			}
 		}
-	});
+	};
 })( this, jQuery );

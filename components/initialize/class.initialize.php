@@ -19,22 +19,30 @@ class Initialize {
 		"events",
 		"update",
 	);
+	const EXTENSIONS = array(
+		"curl",
+		"json",
+		"mbstring",
+	);
 	const PATHS = array(
+		"BASE_PATH",
 		"COMPONENTS",
 		"DATA",
 		"PLUGINS",
 		"SESSIONS_PATH",
 		"THEMES",
 		"UPLOAD_CACHE",
+		"WORKSPACE",
 	);
-	
+
 	protected static $instance = null;
 	
 	function __construct() {
 		
 		$config = realpath( dirname( __FILE__ ) . "/../../config.php" );
+		$installing = self::is_installing();
 		
-		if( ! self::is_installing() ) {
+		if( ! $installing ) {
 			
 			if( ( ! file_exists( $config ) || ! is_readable( $config ) ) ) {
 				
@@ -72,21 +80,52 @@ class Initialize {
 			}
 		}
 		
-		$this->check_paths();
-		
+		if( ! $installing ) {
+			
+			$this->check_extensions();
+			$this->check_paths();
+		}
 	}
 	
-	function check_paths() {
+	public static function check_extensions() {
+		
+		$extensions = self::EXTENSIONS;
+		$pass = true;
+		
+		foreach( $extensions as $extension ) {
+			
+			if( extension_loaded( $extension ) ) {
+				
+				
+			} else {
+				
+				$pass = false;
+				break;
+			}
+		}
+		return $pass;
+	}
+	
+	public static function check_paths() {
 		
 		$paths = self::PATHS;
+		$pass = true;
 		
 		foreach( $paths as $path ) {
 			
-			if( ! is_dir( constant( $path ) ) ) {
+			if( is_dir( constant( $path ) ) ) {
+				
+				if( ! is_writable( constant( $path ) ) ) {
+					
+					$pass = false;
+					break;
+				}
+			} else {
 				
 				mkdir( constant( $path ) );
 			}
 		}
+		return $pass;
 	}
 	
 	/**
@@ -169,11 +208,18 @@ class Initialize {
 				define( "UPLOAD_CACHE", rtrim( sys_get_temp_dir(), "/" ) );
 			}
 		}
+		
+		if( ! defined( 'WORKSPACE' ) ) {
+			
+			define( "WORKSPACE", BASE_PATH . "/workspace" );
+		}
 	}
 	
 	function register_globals() {
 		
+		global $data;
 		
+		$data = null;
 	}
 }
 

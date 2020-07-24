@@ -199,7 +199,7 @@
 				this.required = false;
 				this.shown_by_default = true;
 				this.subdescription = null;
-				this.subfields = {};
+				this.subfields = null;
 				this.subscriptions = [];
 				this.subtitle = null;
 				this.title = null;
@@ -1255,9 +1255,13 @@
 			},
 			next_page: async function() {
 				
+				
 				let _this = _i.v;
 				let v = await _i.validation.verify();
-				let total = _i.get_total_pages()
+				let total = _i.get_total_pages();
+				
+				console.log( v );
+				
 				if( _i.page < total && v ) {
 					
 					_i.v.render_page( _i.page + 1 );
@@ -1482,7 +1486,7 @@
 					
 					$.each( data, async function( key, value ) {
 						
-						let show = true;
+						let check = false;
 						let repeatable = _i.m.is_repeatable( value );
 						let pass = true;
 						
@@ -1498,22 +1502,13 @@
 						
 						if( typeof value.conditions === "function" ) {
 							
-							show = value.conditions( value );
+							check = value.conditions( value );
 						} else if( value.conditions ) {
 							
-							$.each( value.conditions, function( i, v ) {
-								
-								if( ( v.value === v.o.value || `${v.value}` === `${v.o.value}` ) && show ) {
-									
-									show = true;
-								} else {
-									
-									show = false;
-								}
-							});
+							check = value.conditionals();
 						}
 						
-						if( ! show ) {
+						if( check !== false && check.action === "hide" ) {
 							
 							return;
 						}
@@ -1530,13 +1525,19 @@
 						
 						if( value.subfields ) {
 							
-							if( value.required && ! value.value.length ) {
+							if( value.required && ( ! value.value || ! value.value.length ) ) {
+								
+								pass = false;
+							}
+						} else {
+							
+							if( value.required && empty_values.includes( value.value ) ) {
 								
 								pass = false;
 							}
 						}
 						
-						if( typeof value.validation === "function" ) {
+						if( typeof value.validation === "function" && pass ) {
 							
 							pass = await value.validation( value );
 						}
@@ -1544,7 +1545,7 @@
 						values.push( pass );
 						if( pass ) {
 							
-							value.element.parent().css( 'color', 'black' );
+							value.element.parent().css( 'color', 'unset' );
 						} else {
 							
 							value.element.parent().css( 'color', 'red' );
@@ -1562,7 +1563,7 @@
 						_i.publish( "data.onVerificationFailure", {
 							form: _i,
 						});
-						_i.v.message.html( codiad.common.message( "Please be sure to fill out all denoted fields", "error" ) );
+						_i.v.message.html( codiad.message.error( "Please be sure to fill out all denoted fields", "error" ) );
 						$( "html, body" ).animate( { scrollTop: 0 }, "slow" );
 						reject( false );
 					}
