@@ -22,9 +22,16 @@ class Data {
 	);
 	
 	public $connection = null;
+	public $fss = null;
 	protected static $instance = null;
 	
-	function __construct() {}
+	function __construct() {
+		
+		if( DBTYPE === "filesystem" ) {
+			
+			$this->fss = FileSystemStorage::get_instance();
+		}
+	}
 	
 	public function close() {
 		
@@ -140,8 +147,57 @@ class Data {
 		
 		if( is_callable( $query ) ) {
 			
+			$return = call_user_func( $query );
+		} else {
 			
+			try {
+				
+				$connection = $this->connect();
+				$statement = $connection->prepare( $query );
+				$statement->execute( $bind_variables );
+				
+				switch( $action ) {
+					
+					case( 'rowCount' ):
+						
+						$return = $statement->rowCount();
+					break;
+					
+					case( 'fetch' ):
+						
+						$return = $statement->fetch( \PDO::FETCH_ASSOC );
+					break;
+					
+					case( 'fetchAll' ):
+						
+						$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+					break;
+					
+					case( 'fetchColumn' ):
+						
+						$return = $statement->fetchColumn();
+					break;
+					
+					default:
+						
+						$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+					break;
+				}
+			} catch( Throwable $error ) {
+				
+				$return = $default;
+				
+				if( $errors == "message" ) {
+					
+					$return = json_encode( array( $error->getMessage() ) );
+				} elseif( $errors == "exception" ) {
+					
+					throw $error;
+				}
+			}
+			$this->close();
 		}
+		return $return;
 	}
 }
 

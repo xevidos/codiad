@@ -2,6 +2,9 @@
 
 require_once( "filesystemstorage/class.data.php" );
 
+
+require_once( "filesystemstorage/class.user.php" );
+
 class FileSystemStorage {
 	
 	protected static $instance = null;
@@ -83,7 +86,9 @@ class FileSystemStorage {
 				}
 			} else {
 				
-				$return["data"] = $i->get_data( $fields );
+				$return["status"] = "success";
+				$return["message"] = "";
+				$return["value"] = $i->get_data( $fields );
 			}
 		} else {
 			
@@ -339,16 +344,16 @@ class FileSystemStorage {
 			
 			if( is_callable( $update ) ) {
 				
+				$data = file_get_contents( $path );
 				$handle = fopen( $path, "w+" );
 				
 				if( flock( $handle, LOCK_EX ) ) {
 					
-					$data = fread( $handle, filesize( $path ) );
 					$c = unserialize( $data );
 					
 					try {
 						
-						$c->set_data( $update( $c->get_data() ) );
+						$c->set_data( $update( $c->headers, $c->get_data() ) );
 					} catch( Throwable $e ) {
 						
 						$return["status"] = "error";

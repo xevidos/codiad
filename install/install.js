@@ -38,7 +38,7 @@
 		
 		init: function() {
 			
-			let _this = this;
+			let _ = this;
 			
 			this.d = {
 				
@@ -58,35 +58,107 @@
 				},
 				dbhost: {
 					
-					conditions: $.extend( true, {}, _this.dbconditions ),
+					conditions: $.extend( true, {}, _.dbconditions ),
 					default: "localhost",
 					label: "Database Host: ",
 					type: "text",
 				},
 				dbname: {
 					
-					conditions: $.extend( true, {}, _this.dbconditions ),
+					conditions: $.extend( true, {}, _.dbconditions ),
 					default: "",
 					label: "Database Name: ",
 					type: "text",
 				},
 				dbuser: {
 					
-					conditions: $.extend( true, {}, _this.dbconditions ),
+					conditions: $.extend( true, {}, _.dbconditions ),
 					default: "",
 					label: "Database User: ",
 					type: "text",
 				},
 				dbpass: {
 					
-					conditions: $.extend( true, {}, _this.dbconditions ),
+					conditions: $.extend( true, {}, _.dbconditions ),
 					default: "",
 					label: "Database Password: ",
 					type: "text",
 				},
 				dbpass1: {
 					
-					conditions: $.extend( true, {}, _this.dbconditions ),
+					conditions: $.extend( true, {}, _.dbconditions ),
+					default: "",
+					label: "Repeat Password: ",
+					type: "text",
+				},
+			};
+			this.form = new codiad.forms({
+				data: _.d,
+				container: $( "#installation" ),
+				submit_label: "Check Data Storage Method",
+			});
+			this.form.submit = async function() {
+				
+				let _this = this;
+				let invalid_values;
+				
+				if( _this.saving ) {
+					
+					return;
+				}
+				
+				_this.saving = true;
+				let data = await _this.m.get_values();
+				let submit = _this.v.controls.find( `[type="submit"]` );
+				
+				submit.attr( "disabled", true );
+				submit.text( "Submitting ..." );
+				
+				let response = await codiad.common.ajax( "./index.php", "POST", data );
+				
+				console.log( response );
+				
+				let r = JSON.parse( response );
+				
+				if( r.status == "error" ) {
+					
+					codiad.message.error( r.message );
+					$( "#data_status" ).html( "<br><br>Data Status:<br>" + r.value );
+				} else {
+					
+					_.user_setup();
+				}
+				
+				submit.text( _this.submit_label );
+				submit.attr( "disabled", false );
+				_this.saving = false;
+			}
+		},
+		user_setup: function() {
+			
+			let _this = this;
+			
+			this.d = {
+				username: {
+					
+					default: "",
+					label: "Username: ",
+					type: "text",
+				},
+				email: {
+					
+					default: "",
+					label: "Email: ",
+					type: "email",
+				},
+				password: {
+					
+					default: "",
+					label: "Password: ",
+					type: "text",
+				},
+				password: {
+					
 					default: "",
 					label: "Repeat Password: ",
 					type: "text",
@@ -95,7 +167,7 @@
 			this.form = new codiad.forms({
 				data: _this.d,
 				container: $( "#installation" ),
-				submit_label: "Check Data Storage Method",
+				submit_label: "Create User",
 			});
 			this.form.submit = async function() {
 				
@@ -130,6 +202,6 @@
 				submit.attr( "disabled", false );
 				_this.saving = false;
 			}
-		}
+		},
 	};
 })( this, jQuery );

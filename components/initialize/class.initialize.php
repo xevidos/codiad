@@ -63,22 +63,18 @@ class Initialize {
 			}
 		}
 		
-		$this->register_constants();
-		$this->register_globals();
-		
 		$bases = self::BASES;
+		
+		$this->register_constants();
 		
 		foreach( $bases as $base ) {
 			
 			$name = strtolower( $base );
 			$class = ucfirst( $base );
 			require_once( COMPONENTS . "/$name/class.$name.php" );
-			
-			if( class_exists( $class ) ) {
-				
-				$class::get_instance();
-			}
 		}
+		
+		$this->register_globals();
 		
 		if( ! $installing ) {
 			
@@ -219,7 +215,7 @@ class Initialize {
 		
 		global $data;
 		
-		$data = null;
+		$data = Data::get_instance();
 	}
 }
 

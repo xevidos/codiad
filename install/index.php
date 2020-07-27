@@ -1,5 +1,5 @@
 <?php
-
+define( 'DBTYPE', "filesystem" );
 ini_set( 'display_errors', 1 );
 ini_set( 'display_startup_errors', 1 );
 error_reporting( E_ALL );
@@ -7,6 +7,22 @@ error_reporting( E_ALL );
 require_once( __DIR__ . "/../components/initialize/class.initialize.php" );
 
 Initialize::get_instance();
+
+require_once( __DIR__ . "/../components/user/class.user.php" );
+
+//$data->install( "filesystem" );
+
+$u = User::get_instance();
+
+echo var_dump( $u->create_user( array(
+	
+	"username" => "test",
+	"password" => "test",
+	"password1" => "test",
+	"access" => 0,
+) ) );
+
+exit();
 
 $checks_html = "";
 $check_paths = Initialize::PATHS;
@@ -106,6 +122,19 @@ if( isset( $_POST["storage"] ) ) {
 				$return = $data->install( $_POST["storage"] );
 			}
 		}
+	}
+	exit( json_encode( $return ) );
+}
+
+if( isset( $_POST["username"] ) ) {
+	
+	$pass = true;
+	$return = Common::get_default_return();
+	$User = User::get_instance();
+	
+	if( $pass ) {
+		
+		
 	}
 	exit( json_encode( $return ) );
 }

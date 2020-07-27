@@ -25,8 +25,9 @@ class Options {
 	
 	public function get_option( $option ) {
 		
+		global $data;
 		$query = array(
-			"*" => "SELECT * FROM user_options WHERE name=? AND user=?",
+			"default" => "SELECT * FROM user_options WHERE name=? AND user=?",
 			"pgsql" => 'SELECT value FROM user_options WHERE name=? AND "user"=?;',
 			"filesystem" => array(
 				"options",
@@ -34,8 +35,7 @@ class Options {
 				$option
 			),
 		);
-		$Data = Data::get_instance();
-		return $Data->query( $query );
+		return $data->query( $query );
 	}
 	
 	public function update_option( $option, $value ) {}

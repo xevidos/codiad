@@ -40,7 +40,7 @@ class Data {
 		//Add checks to validate Data with headers
 		//$this->data = $data;
 		$return = \Common::get_default_return();
-		
+		return false;
 	}
 	
 	public function set_meta( $meta, $uniques = array() ) {
