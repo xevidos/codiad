@@ -11,12 +11,11 @@ class User {
 	public static function create_user( $user ) {
 		
 		global $data;
-		$result = $data->fss->update_data( "users", self::create_user_call );
-		echo var_dump( $result );
-		return;
+		$result = $data->fss->update_data( "users", array( "FileSystemStorage\\User", "create_user_callback", array( $user ) ) );
+		return $result;
 	}
 	
-	public static function create_user_callback( $headers, $d ) {
+	public static function create_user_callback( $headers, $d, $user ) {
 		
 		$new = array();
 		foreach( $headers as $h ) {
@@ -26,7 +25,7 @@ class User {
 				$new[$h] = $user[$h];
 			}
 		}
-		$d[] = $data;
+		$d[] = $new;
 		return $d;
 	}
 	

@@ -40,7 +40,7 @@ class User {
 			
 			$query = array(
 				"default" => "INSERT INTO users( username, password, access, project ) VALUES ( ?, ?, ?, ? );",
-				"filesystem" => array( "FileSystemStorage\\User", "create_user", $user ),
+				"filesystem" => array( "FileSystemStorage\\User", "create_user", array( $user ) ),
 			);
 			$bind_vars = array(
 				$user["username"],
@@ -48,7 +48,7 @@ class User {
 				$user["access"],
 				null,
 			);
-			$return = $data->query( $query, array(), array() );
+			$return = $data->query( $query, $bind_vars, false );
 		}
 		return $return;
 	}
@@ -65,7 +65,6 @@ class User {
 			
 			self::$instance = new self;
 		}
-		
 		return self::$instance;
 	}
 	
@@ -74,7 +73,6 @@ class User {
 		if( is_int(  ) ) {
 			
 		} else {
-			
 			
 		}
 	}

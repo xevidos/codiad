@@ -111,18 +111,21 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"project" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"level" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 			)
 		);
@@ -136,24 +139,28 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"path" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"position" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"focused" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 			)
 		);
@@ -167,18 +174,21 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"name" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"value" => array(
 					"default" => null,
 					"length" => null,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 			),
 			array( "name" )
@@ -193,24 +203,28 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"name" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"path" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"owner" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 			)
 		);
@@ -224,56 +238,66 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"first_name" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"last_name" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"username" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"password" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"email" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"project" => array(
 					"default" => null,
 					"length" => null,
 					"null" => true,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"access" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"token" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
-			)
+			),
+			array( "username" )
 		);
 		$return["tables"][] = $this->create_table( "users", $users );
 		
@@ -285,24 +309,28 @@ class FileSystemStorage {
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"name" => array(
 					"default" => null,
 					"length" => 255,
 					"null" => false,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 				"user" => array(
 					"default" => null,
 					"length" => null,
 					"null" => false,
 					"type" => "int",
+					"typeof" => "is_int",
 				),
 				"value" => array(
 					"default" => null,
 					"length" => null,
 					"null" => true,
 					"type" => "string",
+					"typeof" => "is_string",
 				),
 			),
 			array( "name", "user" )
@@ -337,39 +365,72 @@ class FileSystemStorage {
 	 */
 	public function update_data( $table, $update ) {
 		
+		$pass = true;
 		$return = Common::get_default_return();
 		$path = DATA . "/$table.inc";
 		
 		if( is_file( $path ) ) {
 			
-			if( is_callable( $update ) ) {
+			if( is_callable( array( $update[0], $update[1] ) ) ) {
 				
-				$data = file_get_contents( $path );
-				$handle = fopen( $path, "w+" );
+				$handle = fopen( $path, "r+" );
 				
 				if( flock( $handle, LOCK_EX ) ) {
 					
-					$c = unserialize( $data );
+					$data = fread( $handle, filesize( $path ) );
+					$c = @unserialize( $data );
 					
-					try {
+					echo "<pre>" . print_r( $c, true ) . "</pre><br><br>";
+					
+					if( ! is_a( $c, "FileSystemStorage\\Data" ) ) {
 						
-						$c->set_data( $update( $c->headers, $c->get_data() ) );
-					} catch( Throwable $e ) {
-						
+						$pass = false;
 						$return["status"] = "error";
-						$return["message"] = "Unable to call update function.";
-						$return["error"] = array(
-							"message" => $e->getMessage(),
-							"object" => $e,
-						);
+						$return["message"] = "Unable to unserialize table.";
+						$return["value"] = $c;
 					}
 					
-					fwrite( $handle, serialize( $c ) );
+					if( $pass ) {
+						
+						try {
+							
+							if( is_callable( $update ) ) {
+								
+								$result = call_user_func( $update, $c->get_headers(), $c->get_data() );
+							} elseif( is_array( $update ) && isset( $update[2] ) ) {
+								
+								$result = call_user_func( array( $update[0], $update[1] ), $c->get_headers(), $c->get_data(), ...$update[2] );
+							}
+							$result = $c->set_data( $result );
+							
+							if( $result["status"] === "error" ) {
+								
+								$pass = false;
+								$return = $result;
+							}
+						} catch( Throwable $e ) {
+							
+							$return["status"] = "error";
+							$return["message"] = "Unable to call update function.";
+							$return["error"] = array(
+								"message" => $e->getMessage(),
+								"object" => $e,
+							);
+						}
+						
+						if( $pass ) {
+							
+							ftruncate( $handle, 0 );
+							rewind( $handle );
+							fwrite( $handle, serialize( $c ) );
+							$return["status"] = "success";
+							$return["message"] = "Updated $table.";
+							$return["value"] = $result;
+						}
+					}
+					
 					flock( $handle, LOCK_UN );
 					fclose( $handle );
-					
-					$return["status"] = "success";
-					$return["message"] = "Updated $table.";
 				} else {
 					
 					$return["status"] = "error";

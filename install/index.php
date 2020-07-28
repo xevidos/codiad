@@ -10,17 +10,16 @@ Initialize::get_instance();
 
 require_once( __DIR__ . "/../components/user/class.user.php" );
 
-//$data->install( "filesystem" );
-
+$data->install( "filesystem" );
 $u = User::get_instance();
 
-echo var_dump( $u->create_user( array(
+echo "<pre>" . print_r( $u->create_user( array(
 	
-	"username" => "test",
+	"username" => "test1",
 	"password" => "test",
 	"password1" => "test",
 	"access" => 0,
-) ) );
+) ), true ) . "</pre>";
 
 exit();
 

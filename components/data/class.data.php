@@ -40,18 +40,27 @@ class Data {
 	
 	public function connect() {
 		
-		if( $this->connection == null ) {
+		if(
+			defined( "DBHOST" )
+			&& defined( "DBNAME" )
+			&& defined( "DBTYPE" )
+			&& defined( "DBUSER" )
+			&& defined( "DBPASS" )
+		) {
 			
-			$host = DBHOST;
-			$dbname = DBNAME;
-			$dbtype = DBTYPE;
-			$username = DBUSER;
-			$password = DBPASS;
-			$options = array(
-				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-			);
-			
-			$this->connection = new PDO( "{$dbtype}:host={$host};dbname={$dbname}", $username, $password, $options );
+			if( $this->connection == null ) {
+				
+				$host = DBHOST;
+				$dbname = DBNAME;
+				$dbtype = DBTYPE;
+				$username = DBUSER;
+				$password = DBPASS;
+				$options = array(
+					PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+				);
+				
+				$this->connection = new PDO( "{$dbtype}:host={$host};dbname={$dbname}", $username, $password, $options );
+			}
 		}
 		
 		return $this->connection;
@@ -130,6 +139,9 @@ class Data {
 			if( in_array( DBTYPE, array_keys( $query ) ) ) {
 				
 				$query = $query[DBTYPE];
+			} elseif( isset( $query["default"] ) ) {
+				
+				$query = $query["default"];
 			} else {
 				
 				$return = $default;
@@ -148,6 +160,9 @@ class Data {
 		if( is_callable( $query ) ) {
 			
 			$return = call_user_func( $query );
+		} elseif( isset( $query[2] ) && ! empty( $query[2] ) ) {
+			
+			$return = call_user_func( array( $query[0], $query[1] ), ...$query[2] );
 		} else {
 			
 			try {
