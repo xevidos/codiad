@@ -9,6 +9,11 @@ class Common {
 	
 	function __construct() {}
 	
+	public static function compare_hashed_string( $string, $hash ) {
+		
+		return ( self::hash_string( $string ) === $hash );
+	}
+	
 	/**
 	 * Return an instance of this class.
 	 *
@@ -70,6 +75,11 @@ class Common {
 	public static function get_url() {
 		
 		return ( self::is_ssl() ? "https" : "http" ) . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	}
+	
+	public static function hash_string( $string ) {
+		
+		return sha1( md5( $string ) );
 	}
 	
 	public static function i18n( $key, $args = array() ) {
@@ -135,6 +145,11 @@ class Common {
 			break;
 			
 		}
+	}
+	
+	public static function strip_trailing_slash( $string ) {
+		
+		return rtrim( $string, '/' );
 	}
 }
 

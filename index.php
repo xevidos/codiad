@@ -28,6 +28,7 @@ if( isset( $_SESSION['theme'] ) ) {
 			user-scalable=no">
 		<title><?php echo SITE_NAME;?></title>
 		<?php
+		
 		// Load System CSS Files
 		$stylesheets = array(
 			"jquery.toastmessage.css",
@@ -97,6 +98,14 @@ if( isset( $_SESSION['theme'] ) ) {
 			echo( '<link rel="icon" href="assets/images/favicon.ico" type="image/x-icon" />' );
 		}
 		?>
+		<script src="./assets/js/jquery-3.5.1.js"></script>
+		<script src="./assets/js/jquery.toastmessage.js"></script>
+		<script src="./assets/js/codiad.js"></script>
+		<script src="./assets/js/message.js"></script>
+		<script src="./assets/js/events.js"></script>
+		<script src="./assets/js/loading.js"></script>
+		<script src="./assets/js/common.js"></script>
+		<script src="./assets/js/forms.js"></script>
 	</head>
 	<body>
 		

@@ -44,7 +44,7 @@ class User {
 			);
 			$bind_vars = array(
 				$user["username"],
-				$user["password"],
+				Common::hash_string( $user["password"] ),
 				$user["access"],
 				null,
 			);

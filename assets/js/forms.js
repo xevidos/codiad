@@ -208,20 +208,23 @@
 				this.validation = null;
 				this.value = "";
 				
-				this.audit = function( o ) {
+				this.audit = function( o = self ) {
 					
 					let r = false;
 					
-					if( self.type === "repeatable" ) {
+					if( o.type === "repeatable" ) {
 						
-						let length = self.value.length;
+						let length = o.value.length;
 						for( let i = 0;i < length;i++ ) {
 							
-							self.audit( self.value[i].data );
+							$.each( o.value[i].data, function( k, v ) {
+								
+								o.audit( v );
+							});
 						}
 					} else {
 						
-						$.each( self.conditions, function( k, v ) {
+						$.each( o.conditions, function( k, v ) {
 							
 							if( r !== false ) {
 								
@@ -1484,33 +1487,38 @@
 						data = _i.m.data
 					}
 					
-					$.each( data, async function( key, value ) {
+					let keys = Object.keys( data );
+					let total_keys = keys.length;
+					
+					for( let i = 0;i < total_keys;i++ ) {
 						
-						let check = false;
+						let key = keys[i];
+						let value = data[key];
+						let show = true;
 						let repeatable = _i.m.is_repeatable( value );
 						let pass = true;
 						
 						if( value.page !== _i.page ) {
 							
-							return;
+							continue;
 						}
 						
 						if( ! value.required && ! repeatable ) {
 							
-							return;
+							continue;
 						}
 						
 						if( typeof value.conditions === "function" ) {
 							
-							check = value.conditions( value );
+							show = value.conditions( value );
 						} else if( value.conditions ) {
 							
-							check = value.conditionals();
+							show = value.conditionals();
 						}
 						
-						if( check !== false && check.action === "hide" ) {
+						if( ! show ) {
 							
-							return;
+							continue;
 						}
 						
 						if( repeatable ) {
@@ -1519,25 +1527,19 @@
 							for( let i = 0;i < total;i++ ) {
 								
 								let a = await _this.verify( value.value[i].data );
-								values.concat( a );
+								values.push( a );
 							}
 						}
 						
 						if( value.subfields ) {
 							
-							if( value.required && ( ! value.value || ! value.value.length ) ) {
-								
-								pass = false;
-							}
-						} else {
-							
-							if( value.required && empty_values.includes( value.value ) ) {
+							if( value.required && ! value.value.length ) {
 								
 								pass = false;
 							}
 						}
 						
-						if( typeof value.validation === "function" && pass ) {
+						if( typeof value.validation === "function" ) {
 							
 							pass = await value.validation( value );
 						}
@@ -1545,26 +1547,26 @@
 						values.push( pass );
 						if( pass ) {
 							
-							value.element.parent().css( 'color', 'unset' );
+							value.element.parent().css( 'color', 'black' );
 						} else {
 							
 							value.element.parent().css( 'color', 'red' );
 						}
-					});
+					}
+					
+					console.log( values );
 					
 					if( ! values.includes( false ) ) {
 						
-						resolve( true );
 						_i.publish( "data.onVerificationSuccess", {
 							form: _i,
 						});
+						resolve( true );
 					} else {
 						
 						_i.publish( "data.onVerificationFailure", {
 							form: _i,
 						});
-						_i.v.message.html( codiad.message.error( "Please be sure to fill out all denoted fields", "error" ) );
-						$( "html, body" ).animate( { scrollTop: 0 }, "slow" );
 						reject( false );
 					}
 				});

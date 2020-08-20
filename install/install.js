@@ -13,6 +13,7 @@
 	
 	codiad.install = {
 		
+		data: {},
 		dbconditions: {
 			
 			storage: {
@@ -111,6 +112,8 @@
 				let data = await _this.m.get_values();
 				let submit = _this.v.controls.find( `[type="submit"]` );
 				
+				_.data = data;
+				
 				submit.attr( "disabled", true );
 				submit.text( "Submitting ..." );
 				
@@ -122,8 +125,48 @@
 				
 				if( r.status == "error" ) {
 					
-					codiad.message.error( r.message );
-					$( "#data_status" ).html( "<br><br>Data Status:<br>" + r.value );
+					console.log( "Error message", r.message );
+					
+					let duplicate = false;
+					let message = "";
+					
+					if( r.tables ) {
+						
+						let total_tables = r.tables.length;
+						
+						for( let i = 0;i < total_tables;i++ ) {
+							
+							if( r.tables[i].error_type === "duplicate" ) {
+								
+								duplicate = true;
+								break;
+							}
+						}
+						
+						let bypass = window.confirm( "It seems like one or more the tables you are attempting to create already exist.  Are you absolutely sure you would like to overwrite the current tables with the default ones?  This will wipe all information in the tables!" );
+						
+						if( bypass === true ) {
+							
+							let bypass2 = window.confirm( "Are you absolutely sure?  This action WILL delete all data from all tables.  Files in the workspace directory WILL NOT be deleted by this action." );
+							
+							if( bypass2 === true ) {
+								
+								data.override = "true";
+								let response = await codiad.common.ajax( "./index.php", "POST", data );
+								console.log( "User is overriding." );
+								console.log( response );
+								_.user_setup();
+							}
+						}
+					} else {
+						
+						codiad.message.error( r.message );
+						$( "#data_status" ).html( "<br><br>Data Status:<br>" + r.value );
+						
+						submit.text( _this.submit_label );
+						submit.attr( "disabled", false );
+						_this.saving = false;
+					}
 				} else {
 					
 					_.user_setup();
@@ -134,8 +177,10 @@
 				_this.saving = false;
 			}
 		},
+		
 		user_setup: function() {
 			
+			let _ = codiad.install;
 			let _this = this;
 			
 			this.d = {
@@ -145,19 +190,13 @@
 					label: "Username: ",
 					type: "text",
 				},
-				email: {
-					
-					default: "",
-					label: "Email: ",
-					type: "email",
-				},
 				password: {
 					
 					default: "",
 					label: "Password: ",
 					type: "text",
 				},
-				password: {
+				password1: {
 					
 					default: "",
 					label: "Repeat Password: ",
@@ -186,6 +225,16 @@
 				submit.attr( "disabled", true );
 				submit.text( "Submitting ..." );
 				
+				data.storage = _.data.storage;
+				
+				if( _.data.dbhost ) {
+					
+					data.dbhost = _.data.dbhost;
+					data.dbname = _.data.dbname;
+					data.dbuser = _.data.dbuser;
+					data.dbpass = _.data.dbpass;
+				}
+				
 				let response = await codiad.common.ajax( "./index.php", "POST", data );
 				
 				console.log( response );
@@ -195,7 +244,11 @@
 				if( r.status == "error" ) {
 					
 					codiad.message.error( r.message );
-					$( "#data_status" ).html( "<br><br>Data Status:<br>" + r.value );
+					$( "#data_status" ).html( "<br><br>User Status:<br>" + r.value );
+				} else {
+					
+					$( "#data_status" ).html( "<br><br>User Status:<br>Testing User data" );
+					window.location.href = "./../";
 				}
 				
 				submit.text( _this.submit_label );

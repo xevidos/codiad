@@ -77,50 +77,104 @@ if( isset( $_SESSION['theme'] ) ) {
 		?>
 		<style>
 			
-			form {
+			#container {
 				
-				left: 50%;
-				margin-left: -175px;
-				padding: 35px;
+				overflow-y: auto;
 				position: fixed;
-				top: 30%;
-				width: 350px;
+				right: 50%;
+				top: 50%;
+				transform: translate( 50%,-50% );
+				width: 50%;
+			}
+			
+			@media only screen and (max-width: 650px) {
+				
+				#container {
+					
+					width: 80%;
+				}
 			}
 		</style>
+		<script src="./assets/js/jquery-3.5.1.js"></script>
+		<script src="./assets/js/jquery.toastmessage.js"></script>
+		<script src="./assets/js/codiad.js"></script>
+		<script src="./assets/js/message.js"></script>
+		<script src="./assets/js/events.js"></script>
+		<script src="./assets/js/loading.js"></script>
+		<script src="./assets/js/common.js"></script>
+		<script src="./assets/js/forms.js"></script>
 	</head>
 	<body>
-		<form id="login" method="post">
-			<label>
-				<span class="icon-user login-icon"></span>
-				<?php echo Common::i18n("Username");?>
-				<input type="text" name="username" autofocus="autofocus" autocomplete="off">
-			</label>
-			<label>
-				<span class="icon-lock login-icon"></span>
-				<?php echo Common::i18n("Password");?>
-				<input type="password" name="password">
-				<span class="icon-eye in-field-icon-right hide_field">
-			</label>
-			<button><?php echo Common::i18n("Login");?></button>
-		</form>
+		<div id="container"></div>
 		<script>
+			
 			( function( global, $ ) {
+				
+				// Define core
+				let codiad = global.codiad,
+				scripts = document.getElementsByTagName( 'script' ),
+				path = scripts[scripts.length-1].src.split( '?' )[0],
+				curpath = path.split( '/' ).slice( 0, -1 ).join( '/' ) + '/';
 				
 				$( document ).ready( function() {
 					
-					$( ".hide_field" ).on( "click", function( e ) {
-						
-						let password = $( "input[name='password']" );
-						
-						if( password.attr( "type" ) == "password" ) {
-							
-							password.attr( "type", "text" );
-						} else {
-							
-							password.attr( "type", "password" );
-						}
-					});
+					codiad.login.init();
 				});
+				
+				codiad.login = {
+					
+					form: null,
+					
+					init: function() {
+						
+						let _ = this;
+						
+						this.d = {
+							
+							username: {
+								
+								default: "",
+								label: "Username: ",
+								name: "username",
+								required: true,
+								type: "text",
+							},
+							password: {
+								
+								default: "",
+								label: "Password: ",
+								name: "password",
+								required: true,
+								type: "text",
+							},
+						};
+						this.form = new codiad.forms({
+							data: _.d,
+							container: $( "#container" ),
+							submit_label: "Login",
+						});
+						this.form.submit
+					},
+					
+					submit: function() {
+						
+						let _this = this;
+
+						if( _this.saving ) {
+							
+							return;
+						}
+						
+						_this.saving = true;
+						
+						submit.attr( "disabled", true );
+						submit.text( "Logging In ..." );
+						
+						submit.text( _this.submit_label );
+						submit.attr( "disabled", false );
+						_this.saving = false;
+					},
+				};
 			})( this, jQuery );
 		</script>
 	</body>

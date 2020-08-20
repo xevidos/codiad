@@ -14,16 +14,14 @@
 		
 		publish: function( topic, info ) {
 			
-			let _this = p.events;
-			
 			// If the topic doesn't exist, or there's no listeners in queue, just leave
-			if( ! _this.topics.hasOwnProperty.call( _this.topics, topic ) ) {
+			if( ! this.subscriptions.hasOwnProperty.call( this.subscriptions, topic ) ) {
 				
 				return;
 			}
 			
 			// Cycle through topics queue, fire!
-			_this.topics[topic].forEach( function( item ) {
+			this.subscriptions[topic].forEach( function( item ) {
 				
 				item( info !== undefined ? info : {} );
 			});
@@ -31,19 +29,18 @@
 		
 		subscribe: function( topic, listener ) {
 			
-			let _this = p.events;
 			let add = true;
 			
 			// Create the topic's object if not yet created
-			if( ! _this.topics.hasOwnProperty.call( _this.topics, topic ) ) {
+			if( ! this.subscriptions.hasOwnProperty.call( this.subscriptions, topic ) ) {
 				
-				_this.topics[topic] = [];
+				this.subscriptions[topic] = [];
 			}
 			
 			// Add the listener to queue if not already in it.
-			for( let i = _this.topics[topic].length;i--; ) {
+			for( let i = this.subscriptions[topic].length;i--; ) {
 				
-				if( _this.topics[topic][i] == listener ) {
+				if( this.subscriptions[topic][i] == listener ) {
 					
 					add = false;
 					break;
@@ -52,14 +49,14 @@
 			
 			if( add ) {
 				
-				let index = _this.topics[topic].push( listener ) - 1;
+				let index = this.subscriptions[topic].push( listener ) - 1;
 			}
 			
 			// Provide handle back for removal of topic
 			return {
 				remove: function() {
 					
-					delete _this.topics[topic][index];
+					delete this.subscriptions[topic][index];
 				}
 			};
 		},

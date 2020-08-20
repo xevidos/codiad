@@ -1,8 +1,6 @@
 <?php
 
 require_once( "filesystemstorage/class.data.php" );
-
-
 require_once( "filesystemstorage/class.user.php" );
 
 class FileSystemStorage {
@@ -68,13 +66,12 @@ class FileSystemStorage {
 			
 			$data = file_get_contents( $path );
 			$c = unserialize( $data );
-			$i = $c::get_instance();
 			
 			if( is_callable( $filter ) ) {
 				
 				try {
 					
-					$return["data"] = $filter( $i->get_data( $fields ) );
+					$return["value"] = $filter( $c->get_data( $fields ) );
 				} catch( Throwable $e ) {
 					
 					$return["status"] = "error";
@@ -88,7 +85,7 @@ class FileSystemStorage {
 				
 				$return["status"] = "success";
 				$return["message"] = "";
-				$return["value"] = $i->get_data( $fields );
+				$return["value"] = $c->get_data( $fields );
 			}
 		} else {
 			
@@ -380,8 +377,6 @@ class FileSystemStorage {
 					$data = fread( $handle, filesize( $path ) );
 					$c = @unserialize( $data );
 					
-					echo "<pre>" . print_r( $c, true ) . "</pre><br><br>";
-					
 					if( ! is_a( $c, "FileSystemStorage\\Data" ) ) {
 						
 						$pass = false;
@@ -425,7 +420,7 @@ class FileSystemStorage {
 							fwrite( $handle, serialize( $c ) );
 							$return["status"] = "success";
 							$return["message"] = "Updated $table.";
-							$return["value"] = $result;
+							$return["value"] = $result["value"];
 						}
 					}
 					

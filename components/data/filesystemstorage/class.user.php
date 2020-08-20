@@ -10,9 +10,7 @@ class User {
 	
 	public static function create_user( $user ) {
 		
-		global $data;
-		$result = $data->fss->update_data( "users", array( "FileSystemStorage\\User", "create_user_callback", array( $user ) ) );
-		return $result;
+		return ( \Data::get_instance() )->fss->update_data( "users", array( "FileSystemStorage\\User", "create_user_callback", array( $user ) ) );
 	}
 	
 	public static function create_user_callback( $headers, $d, $user ) {
@@ -47,8 +45,7 @@ class User {
 	
 	public static function get_users() {
 		
-		global $data;
-		return $data->fss->get_data( "users" );
+		return ( \Data::get_instance() )->fss->get_data( "users" );
 	}
 }
 

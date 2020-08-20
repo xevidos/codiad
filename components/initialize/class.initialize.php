@@ -17,6 +17,8 @@ class Initialize {
 		"common",
 		"data",
 		"events",
+		"options",
+		"permissions",
 		"update",
 	);
 	const EXTENSIONS = array(
@@ -155,7 +157,6 @@ class Initialize {
 		if( ! defined( 'BASE_PATH' ) ) {
 			
 			$base_path = rtrim( realpath( __DIR__ . "/../../" ), '/' );
-			
 			define( 'BASE_PATH', $base_path );
 		}
 		
@@ -213,9 +214,7 @@ class Initialize {
 	
 	function register_globals() {
 		
-		global $data;
-		
-		$data = Data::get_instance();
+		$GLOBALS["data"] = Data::get_instance();
 	}
 }
 

@@ -27,7 +27,7 @@ class Data {
 	
 	function __construct() {
 		
-		if( DBTYPE === "filesystem" ) {
+		if( ! $this->fss ) {
 			
 			$this->fss = FileSystemStorage::get_instance();
 		}
@@ -130,7 +130,7 @@ class Data {
 		return $return;
 	}
 	
-	public function query( $query, $bind_vars, $default, $action='fetchAll', $errors="default" ) {
+	public function query( $query, $bind_vars, $default, $action='fetchAll', $errors="exception" ) {
 		
 		$return = Common::get_default_return();
 		
@@ -148,7 +148,8 @@ class Data {
 				
 				if( $errors == "message" ) {
 					
-					$return = json_encode( array( "error" => "No query specified for database type." ) );
+					$return["status"] = "error";
+					$return["message"] = "No query specified for database type.";
 				} elseif( $errors == "exception" ) {
 					
 					throw new Error( "No query specified for database type." );
@@ -180,12 +181,12 @@ class Data {
 					
 					case( 'fetch' ):
 						
-						$return = $statement->fetch( \PDO::FETCH_ASSOC );
+						$return = $statement->fetch( PDO::FETCH_ASSOC );
 					break;
 					
 					case( 'fetchAll' ):
 						
-						$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+						$return = $statement->fetchAll( PDO::FETCH_ASSOC );
 					break;
 					
 					case( 'fetchColumn' ):
@@ -195,7 +196,7 @@ class Data {
 					
 					default:
 						
-						$return = $statement->fetchAll( \PDO::FETCH_ASSOC );
+						$return = $statement->fetchAll( PDO::FETCH_ASSOC );
 					break;
 				}
 			} catch( Throwable $error ) {
@@ -204,9 +205,11 @@ class Data {
 				
 				if( $errors == "message" ) {
 					
-					$return = json_encode( array( $error->getMessage() ) );
+					$return["status"] = "error";
+					$return["message"] = $error->getMessage();
 				} elseif( $errors == "exception" ) {
 					
+					$this->close();
 					throw $error;
 				}
 			}

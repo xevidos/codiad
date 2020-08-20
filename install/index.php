@@ -1,35 +1,27 @@
 <?php
-define( 'DBTYPE', "filesystem" );
+
 ini_set( 'display_errors', 1 );
 ini_set( 'display_startup_errors', 1 );
 error_reporting( E_ALL );
 
+if( is_file( __DIR__ . "/../config.php" ) ) {
+	
+	echo "Codiad is already installed.";
+	exit();
+}
+
 require_once( __DIR__ . "/../components/initialize/class.initialize.php" );
+require_once( __DIR__ . "/../components/user/class.user.php" );
 
 Initialize::get_instance();
 
-require_once( __DIR__ . "/../components/user/class.user.php" );
-
-$data->install( "filesystem" );
-$u = User::get_instance();
-
-echo "<pre>" . print_r( $u->create_user( array(
-	
-	"username" => "test1",
-	"password" => "test",
-	"password1" => "test",
-	"access" => 0,
-) ), true ) . "</pre>";
-
-exit();
-
-$checks_html = "";
 $check_paths = Initialize::PATHS;
+$checks_html = "";
 $extensions = Initialize::EXTENSIONS;
 $extensions_html = "";
 $paths_html = "";
 
-if( isset( $_POST["storage"] ) ) {
+if( isset( $_POST["storage"] ) && ! isset( $_POST["username"] ) ) {
 	
 	$pass = true;
 	$return = Common::get_default_return();
@@ -63,6 +55,22 @@ if( isset( $_POST["storage"] ) ) {
 		
 		if( $storage === "filesystem" ) {
 			
+			if( isset( $_POST["override"] ) && $_POST["override"] === "true" ) {
+				
+				$dir = realpath( __DIR__ . "/../data" );
+				$files = scandir( $dir );
+				
+				foreach( $files as $file ) {
+					
+					if( $file == "." || $file == ".." || strpos( $file, ".inc" ) === false ) {
+						
+						continue;
+					}
+					unlink( "$dir/$file" );
+				}
+			}
+			
+			define( "DBTYPE", $_POST["storage"] );
 			$data = Data::get_instance();
 			$return = $data->install( $_POST["storage"] );
 		} else {
@@ -114,6 +122,39 @@ if( isset( $_POST["storage"] ) ) {
 					$return["value"] = $e->getMessage();
 					$pass = false;
 				}
+				
+				if( $pass && isset( $_POST["override"] ) && $_POST["override"] === "true" ) {
+					
+					try {
+						
+						$data->query( "DROP TABLE access;" );
+					} catch( Throwable $e ) {}
+					
+					try {
+						
+						$data->query( "DROP TABLE active;" );
+					} catch( Throwable $e ) {}
+					
+					try {
+						
+						$data->query( "DROP TABLE options;" );
+					} catch( Throwable $e ) {}
+					
+					try {
+						
+						$data->query( "DROP TABLE projects;" );
+					} catch( Throwable $e ) {}
+					
+					try {
+						
+						$data->query( "DROP TABLE users;" );
+					} catch( Throwable $e ) {}
+					
+					try {
+						
+						$data->query( "DROP TABLE user_options;" );
+					} catch( Throwable $e ) {}
+				}
 			}
 			
 			if( $pass ) {
@@ -127,13 +168,62 @@ if( isset( $_POST["storage"] ) ) {
 
 if( isset( $_POST["username"] ) ) {
 	
-	$pass = true;
+	define( "DBTYPE", $_POST["storage"] );
+	
+	if( isset( $_POST["dbhost"] ) ) {
+		
+		define( "DBHOST", $_POST["dbhost"] );
+		define( "DBNAME", $_POST["dbname"] );
+		define( "DBUSER", $_POST["dbuser"] );
+		define( "DBPASS", $_POST["dbpass"] );
+	}
+	
 	$return = Common::get_default_return();
 	$User = User::get_instance();
 	
-	if( $pass ) {
+	$return = $User->create_user( array(
 		
+		"username" => $_POST["username"],
+		"password" => $_POST["password"],
+		"password1" => $_POST["password1"],
+		"access" => Permissions::SYSTEM_LEVELS["admin"],
+	));
+	
+	if( $return["status"] !== "error" ) {
 		
+		$users = $User->get_users();
+		$created = false;
+		
+		foreach( $users["value"] as $row => $data ) {
+			
+			if( $data["username"] == $_POST["username"] ) {
+				
+				$created = true;
+				break;
+			}
+		}
+		
+		if( $created ) {
+			
+			copy( __DIR__ . "/../config.example.php", __DIR__ . "/../config.php" );
+			
+			$Options = Options::get_instance();
+			
+			$Options->update_config( "BASE_PATH",  "'" . Common::strip_trailing_slash( realpath( __DIR__ . "/../" ) ) . "'" );
+			$Options->update_config( "BASE_URL", "'" . Common::strip_trailing_slash( realpath( dirname( Common::get_url() ) . "/../" ) ) . "'" );
+			$Options->update_config( "DBTYPE", "'" . $_POST["storage"] . "'" );
+			
+			if( isset( $_POST["dbname"] ) ) {
+				
+				$Options->update_config( "DBNAME", "'" . $_POST["dbname"] . "'" );
+				$Options->update_config( "DBUSER", "'" . $_POST["dbuser"] . "'" );
+				$Options->update_config( "DBPASS", "'" . $_POST["dbpass"] . "'" );
+			}
+		} else {
+			
+			$return["status"] = "error";
+			$return["message"] = "User could not be found in data storage system.";
+		}
 	}
 	exit( json_encode( $return ) );
 }
