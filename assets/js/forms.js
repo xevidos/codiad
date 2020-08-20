@@ -180,6 +180,7 @@
 				this.description = null;
 				this.element = null;
 				this.form = _i;
+				this.hidden = false;
 				this.key = null;
 				this.label = "";
 				this.listeners = {
@@ -255,22 +256,27 @@
 					
 					let r = false;
 					
-					$.each( self.conditions, function( k, v ) {
+					if( Object.keys( self.conditions ).length ) {
 						
-						if( r !== false ) {
+						$.each( self.conditions, function( k, v ) {
 							
-							return;
-						}
+							if( r !== false ) {
+								
+								return;
+							}
+							
+							r = v.check();
+						});
+					} else {
 						
-						r = v.check();
-					});
+						r = true;
+					}
 					return r;
 				};
 				this.publish = function() {
 					
-					console.log( self );
-					
 					let total = self.subscriptions.length;
+					
 					for( let i = 0;i < total;i++ ) {
 						
 						self.subscriptions[i]( self );
@@ -620,6 +626,9 @@
 								if( typeof value !== "object" && Object.keys( subs ).includes( key ) ) {
 									
 									subs.data[key].value = value;
+								} else if( typeof value !== "object" && Object.keys( subs.data ).includes( key ) ) {
+									
+									subs.data[key].value = value;
 								} else if( typeof subs[key] === "object" && typeof value === "object" && value !== null ) {
 									
 									subs.data[key] = $.extend( subs.data[key], value );
@@ -628,7 +637,7 @@
 									subs.data[key] = value;
 								} else {
 									
-									console.log( "Unknown add field action", key, value );
+									console.log( "Unknown add field action", key, value, subs );
 								}
 							});
 							subs.parent = _r;
@@ -829,7 +838,18 @@
 					
 					a.update = function() {
 						
-						a.value = a.element.val();
+						let connected = ( !!a.element ) ? a.element.parent().length : false;
+						let shown = ( ( ! a.shown_by_default && connected ) || a.shown_by_default );
+						
+						if( a.hidden || ! shown ) {
+							
+							//The value should be what it is by default or
+							//what it has been modified to be by an external
+							//program.
+						} else {
+							
+							a.value = a.element.val();
+						}
 						a.publish();
 					}
 				}
@@ -912,7 +932,7 @@
 				
 				if( o === null ) {
 					
-					o = this.data;
+					o = _this.data;
 				}
 				
 				$.each( o, function( key, value ) {
@@ -1039,7 +1059,7 @@
 				
 				let connected = ( !!o.element ) ? o.element.parent().length : false;
 				
-				if( connected || ( ! o.shown_by_default && ! show ) ) {
+				if( connected || ( ! o.shown_by_default && ! show ) || o.hidden ) {
 					
 					return;
 				}
@@ -1360,7 +1380,7 @@
 				
 				$.each( _this.m.data, function( key, value ) {
 					
-					if( ! value || value.page !== _i.page || value.shown_by_default === false ) {
+					if( ! value || value.page !== _i.page || value.shown_by_default === false || value.hidden ) {
 						
 						return;
 					}
@@ -1381,6 +1401,8 @@
 				_this.container.append( _this.controls );
 				_this.render_controls();
 				_this.update();
+				_this.conditionals();
+				
 				_i.publish( "data.onRenderedPage", {
 					page: id,
 					view: this,
