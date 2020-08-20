@@ -84,14 +84,22 @@ if( isset( $_SESSION['theme'] ) ) {
 				right: 50%;
 				top: 50%;
 				transform: translate( 50%,-50% );
-				width: 50%;
+				width: 25%;
+			}
+			
+			@media only screen and (max-width: 850px) {
+				
+				#container {
+					
+					width: 50%;
+				}
 			}
 			
 			@media only screen and (max-width: 650px) {
 				
 				#container {
 					
-					width: 80%;
+					width: 75%;
 				}
 			}
 		</style>
@@ -127,9 +135,7 @@ if( isset( $_SESSION['theme'] ) ) {
 					
 					init: function() {
 						
-						let _ = this;
-						
-						this.d = {
+						let d = {
 							
 							username: {
 								
@@ -149,23 +155,31 @@ if( isset( $_SESSION['theme'] ) ) {
 							},
 						};
 						this.form = new codiad.forms({
-							data: _.d,
+							data: d,
 							container: $( "#container" ),
 							submit_label: "Login",
 						});
-						this.form.submit
+						this.form.submit = this.submit;
 					},
 					
-					submit: function() {
+					submit: async function() {
 						
 						let _this = this;
-
+						let submit = _this.v.controls.find( `[type="submit"]` );
+						
 						if( _this.saving ) {
 							
 							return;
 						}
 						
 						_this.saving = true;
+						submit.attr( "disabled", true );
+						submit.text( "Submitting ..." );
+						
+						let data = await _this.m.get_values();
+						//let response = await codiad.common.ajax( "./index.php", "POST", data );
+						
+						console.log( data );
 						
 						submit.attr( "disabled", true );
 						submit.text( "Logging In ..." );
