@@ -8,61 +8,15 @@ class Authentication {
 	
 	function authenticate( $username, $password ) {
 		
-		$type = AUTH_TYPE;
-		$result = false;
-		$path = "types/$type";
 		
-		if( is_file( $path ) ) {
-			
-			require_once( $path );
-			
-			$t_class = ucfirst( $type );
-			
-			if( class_exists( $type ) && method_exists( $type, "get_instance" ) ) {
-				
-				$t_i = $type::get_instance();
-				$result = $t_i->authenticate( $username, $password );
-				
-				if( $result === true ) {
-					
-					$this->generate_session( $username );
-				}
-			}
-		}
 		return $result;
 	}
 	
+	static function check_session() {}
+	
 	static function check_token() {
 		
-		$_ = self::get_instance();
-		$url = Common::get_current_url();
-		$type = AUTH_TYPE;
-		$path = "types/$type";
 		
-		if( isset( $_SESSION["username"] ) && isset( $_SESSION["token"] ) ) {
-			
-			if( is_file( $path ) ) {
-				
-				require_once( $path );
-				
-				$t_class = ucfirst( $type );
-				
-				if( class_exists( $type ) && method_exists( $type, "get_instance" ) ) {
-					
-					$t_i = $type::get_instance();
-					$result = $t_i->check_token();
-					
-					if( $result === true ) {
-						
-						$this->refresh_session();
-					}
-				}
-			}
-		} else {
-			
-			header( "Location: " . Common::get_current_url() . "login.php?redirect=" . urlencode( base64_encode( $url ) ) );
-			exit();
-		}
 	}
 	
 	function generate_session( $username ) {

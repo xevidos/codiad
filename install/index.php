@@ -210,7 +210,7 @@ if( isset( $_POST["username"] ) ) {
 			$Options = Options::get_instance();
 			
 			$Options->update_config( "BASE_PATH",  "'" . Common::strip_trailing_slash( realpath( __DIR__ . "/../" ) ) . "'" );
-			$Options->update_config( "BASE_URL", "'" . Common::strip_trailing_slash( realpath( dirname( Common::get_url() ) . "/../" ) ) . "'" );
+			$Options->update_config( "BASE_URL", "'" . Common::strip_trailing_slash( str_replace( "/install/index.php", "", Common::get_url() ) ) . "'" );
 			$Options->update_config( "DBTYPE", "'" . $_POST["storage"] . "'" );
 			
 			if( isset( $_POST["dbname"] ) ) {

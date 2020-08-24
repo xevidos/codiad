@@ -1569,7 +1569,7 @@
 						values.push( pass );
 						if( pass ) {
 							
-							value.element.parent().css( 'color', 'black' );
+							value.element.parent().css( 'color', '' );
 						} else {
 							
 							value.element.parent().css( 'color', 'red' );

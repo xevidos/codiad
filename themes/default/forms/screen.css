@@ -1,0 +1,77 @@
+button,
+input,
+select,
+textarea {
+	
+	display: block;
+	width: 100%;
+	padding: 7px 10px;
+	margin: 5px 0 10px 0;
+	background: #242424;
+	border: none;
+	border-bottom: 2px solid #595959;
+	color: #fff;
+	border-radius: 2px;
+	line-height: normal;
+}
+
+button {
+    display: inline-block;
+    width: auto;
+    margin: 10px 0 5px 0;
+    padding: 6px 15px 5px 15px;
+    color: #666;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 0 1px 1px #fff;
+    background-color: #c9c9c9;
+    border-radius: 2px;
+    border: 1px solid #7d7d7d;
+    border-bottom: 2px solid #7d7d7d;
+}
+
+button:hover {
+	
+	color: #333;
+	background-color: #f3f3f3;
+	cursor: pointer;
+	border-bottom: 2px solid #919191;
+}
+
+button.btn-left {
+	
+	border-radius: 3px 0px 0px 3px;
+	border-right: none;
+}
+
+button.btn-mid {
+	
+	border-radius: 0;
+	border-right: none;
+}
+
+button.btn-right {
+	
+	border-radius: 0px 3px 3px 0px;
+}
+
+button .icon {
+	
+	padding: 0;
+	padding-right: 5px;
+}
+
+input:focus, textarea:focus, select:focus {
+	
+	background: #242424;
+	border-bottom: 2px solid #ccc;
+	outline: none;
+}
+
+input[type="checkbox"] {
+	
+	margin: 5px 0 0 0;
+	padding: 0;
+	position: relative;
+	width: 20px;
+}
