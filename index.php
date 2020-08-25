@@ -26,7 +26,12 @@ if( isset( $_SESSION['theme'] ) ) {
 			initial-scale=1.0,
 			maximum-scale=1.0,
 			user-scalable=no">
+		<meta name="theme-color" content="#1a1a1a">
 		<title><?php echo SITE_NAME;?></title>
+		<link rel="manifest" href="manifest.php">
+		
+		
+		
 		<script>
 			
 			var theme = `<?php echo $theme;?>`;
@@ -61,6 +66,9 @@ if( isset( $_SESSION['theme'] ) ) {
 	</head>
 	<body>
 		<div id="container">
+			<noscript>
+				<p style="color: #FFF;text-align:center;">This page requires javascript!<br>Please enable javascript and come back!</p>
+			</noscript>
 			<div class="lds-container">
 				<div class="lds-dual-ring"></div>
 			</div>
