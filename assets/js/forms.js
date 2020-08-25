@@ -781,6 +781,19 @@
 						}
 					break;
 					
+					case( a.type === "text" ):
+						
+						if( ! a.element ) {
+							
+							a.element = $( `<input type="text" />` );
+						}
+						
+						if( ! a.validation ) {
+							
+							a.validation = _i.validation.validate;
+						}
+					break;
+					
 					case( a.type === "weekday" ):
 						
 						if( ! a.element ) {
@@ -1280,8 +1293,16 @@
 				
 				
 				let _this = _i.v;
-				let v = await _i.validation.verify();
+				let v = false;
 				let total = _i.get_total_pages();
+				
+				try {
+					
+					v = await _i.validation.verify();
+				} catch( e ) {
+					
+					
+				}
 				
 				console.log( v );
 				
@@ -1445,7 +1466,29 @@
 				email: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
 				number: /^(?=.)([+-]?(\d*)(\.(\d+))?)$/,
 				phone: /^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/,
+				text: null,
 				year: /^[0-9]{4}$/,
+			},
+			
+			init: function() {
+				
+				this.types.text = this.is_not_empty;
+			},
+			
+			is_not_empty: function( o ) {
+				
+				let _this = _i.validation;
+				return new Promise( function( resolve, reject ) {
+					
+					let pass = true;
+					
+					if( _this.empty_values.includes( o.value ) ) {
+						
+						pass = false;
+					}
+					
+					resolve( pass );
+				});
 			},
 			
 			validate: function( o ) {
@@ -1486,118 +1529,122 @@
 					}
 				});
 			},
-			verify: function( data = null ) {
+			verify: async function( data = null ) {
 				
-				return new Promise( async function( resolve, reject ) {
+				let empty_values = [
+					undefined,
+					null,
+					'null',
+					'',
+					[],
+				];
+				let _this = _i.validation;
+				let values = [];
+				
+				if( data == null ) {
 					
-					let empty_values = [
-						undefined,
-						null,
-						'null',
-						'',
-						[],
-					];
-					let _this = _i.validation;
-					let values = [];
+					_i.publish( "data.onWillVerify", {
+						form: _i,
+					});
 					
-					if( data == null ) {
+					data = _i.m.data
+				}
+				
+				let keys = Object.keys( data );
+				let total_keys = keys.length;
+				
+				for( let i = 0;i < total_keys;i++ ) {
+					
+					let key = keys[i];
+					let value = data[key];
+					let show = true;
+					let repeatable = _i.m.is_repeatable( value );
+					let pass = true;
+					
+					if( value.page !== _i.page ) {
 						
-						_i.publish( "data.onWillVerify", {
-							form: _i,
-						});
-						
-						data = _i.m.data
+						continue;
 					}
 					
-					let keys = Object.keys( data );
-					let total_keys = keys.length;
+					if( ! value.required && ! repeatable ) {
+						
+						continue;
+					}
 					
-					for( let i = 0;i < total_keys;i++ ) {
+					if( typeof value.conditions === "function" ) {
 						
-						let key = keys[i];
-						let value = data[key];
-						let show = true;
-						let repeatable = _i.m.is_repeatable( value );
-						let pass = true;
+						show = value.conditions( value );
+					} else if( value.conditions ) {
 						
-						if( value.page !== _i.page ) {
-							
-							continue;
-						}
+						show = value.conditionals();
+					}
+					
+					if( ! show ) {
 						
-						if( ! value.required && ! repeatable ) {
-							
-							continue;
-						}
+						continue;
+					}
+					
+					if( repeatable ) {
 						
-						if( typeof value.conditions === "function" ) {
+						let total = value.value.length;
+						for( let i = 0;i < total;i++ ) {
 							
-							show = value.conditions( value );
-						} else if( value.conditions ) {
-							
-							show = value.conditionals();
-						}
-						
-						if( ! show ) {
-							
-							continue;
-						}
-						
-						if( repeatable ) {
-							
-							let total = value.value.length;
-							for( let i = 0;i < total;i++ ) {
+							let a = false;
+							try {
 								
-								let a = await _this.verify( value.value[i].data );
-								values.push( a );
-							}
-						}
-						
-						if( value.subfields ) {
-							
-							if( value.required && ! value.value.length ) {
+								a = await _this.verify( value.value[i].data );
+							} catch( e ) {
 								
-								pass = false;
+								console.log( e );
 							}
-						}
-						
-						if( typeof value.validation === "function" ) {
-							
-							pass = await value.validation( value );
-						}
-						
-						values.push( pass );
-						if( pass ) {
-							
-							value.element.parent().css( 'color', '' );
-						} else {
-							
-							value.element.parent().css( 'color', 'red' );
+							values.push( a );
 						}
 					}
 					
-					console.log( values );
-					
-					if( ! values.includes( false ) ) {
+					if( value.subfields ) {
 						
-						_i.publish( "data.onVerificationSuccess", {
-							form: _i,
-						});
-						resolve( true );
+						if( value.required && ! value.value.length ) {
+							
+							pass = false;
+						}
+					}
+					
+					if( typeof value.validation === "function" ) {
+						
+						pass = await value.validation( value );
+					}
+					
+					values.push( pass );
+					console.log( values, value );
+					if( pass ) {
+						
+						value.element.parent().css( 'color', '' );
 					} else {
 						
-						_i.publish( "data.onVerificationFailure", {
-							form: _i,
-						});
-						reject( false );
+						value.element.parent().css( 'color', 'red' );
 					}
-				});
+				}
+				
+				if( ! values.includes( false ) ) {
+					
+					_i.publish( "data.onVerificationSuccess", {
+						form: _i,
+					});
+					return true;
+				} else {
+					
+					_i.publish( "data.onVerificationFailure", {
+						form: _i,
+					});
+					return false;
+				}
 			},
 		};
 		this.submit = function() {};
 		
 		_i.m.init();
 		_i.v.init();
+		_i.validation.init();
 		
 		if( instance !== null ) {
 			
