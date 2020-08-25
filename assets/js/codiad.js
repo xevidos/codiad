@@ -15,7 +15,7 @@
 		
 		addThemeCSS: function( file ) {
 			
-			return this.addCSS( `themes/${this.theme}/${file}`, $( 'body,html' ) );
+			return this.addCSS( `themes/${this.theme}/${file}`, $( 'body' ) );
 		},
 	};
 })( this, jQuery );
